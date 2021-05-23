@@ -5,17 +5,6 @@ import logManager
 import config
 import contentRefresh
 
-
-
-
-def shutDown():
-#    os.system('shutdown /s')
-    pass
-
-def reboot():
-#    os.system('shutdown /r')
-    pass
-
 def run():
 
 

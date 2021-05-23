@@ -1,8 +1,6 @@
-# Ред. САА 24.12.2020
 
 import xml.etree.ElementTree as ET
 import os
-import psutil
 import shutil
 import config
 import logging

@@ -8,7 +8,7 @@ from datetime import date
 import sendMail
 import config
 import contentRefresh
-import validateNova
+from userConext import validateNova
 import renewCms
 import logManager
 
