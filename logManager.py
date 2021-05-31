@@ -8,7 +8,7 @@ import time
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
-f_handler = logging.FileHandler('{}{}.log'.format(config.logPath, date.today()))
+f_handler = logging.FileHandler('{}{}.log'.format(config.logPath, date.today()), encoding="UTF-8")
 logger.addHandler(f_handler)
 
 def cmsLogger(string):

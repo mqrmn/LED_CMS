@@ -1,3 +1,4 @@
+encoding="UTF-8"
 
 import xml.etree.ElementTree as ET
 import os
@@ -221,4 +222,5 @@ def run():
 
     else:
         logManager.cmsLogger('{} запущен. Обновление плейлиста отменено'.format(processName['name']))
-run()
+
+logManager.cmsLogger('lastShutdownValidation 0 ?')

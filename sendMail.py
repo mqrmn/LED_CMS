@@ -1,3 +1,4 @@
+encoding="UTF-8"
 
 import smtplib
 from email.mime.multipart import MIMEMultipart

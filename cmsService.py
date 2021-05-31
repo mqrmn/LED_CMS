@@ -1,3 +1,5 @@
+encoding="UTF-8"
+
 import win32serviceutil
 import win32service
 import win32event
@@ -9,8 +11,8 @@ import sendMail
 import config
 import contentRefresh
 from userConext import validateNova
-import renewCms
 import logManager
+import systemInit
 
 
 
@@ -59,101 +61,60 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
-
         userNotLoggedInCount, userLoggedIn, scrFreezCount, scrNotRunCount, isNovaRun, isScrRun = 0, 0, 0, 0, 0, '0'
         d = date.today()
-        lastShutDown = 1
 
-        logManager.cmsLogger('Служба CMS запущена')
+        # Блок действий при запуске системы
+        #----------------------------------------------------
 
-        # Запуск задачи по обновлению контента
-        try:
-            contentRefresh.run()
-        except:
-            logManager.cmsLogger('Возникла ошибка в модуле contentRefresh')
+        # Создаю экземпляр класса инициализационных процессов
+        systemInitOnRun = systemInit.onRun()
+
+        # Проверка состояния последнего отключения
+        systemInitOnRun.lastShutdownValidation()
 
         # Запускает задачу по обновлению модулей
-        try:
-            renewCms.CMSRenew()
-        except:
-            logManager.cmsLogger('Возникла ошибка в модуле renewerCms')
+        systemInitOnRun.cmsRenew()
 
-        # Считывает состояние последнего отключения
-        try:
-            f = open('{}lastShutDown.txt'.format(config.tempPath), 'r')
-            lastShutDown = f.read()
-            logManager.cmsLogger('lastShutDown = {}'.format(lastShutDown))
-            f.close()
-        except:
-            pass
-
-        # При некорректном состоянии отправляет e-mail
-        if lastShutDown == '0':
-            try:
-                sendMail.sendmail('{} предыдущее отключение было выполнено некорректно'.format(time.ctime()))
-            except:
-                pass
+        # Запуск задачи по обновлению контента
+        contentRefresh.run()
 
         # Удаляет старые временные файлы
-        for tempFile in os.listdir(config.tempPath):
-            try:
-                os.remove('{}{}'.format(config.tempPath, tempFile))
-            except:
-                pass
+        systemInitOnRun.fileCleaner()
 
         # Обнуляет код сотояния последнего отключения
-        try:
-            f = open('{}lastShutDown.txt'.format(config.tempPath), 'w')
-            f.write('0')
-            f.close()
-        except:
-            pass
+        systemInitOnRun.defaultStatusCode()
 
-        # Обнуляет код сотояния входа пользователя
-        try:
-            f = open('{}userState.txt'.format(config.tempPath, str(d)), 'w')
-            f.write('0')
-            f.close()
-        except:
-            f.close()
-            pass
-
-        # Обнуляет код сотояния экрнана
-        try:
-            f = open('{}screenState.txt'.format(config.tempPath), 'w')
-            f.write('2')
-            f.close()
-        except:
-            f.close()
-            pass
+        # ----------------------------------------------------
 
         # Запускает основной цикл
         while True:
 
-
+            # Если позователь не вошел в систему
             if (isScrRun == '0') and (userLoggedIn != 1):
+
                 logManager.cmsLogger('Проверка вхождения пользователя')
+
                 f = open('{}userState.txt'.format(config.tempPath, str(d)), 'r')
+
+                # Считываю статус проверки пользователя
                 userState = f.read()
                 f.close()
 
+                # Счетчик проверок
                 userNotLoggedInCount += 1
 
-                # Отключен основной функционал
+                # Если пользователь не вошел после 30 проверок
                 if userNotLoggedInCount > 30:
-                    try:
-                        sendMail.sendmail('{} пользователь не вошел в систему. Система будет перезагружена.'.format(time.ctime()))
-                    except:
-                        pass
-                    logManager.cmsLogger('Пользователь не вошел в систему')
-                    logManager.cmsLogger('ППерезагрузка системы в связи с отсутсвим вхождения пользователя')
+                    sendMail.sendmail('{} пользователь не вошел в систему. Система будет перезагружена.'.format(time.ctime()))
 
-                    try:
-                        f = open('{}lastShutDown.txt'.format(config.tempPath, 'w'))
-                        f.write('1')
-                        f.close()
-                    except:
-                        pass
+                    logManager.cmsLogger('Пользователь не вошел в систему')
+                    logManager.cmsLogger('Перезагрузка системы в связи с отсутсвим вхождения пользователя')
+
+                    f = open('{}lastShutDown.txt'.format(config.tempPath, 'w'))
+                    f.write('1')
+                    f.close()
+
                     #shutDown.reboot()
 
                 if (userState == '1'):
@@ -161,7 +122,9 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
                     userNotLoggedInCount = 0
                     userLoggedIn = 1
 
+
             else:
+                # Проверяет состояние экрана
                 isStateFile = os.path.exists('{}screenState.txt'.format(config.tempPath))
                 if isStateFile == True:
                     f = open('{}screenState.txt'.format(config.tempPath), 'r')
@@ -172,30 +135,23 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
                     if screenState == '2':
                         scrNotRunCount += 1
                         if scrNotRunCount >= 40:
-                            try:
-                                sendMail.sendmail('{} не запущена проверка экрана'.format(time.ctime()))
-                            except:
-                                pass
+                            sendMail.sendmail('{} не запущена проверка экрана'.format(time.ctime()))
+
                             logManager.cmsLogger('Не запущена проверка экрана')
 
                             scrNotRunCount = 0
                     else:
                         scrFreezCount += 1
                         if scrFreezCount >= 45:
-                            try:
-                                sendMail.sendmail('{} экран не обновлялся продолжительное время'.format(time.ctime()))
-                            except:
-                                pass
+                            sendMail.sendmail('{} экран не обновлялся продолжительное время'.format(time.ctime()))
                             logManager.cmsLogger('Экран не обновлялся продолжительное время')
                             scrFreezCount = 0
 
                 else:
                     pass
             if isNovaRun == 0:
-                try:
-                    isNovaRun = validateNova.run()
-                except:
-                    logManager.cmsLogger('Возникла ошибка в модуле validateNova')
+                isNovaRun = validateNova.run()
+                logManager.cmsLogger('Возникла ошибка в модуле validateNova')
                 if isNovaRun == 1:
                     logManager.cmsLogger('NovaStar запущен')
                 else:
@@ -204,10 +160,8 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
             # Таймаут до следующей итерации цикла
             time.sleep(10)
 
-
-
-
-
+# Граница цикла
+#----------------------------------------------------------------------
 
 
             # Проверяем не поступила ли команда завершения работы службы

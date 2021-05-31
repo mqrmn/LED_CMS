@@ -1,5 +1,7 @@
+encoding="UTF-8"
 
 import configEx
+
 
 
 objType = configEx.objType

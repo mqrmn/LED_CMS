@@ -1,12 +1,13 @@
+encoding="UTF-8"
 
 # Тип объекта
 objType = 'LM'
 # Код объекта
-objCode = '1640828267'
+objCode = 'DEV'
 # Формат экрана
 screenFormat = ['960@360', ]
 # Адрес салона
-objAddress = 'г. Нижнекамск'
+objAddress = 'DEV'
 
 # Количество экранов
 screen_num = 1
