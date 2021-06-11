@@ -45,6 +45,7 @@ def main():
                 f.close()
                 del chanelIntencArr[0] # Удаляю из словаря запись с индексом 0
 
+            # добавить рандомизатор
             time.sleep(43)
     else:
         pass
