@@ -61,7 +61,20 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
-        userNotLoggedInCount, userLoggedIn, scrFreezCount, scrNotRunCount, isNovaRun, isScrRun = 0, 0, 0, 0, 0, '0'
+
+        # количество итераций цикла с отсутсвием вхождения пользователя
+        userNotLoggedInCount = 0
+        # Статус вхождния пользователя
+        userLoggedIn = 0
+        # количество итераций цикла с отсутсвием движения экрана
+        scrFreezCount = 0
+        # количество итераций цикла с отсутсвием запуска валидатора
+        scrNotRunCount = 0
+        # Статус запуска плеера
+        isNovaRun = 0
+        # Статус запуска валидатора экрана
+        isScrRun = '0'
+
         d = date.today()
 
         # Блок действий при запуске системы
@@ -92,33 +105,23 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
             # Если позователь не вошел в систему
             if (isScrRun == '0') and (userLoggedIn != 1):
-
                 logManager.cmsLogger('Проверка вхождения пользователя')
-
-                f = open('{}userState.txt'.format(config.tempPath, str(d)), 'r')
-
                 # Считываю статус проверки пользователя
+                f = open('{}userState.txt'.format(config.tempPath, str(d)), 'r')
                 userState = f.read()
                 f.close()
-
                 # Счетчик проверок
                 userNotLoggedInCount += 1
-
                 # Если пользователь не вошел после 30 проверок
                 if userNotLoggedInCount > 30:
-                    sendMail.sendmail('{} пользователь не вошел в систему. Система будет перезагружена.'.format(time.ctime()))
-
+#                    sendMail.sendmail('{} пользователь не вошел в систему. Система будет перезагружена.'.format(time.ctime()))
                     logManager.cmsLogger('Пользователь не вошел в систему')
-                    logManager.cmsLogger('Перезагрузка системы в связи с отсутсвим вхождения пользователя')
-
-                    f = open('{}lastShutDown.txt'.format(config.tempPath, 'w'))
-                    f.write('1')
-                    f.close()
-
-                    #shutDown.reboot()
+                    # Сброс счетчика
+                    userNotLoggedInCount = 0
 
                 if (userState == '1'):
                     logManager.cmsLogger('Пользователь вошел в систему')
+                    # Сброс счетчика, регистрация статуса
                     userNotLoggedInCount = 0
                     userLoggedIn = 1
 

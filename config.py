@@ -8,7 +8,7 @@ objType = configEx.objType
 objCode = configEx.objCode
 screenFormat = configEx.screenFormat
 objAddress = configEx.objAddress
-screen_num = configEx.screen_num
+screenNum = configEx.screen_num
 regiondict = configEx.regiondict
 
 # Установка путей
