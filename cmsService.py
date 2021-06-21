@@ -61,11 +61,10 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
-
         # количество итераций цикла с отсутсвием вхождения пользователя
-        userNotLoggedInCount = 0
+
         # Статус вхождния пользователя
-        userLoggedIn = 0
+        userState = '0'
         # количество итераций цикла с отсутсвием движения экрана
         scrFreezCount = 0
         # количество итераций цикла с отсутсвием запуска валидатора
@@ -74,7 +73,6 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         isNovaRun = 0
         # Статус запуска валидатора экрана
         isScrRun = '0'
-
         d = date.today()
 
         # Блок действий при запуске системы
@@ -82,19 +80,14 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         # Создаю экземпляр класса инициализационных процессов
         systemInitOnRun = systemInit.onRun()
-
         # Проверка состояния последнего отключения
         systemInitOnRun.lastShutdownValidation()
-
         # Запускает задачу по обновлению модулей
         systemInitOnRun.cmsRenew()
-
         # Запуск задачи по обновлению контента
         contentRefresh.run()
-
         # Удаляет старые временные файлы
         systemInitOnRun.fileCleaner()
-
         # Обнуляет код сотояния последнего отключения
         systemInitOnRun.defaultStatusCode()
 
@@ -102,28 +95,16 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         # Запускает основной цикл
         while True:
-
-            # Если позователь не вошел в систему
-            if (isScrRun == '0') and (userLoggedIn != 1):
-                logManager.cmsLogger('Проверка вхождения пользователя')
-                # Считываю статус проверки пользователя
+            # ПРОВЕРКА ВХОЖДЕНИЯ ПОЛЬЗОВАТЕЛЯ
+            if userState == '0':
                 f = open('{}userState.txt'.format(config.tempPath, str(d)), 'r')
                 userState = f.read()
                 f.close()
-                # Счетчик проверок
                 userNotLoggedInCount += 1
-                # Если пользователь не вошел после 30 проверок
                 if userNotLoggedInCount > 30:
-#                    sendMail.sendmail('{} пользователь не вошел в систему. Система будет перезагружена.'.format(time.ctime()))
-                    logManager.cmsLogger('Пользователь не вошел в систему')
-                    # Сброс счетчика
                     userNotLoggedInCount = 0
-
                 if (userState == '1'):
-                    logManager.cmsLogger('Пользователь вошел в систему')
-                    # Сброс счетчика, регистрация статуса
                     userNotLoggedInCount = 0
-                    userLoggedIn = 1
 
 
             else:
@@ -138,16 +119,10 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
                     if screenState == '2':
                         scrNotRunCount += 1
                         if scrNotRunCount >= 40:
-                            sendMail.sendmail('{} не запущена проверка экрана'.format(time.ctime()))
-
-                            logManager.cmsLogger('Не запущена проверка экрана')
-
                             scrNotRunCount = 0
                     else:
                         scrFreezCount += 1
                         if scrFreezCount >= 45:
-                            sendMail.sendmail('{} экран не обновлялся продолжительное время'.format(time.ctime()))
-                            logManager.cmsLogger('Экран не обновлялся продолжительное время')
                             scrFreezCount = 0
 
                 else:
@@ -159,13 +134,11 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
                     logManager.cmsLogger('NovaStar запущен')
                 else:
                     logManager.cmsLogger('NovaStar не запущен')
-
             # Таймаут до следующей итерации цикла
             time.sleep(10)
 
 # Граница цикла
 #----------------------------------------------------------------------
-
 
             # Проверяем не поступила ли команда завершения работы службы
             rc = win32event.WaitForSingleObject(self.hWaitStop, self.timeout)
@@ -173,7 +146,6 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
                 # Здесь выполняем необходимые действия при остановке службы
                 servicemanager.LogInfoMsg("Service finished")
                 break
-
             # Здесь выполняем необходимые действия при приостановке службы
             if self._paused:
                 servicemanager.LogInfoMsg("Service paused")

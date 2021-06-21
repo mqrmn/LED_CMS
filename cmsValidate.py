@@ -1,4 +1,4 @@
-encoding="UTF-8"
+encoding = "UTF-8"
 
 import numpy as np
 import pyautogui
@@ -18,7 +18,7 @@ def main():
     userStateFile.close()
     chanelSumArr = []
 
-    if config.screenNum == 1:
+    if config.screenNum == 1:  # По количеству областей будет допиливться
         while True:
             while len(chanelSumArr) < 2 :
                 # Функциональная часть снимка экрана и подсчета интнсивности каналов
@@ -41,47 +41,6 @@ def main():
             time.sleep(random.randint(30, 90))
     else:
         pass
-
-
-
-
-
-
-
-
-
-    # if config.screen_num == 2:
-    #
-    #     while True:
-    #         a = 0
-    #         while a < config.screen_num:
-    #             image = pyautogui.screenshot(region=(config.regiondict[a]))
-    #             img = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-    #             x+=1
-    #             intensity = img.sum(axis=2)
-    #             chanelsum = np.sum(intensity)
-    #             if a == 0:
-    #                 chanel_sum_1.append(chanelsum)
-    #             if a == 1:
-    #                 chanel_sum_2.append(chanelsum)
-    #             a += 1
-    #
-    #         if b == 1:
-    #             f = open('{}screenState.txt'.format(config.tempPath), 'w')
-    #
-    #             if (chanel_sum_1[0] == chanel_sum_1[1]) and (chanel_sum_2[0] == chanel_sum_2[1]):
-    #                 f.write('1')
-    #             else:
-    #                 f.write('0')
-    #             f.close()
-    #             del chanel_sum_1[0]
-    #             del chanel_sum_2[0]
-    #         if b == 0:
-    #             b = 1
-    #
-    #         time.sleep(66)
-
-
 
 if __name__ == '__main__':
     main()
