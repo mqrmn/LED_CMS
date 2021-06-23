@@ -80,16 +80,21 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         # Создаю экземпляр класса инициализационных процессов
         systemInitOnRun = systemInit.onRun()
+
         # Проверка состояния последнего отключения
         systemInitOnRun.lastShutdownValidation()
-        # Запускает задачу по обновлению модулей
-        systemInitOnRun.cmsRenew()
-        # Запуск задачи по обновлению контента
-        contentRefresh.run()
-        # Удаляет старые временные файлы
-        systemInitOnRun.fileCleaner()
         # Обнуляет код сотояния последнего отключения
         systemInitOnRun.defaultStatusCode()
+
+        # Удаляет старые временные файлы
+        systemInitOnRun.fileCleaner()
+
+
+        # Запускает задачу по обновлению модулей
+        systemInitOnRun.cmsRenew()
+
+        # Запускает задачу по обновлению контента
+        contentRefresh.run()
 
         # ----------------------------------------------------
 
@@ -127,14 +132,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
                 else:
                     pass
-            if isNovaRun == 0:
-                isNovaRun = validateNova.run()
-                logManager.cmsLogger('Возникла ошибка в модуле validateNova')
-                if isNovaRun == 1:
-                    logManager.cmsLogger('NovaStar запущен')
-                else:
-                    logManager.cmsLogger('NovaStar не запущен')
-            # Таймаут до следующей итерации цикла
+
             time.sleep(10)
 
 # Граница цикла
