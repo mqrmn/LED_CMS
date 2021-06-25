@@ -200,7 +200,7 @@ def RefreshContent():
 
     return refreshStatus
 
-def run():
+def renewHandler():
 
 
     for proc in psutil.process_iter():

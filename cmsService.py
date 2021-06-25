@@ -13,6 +13,7 @@ import contentRefresh
 from userConext import validateNova
 import logManager
 import systemInit
+import fileManager
 
 
 
@@ -62,7 +63,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
         # количество итераций цикла с отсутсвием вхождения пользователя
-
+        userNotLoggedInCount = 0
         # Статус вхождния пользователя
         userState = '0'
         # количество итераций цикла с отсутсвием движения экрана
@@ -73,36 +74,35 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         isNovaRun = 0
         # Статус запуска валидатора экрана
         isScrRun = '0'
-        d = date.today()
 
+        d = date.today()
         # Блок действий при запуске системы
         #----------------------------------------------------
 
         # Создаю экземпляр класса инициализационных процессов
         systemInitOnRun = systemInit.onRun()
-
+        fileCleaner = fileManager.fileCleaner()
+        fileRenewer = fileManager.fileRenewer()
         # Проверка состояния последнего отключения
         systemInitOnRun.lastShutdownValidation()
-        # Обнуляет код сотояния последнего отключения
-        systemInitOnRun.defaultStatusCode()
-
+        # Очищает файлы журнала
+        fileCleaner.logArchiever()
+        fileCleaner.logDeleter()
         # Удаляет старые временные файлы
-        systemInitOnRun.fileCleaner()
-
-
+        fileCleaner.tempDeleter()
+        # Обнуляет коды состояний
+        systemInitOnRun.defaultStatusCode()
         # Запускает задачу по обновлению модулей
-        systemInitOnRun.cmsRenew()
-
+        fileRenewer.cmsRenewer()
         # Запускает задачу по обновлению контента
-        contentRefresh.run()
+        fileRenewer.contentRenewHandler()
 
         # ----------------------------------------------------
-
         # Запускает основной цикл
         while True:
             # ПРОВЕРКА ВХОЖДЕНИЯ ПОЛЬЗОВАТЕЛЯ
             if userState == '0':
-                f = open('{}userState.txt'.format(config.tempPath, str(d)), 'r')
+                f = open('{}userState.txt'.format(config.tempPath), 'r')
                 userState = f.read()
                 f.close()
                 userNotLoggedInCount += 1
@@ -110,7 +110,6 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
                     userNotLoggedInCount = 0
                 if (userState == '1'):
                     userNotLoggedInCount = 0
-
 
             else:
                 # Проверяет состояние экрана

@@ -19,12 +19,8 @@ class onRun:
         f.close()
 
         # При некорректном состоянии отправляет e-mail
-        if lastShutDown == '0':
-            sendMail.sendmail('{} предыдущее отключение было выполнено некорректно'.format(time.ctime()))
-
-    def fileCleaner(self):
-        for tempFile in os.listdir(config.tempPath):
-            os.remove('{}{}'.format(config.tempPath, tempFile))
+        # if lastShutDown == '0':
+        #     sendMail.sendmail('{} предыдущее отключение было выполнено некорректно'.format(time.ctime()))
 
 
     def cmsRenew(self):
@@ -55,14 +51,18 @@ class onRun:
 
     def defaultStatusCode(self):
         # Обнуляет код сотояния последнего отключения
+        logManager.cmsLogger('2.1')
         f = open('{}lastShutDown.txt'.format(config.tempPath), 'w')
         f.write('0')
         f.close()
+        logManager.cmsLogger('2.2')
 
         # Обнуляет код сотояния входа пользователя
-        f = open('{}userState.txt'.format(config.tempPath, str(d)), 'w')
+        f = open('{}userState.txt'.format(config.tempPath), 'w')
         f.write('0')
         f.close()
+
+        logManager.cmsLogger('2.3')
 
         # Обнуляет код сотояния экрнана
         f = open('{}screenState.txt'.format(config.tempPath), 'w')
