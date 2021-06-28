@@ -1,4 +1,4 @@
-#v.1.1.1
+#v.1.1.0
 
 import smtplib
 from email.mime.multipart import MIMEMultipart

@@ -1,4 +1,4 @@
-#v.1.1.1
+#v.1.1.0
 
 from App.Config import Config
 import datetime
@@ -38,7 +38,6 @@ class System:
             shutil.rmtree(Config.logPath + str(date.today()))
         else:
             logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Журналов для архивирования не обнаружено')
-
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
 
 
@@ -52,16 +51,13 @@ class System:
             if re.search('zip', file):
                 # Проверяю дату создания архива
                 if (datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0], "%Y-%m-%d").date() - date.today()).days < -90:
-
                     listForDeleting.append(file)
 
         # Удаляю устаревшие архивы
         for file in listForDeleting:
             os.remove(Config.logPath + file)
             logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Файл удален ' + file)
-
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
-
 
     def TempDeleter(self):
         for file in os.listdir(Config.tempPath):
@@ -72,31 +68,20 @@ class System:
     def CMSUpgrade(self):
 
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
-
-        upgradeKeys = {'IGNORE': 100, 'FREE':200, 'FORCE':300, 'LOCK':400}
         priorities = {'GLOBAL': 0, 'GROUP': 0, 'LOCAL': 0}
         versions = {'GLOBAL': 0, 'GROUP': 0, 'LOCAL': 0, 'CURRENT':0}
-
-        globalCMS = 0
-        groupCMS = 0
-        localCMS = 0
 
         if Config.upgradePolitic == 1:
             # Чтение текщей версии
             if os.path.exists(os.path.dirname(__file__) + '\\PACKAGE.ver'):
                 file = open(os.path.dirname(__file__) + '\\PACKAGE.ver', 'r')
-
                 currentV = file.read()
                 file.close()
                 versions['CURRENT'] = currentV
 
             priorities['GLOBAL'], versions['GLOBAL'] = self.CheckCMSUpdates(Config.globalCmsRenew, 'GLOBAL')
-            print(priorities['GLOBAL'], versions['GLOBAL'])
             priorities['GROUP'], versions['GROUP'] = self.CheckCMSUpdates(Config.groupCmsRenew, 'GROUP')
-            print(priorities['GROUP'], versions['GROUP'])
             priorities['LOCAL'], versions['LOCAL'] = self.CheckCMSUpdates(Config.localCmsRenew, 'LOCAL')
-            print(priorities['LOCAL'], versions['LOCAL'])
-
 
             maxPriority = sorted(priorities, key=priorities.__getitem__)[-1]
             logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Определен приоритет каталога обновлений: ' + maxPriority)
@@ -152,25 +137,22 @@ class System:
                 score += upgradeScoreType[type]
         else:
             score, version = 0, '0.0.0'
-
         return score, version
-
-
 
     def CurrentCMSArch(self, version):
 
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
 
         if  not os.path.exists(Config.CMSArchPath + str(version)):
-            #shutil.copytree(os.getcwd(), Config.CMSArchPath + str(version))
+            shutil.copytree(os.getcwd(), Config.CMSArchPath + str(version))
             logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Текщий пакет заархивирован')
 
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
 
     def RenewCMSFiles(self, path):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
-        # shutil.rmtree(os.path.dirname(__file__))
-        # shutil.copytree(path, os.path.dirname(__file__))
+        shutil.rmtree(os.path.dirname(__file__))
+        shutil.copytree(path, os.path.dirname(__file__))
 
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Обновление выполнено')
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
