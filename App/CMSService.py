@@ -1,8 +1,6 @@
 #v.1.1.1
 import sys
-
 sys.path.append("C:\\MOBILE\\Local\\CMS")
-
 
 import win32serviceutil
 import win32service

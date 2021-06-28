@@ -1,6 +1,6 @@
 #v.1.1.1
 
-import Config
+from App.Config import Config
 import datetime
 from datetime import date
 import os
@@ -97,9 +97,9 @@ class System:
         localCMS = 0
 
         if Config.upgradePolitic == 1:
-            if os.path.exists('C:\\MOBILE\\Local\\CMS\\App\\PACKAGE.ver'):
+            if os.path.exists(os.path.dirname(__file__) + '\\PACKAGE.ver'):
                 print('1')
-                file = open('C:\\MOBILE\\Local\\CMS\\App\\PACKAGE.ver', 'r')
+                file = open(os.path.dirname(__file__) + '\\PACKAGE.ver', 'r')
                 currentV = file.read()
                 file.close()
                 versions['CURRENT'] = currentV
@@ -201,9 +201,8 @@ class System:
             shutil.copytree(os.getcwd(), Config.CMSArchPath + str(version))
 
     def RenewCMSFiles(self, path):
-        print(0)
-        # shutil.rmtree('C:\\MOBILE\\Local\\CMS\\App')
-        # shutil.copytree(path, 'C:\\MOBILE\\Local\\CMS\\App')
+        shutil.rmtree(os.path.dirname(__file__))
+        shutil.copytree(path, os.path.dirname(__file__))
 
     def ContentRenewHandler(self):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Метод вызван')
