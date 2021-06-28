@@ -150,8 +150,10 @@ class System:
                 score += upgradeScoreTypeLock[type]
             else:
                 score += upgradeScoreType[type]
+        else:
+            score, version = 0, '0.0.0'
 
-            return score, version
+        return score, version
 
 
 
