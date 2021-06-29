@@ -1,4 +1,4 @@
-# v.1.1.0
+# v.1.1.1
 from Config import ConfigEx
 
 objType = ConfigEx.objType

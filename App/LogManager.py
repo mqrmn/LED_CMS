@@ -1,4 +1,4 @@
-#v.1.1.0
+#v.1.1.1
 
 import logging.config
 from App.Config import Config
