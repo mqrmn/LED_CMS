@@ -1,5 +1,6 @@
 #v.1.1.1
-
+import sys
+sys.path.append("C:\\MOBILE\\Local\\CMS")
 from App.Config import Config
 import datetime
 from datetime import date
@@ -229,7 +230,6 @@ class System:
 
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
         return refreshStatus
-
 
     def Generate(self):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')

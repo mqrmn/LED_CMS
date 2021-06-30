@@ -10,7 +10,9 @@ import time
 import os
 from App.Config import Config
 from App import LogManager, Restore, Validation, FileManager
+
 from inspect import currentframe, getframeinfo
+import subprocess
 
 logging = LogManager.LogManager()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
@@ -60,15 +62,15 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
     def main(self):
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
+
+
+
         # Инициализация
         # --------------------------------------------------------------------
         # Создаю экземпляры классов
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], '0')
         Validation_ = Validation.System()
         File_Manager = FileManager.System()
         Default_ = Restore.Default()
-
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], '3')
 
         # Обновляю CMS
         File_Manager.CMSUpgrade()
@@ -77,21 +79,15 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         # Обновляю контент
         File_Manager.ContentRenewHandler()
 
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], '6')
-
         # Проверяю статус последнего выключения
         Validation_.LastShutdown()
         # Обнуляю временные файлы
         File_Manager.TempDeleter()
         Default_.TempFiles()
 
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], '9')
-
         # Чищу логи
         File_Manager.LogArchiever()
         File_Manager.LogDeleter()
-
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], '12')
 
         # Удаляю экземпляры классов
         Validation_ = None
