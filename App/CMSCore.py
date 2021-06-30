@@ -97,49 +97,12 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 #        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], '15')
 
 
-        # количество итераций цикла с отсутсвием вхождения пользователя
-        userNotLoggedInCount = 0
-        # Статус вхождния пользователя
-        userState = '0'
-        # количество итераций цикла с отсутсвием движения экрана
-        scrFreezCount = 0
-        # количество итераций цикла с отсутсвием запуска валидатора
-        scrNotRunCount = 0
+
 
         # Цикл проверок
         # --------------------------------------------------------------------
         while True:
-            # ПРОВЕРКА ВХОЖДЕНИЯ ПОЛЬЗОВАТЕЛЯ
-            if userState == '0':
-                f = open('{}userState.txt'.format(Config.tempPath), 'r')
-                userState = f.read()
-                f.close()
-                userNotLoggedInCount += 1
-                if userNotLoggedInCount > 30:
-                    userNotLoggedInCount = 0
-                if (userState == '1'):
-                    userNotLoggedInCount = 0
 
-            else:
-                # Проверяет состояние экрана
-                isStateFile = os.path.exists('{}screenState.txt'.format(Config.tempPath))
-                if isStateFile == True:
-                    f = open('{}screenState.txt'.format(Config.tempPath), 'r')
-                    screenState = f.read()
-                    f.close()
-                    if screenState == '0':
-                        scrFreezCount = 0
-                    if screenState == '2':
-                        scrNotRunCount += 1
-                        if scrNotRunCount >= 40:
-                            scrNotRunCount = 0
-                    else:
-                        scrFreezCount += 1
-                        if scrFreezCount >= 45:
-                            scrFreezCount = 0
-
-                else:
-                    pass
 
             time.sleep(10)
 
