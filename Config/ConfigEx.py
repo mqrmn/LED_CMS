@@ -5,7 +5,7 @@ objType = 'LM'
 # Код объекта
 objCode = 'DEV'
 # Формат экрана
-screenFormat = ['960@360', ]
+screenFormat = ['1920@1080', ]
 # Адрес салона
 objAddress = 'DEV'
 

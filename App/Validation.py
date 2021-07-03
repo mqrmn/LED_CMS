@@ -69,12 +69,14 @@ class System:
                 pass
         return x5
 
+    def test(self):
+        e = 0
+        while e < 2:
+            print('TEST')
+            time.sleep(10)
+            e += 1
+
     def ScreenValidation(self):
-        # Запись статуса вхождения пользователя
-        d = date.today()
-        userStateFile = open('{}userState.txt'.format(Config.tempPath, str(d)), 'w')
-        userStateFile.write('1')
-        userStateFile.close()
         chanelSumArr = []
 
         if Config.screenNum == 1:  # По количеству областей будет допиливться
@@ -90,15 +92,17 @@ class System:
                         chanelSumArr.append(chanelSum)
                 # Часть проверок значений, записи состояний
                 if len(chanelSumArr) == 2:
-                    f = open('{}screenState.txt'.format(Config.tempPath), 'w')  # Пишу состояние экрана
+                    # Экран статичен
                     if (chanelSumArr[0] == chanelSumArr[1]):
-                        f.write('1')
+                        print(chanelSumArr[0], chanelSumArr[1])
+                        print('1')
+                    # Экран динамичен
                     else:
-                        f.write('0')
-                    f.close()
+                        print(chanelSumArr[0], chanelSumArr[1])
+                        print('0')
                     del chanelSumArr[0]  # Удаляю из словаря запись с индексом 0
 
-                time.sleep(random.randint(30, 90))
+                time.sleep(random.randint(10, 20))
         else:
             pass
 
