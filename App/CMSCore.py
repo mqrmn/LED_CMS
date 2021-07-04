@@ -102,8 +102,6 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         # Цикл проверок
         # --------------------------------------------------------------------
         while True:
-
-
             time.sleep(10)
 
         # Граница цикла

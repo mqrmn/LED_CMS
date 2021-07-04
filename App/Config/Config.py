@@ -1,5 +1,5 @@
 # v.1.1.1
-from Config import ConfigEx
+from ConfigEx import ConfigEx
 
 objType = ConfigEx.objType
 objCode = ConfigEx.objCode
@@ -19,7 +19,7 @@ tempPath = '{}Temp\\'.format(workPath)
 cmsConfigPath = '{}Config\\'.format(workPath)
 
 # Настройка локальных директорий
-configTargetPath = 'C:\\MOBILE\\Local\\Config\\'
+configTargetPath = 'C:\\MOBILE\\Local\\ConfigEx\\'
 cmsLocalPath = 'C:\\MOBILE\\Local\\CMS\\'
 CMSArchPath = 'C:\\MOBILE\\Local\\Arch\\'
 
@@ -35,7 +35,10 @@ globalCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\CMS_DEV\\'
 groupCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\{}\\CMS_DEV\\'.format(objType)
 localCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\{}\\{}\\CMS\\'.format(objType, objCode)
 
-global ScreenState
+# Настройка сокетов для внутренних коммуникаций
+localhost = 'localhost'
+CMSCoreInternalPort = 2203
+CMSUserAgentPort = 2303
 
 
 

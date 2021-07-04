@@ -4,25 +4,25 @@ import re
 import shutil
 import psutil
 from App.Config import Config
-import os
+
 import numpy as np
 import pyautogui
 import cv2
 import time
-from datetime import date
 from App.Config import Config
-from App import LogManager
 import random
 import os
-from App import Var
+from App import Communicate
 
 class System:
 
+    # Проверка последнего отключения системы
     def LastShutdown(self):
         f = open('{}lastShutDown.txt'.format(Config.tempPath), 'r')
         lastShutDown = f.read()
         f.close()
 
+    # Проверка состояния файла NovaStudio
     def NovaStudio(self):
         pathTarget = 'C:\\Users\\rUser_local\\AppData\\Roaming\\NovaStudio2012\\'
         pathSource = 'C:\\Users\\rUser_local\\AppData\\Roaming\\NovaStudio2012_bcp\\'
@@ -77,81 +77,63 @@ class System:
             time.sleep(10)
             e += 1
 
-    def ScreenValidation(self, q):
-
-        print('q', q)
+    # Создание скриншотов, проверка экрана на статичность
+    def GetScreenValidation(self, screenStateQueue):
         chanelSumArr = []
-
-        if Config.screenNum == 1:  # По количеству областей будет допиливться
+        if Config.screenNum == 1:  # По количеству областей будет допиливаться
             while True:
                 while len(chanelSumArr) < 2:
-                    # Функциональная часть снимка экрана и подсчета интнсивности каналов
-                    screenShot = pyautogui.screenshot(region=(Config.regiondict[0]))  # Снимок экрана
-                    chanelIntens = cv2.cvtColor(np.array(screenShot),
-                                                cv2.COLOR_RGB2BGR)  # передача изображения на анализ каналов
-                    commonIntens = chanelIntens.sum(axis=2)  # посмотреть что делает эта строка
-                    chanelSum = np.sum(commonIntens)  # Сумма интенсивности по каналам
+                    screenShot = pyautogui.screenshot(region=(Config.regiondict[0]))            # Снимок экрана
+                    chanelIntens = cv2.cvtColor(np.array(screenShot), cv2.COLOR_RGB2BGR)        # передача изображения на анализ каналов
+                    commonIntens = chanelIntens.sum(axis=2)                                     # посмотреть что делает эта строка
+                    chanelSum = np.sum(commonIntens)                                            # Сумма интенсивности по каналам
                     if len(chanelSumArr) < 2:
                         chanelSumArr.append(chanelSum)
-                # Часть проверок значений, записи состояний
-                if len(chanelSumArr) == 2:
-                    # Экран статичен
-                    if (chanelSumArr[0] == chanelSumArr[1]):
-                        print(chanelSumArr[0], chanelSumArr[1])
-                        q.put(1)
-                        ScreenState = 1
-                        print('child', ScreenState)
-                        # Экран динамичен
-                    else:
-                        print(chanelSumArr[0], chanelSumArr[1])
-                        q.put(0)
-                        ScreenState = 0
-                        print('child', ScreenState)
-                    del chanelSumArr[0]  # Удаляю из словаря запись с индексом 0
 
+                # Проверка значений, передача результата в очередь
+                if len(chanelSumArr) == 2:
+                    if (chanelSumArr[0] == chanelSumArr[1]):                                    # Экран статичен
+                        screenStateQueue.put(1)
+                        # print('screenStateQueue.put(1)')
+                    else:
+                        # print('screenStateQueue.put(0)')
+                        screenStateQueue.put(0)
+                    del chanelSumArr[0]                                                         # Удаляю из словаря запись с индексом 0
                 time.sleep(random.randint(10, 20))
         else:
             pass
 
-    def CheckScreenValidationData(self, ):
-        # количество итераций цикла с отсутсвием вхождения пользователя
-        userNotLoggedInCount = 0
-        # Статус вхождния пользователя
-        userState = '0'
-        # количество итераций цикла с отсутсвием движения экрана
-        scrFreezCount = 0
-        # количество итераций цикла с отсутсвием запуска валидатора
-        scrNotRunCount = 0
+    # Счетчик статичности экрана
+    def CheckScreenValidation(self, screenStateQueue):
+        screenFreezeCount = 0
+        checkCount = 0
+        Network_ = Communicate.Network()            # Экземпляр класса для передачи состояния службе
         while True:
-            # ПРОВЕРКА ВХОЖДЕНИЯ ПОЛЬЗОВАТЕЛЯ
-            if userState == '0':
-                f = open('{}userState.txt'.format(Config.tempPath), 'r')
-                userState = f.read()
-                f.close()
-                userNotLoggedInCount += 1
-                if userNotLoggedInCount > 30:
-                    userNotLoggedInCount = 0
-                if (userState == '1'):
-                    userNotLoggedInCount = 0
-
+               # Принимает данные из очереди
+            if screenStateQueue.empty() == True:
+                time.sleep(5)
             else:
-                # Проверяет состояние экрана
-                isStateFile = os.path.exists('{}screenState.txt'.format(Config.tempPath))
-                if isStateFile == True:
-                    f = open('{}screenState.txt'.format(Config.tempPath), 'r')
-                    screenState = f.read()
-                    f.close()
-                    if screenState == '0':
-                        scrFreezCount = 0
-                    if screenState == '2':
-                        scrNotRunCount += 1
-                        if scrNotRunCount >= 40:
-                            scrNotRunCount = 0
-                    else:
-                        scrFreezCount += 1
-                        if scrFreezCount >= 45:
-                            scrFreezCount = 0
-
-                else:
+                screenState = screenStateQueue.get()
+                # print('screenState', screenState)
+                if screenState == 0:                    # Проверяет состояние экрана
                     pass
-            time.sleep(10)
+                if screenState == 1:
+                    screenFreezeCount += 1
+                checkCount += 1
+                # print('checkCount', checkCount)
+                # print('screenFreezeCount', screenFreezeCount)
+                if checkCount >= 2:
+                    if screenFreezeCount == checkCount:
+                        screenFreezeCount = 1
+                    else:
+                        screenFreezeCount = 0
+                    Network_.Client(Config.localhost, Config.CMSCoreInternalPort, ['CheckScreenValidation', screenFreezeCount])
+                    screenFreezeCount, checkCount = 0, 0
+
+
+    def CoreScreenValidation(self, dataQueue):
+        while True:
+            if dataQueue.empty() == True:
+                time.sleep(5)
+            else:
+                print('CoreScreenValidation', dataQueue.get())
