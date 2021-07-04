@@ -14,6 +14,7 @@ from App.Config import Config
 from App import LogManager
 import random
 import os
+from App import Var
 
 class System:
 
@@ -76,7 +77,9 @@ class System:
             time.sleep(10)
             e += 1
 
-    def ScreenValidation(self):
+    def ScreenValidation(self, q):
+
+        print('q', q)
         chanelSumArr = []
 
         if Config.screenNum == 1:  # По количеству областей будет допиливться
@@ -95,18 +98,22 @@ class System:
                     # Экран статичен
                     if (chanelSumArr[0] == chanelSumArr[1]):
                         print(chanelSumArr[0], chanelSumArr[1])
-                        print('1')
-                    # Экран динамичен
+                        q.put(1)
+                        ScreenState = 1
+                        print('child', ScreenState)
+                        # Экран динамичен
                     else:
                         print(chanelSumArr[0], chanelSumArr[1])
-                        print('0')
+                        q.put(0)
+                        ScreenState = 0
+                        print('child', ScreenState)
                     del chanelSumArr[0]  # Удаляю из словаря запись с индексом 0
 
                 time.sleep(random.randint(10, 20))
         else:
             pass
 
-    def CheckScreenValidationData(self):
+    def CheckScreenValidationData(self, ):
         # количество итераций цикла с отсутсвием вхождения пользователя
         userNotLoggedInCount = 0
         # Статус вхождния пользователя
