@@ -132,8 +132,18 @@ class System:
 
 
     def CoreScreenValidation(self, dataQueue):
+
+        count = 0
         while True:
             if dataQueue.empty() == True:
                 time.sleep(5)
-            else:
-                print('CoreScreenValidation', dataQueue.get())
+            elif dataQueue.get() == '1':
+                print('count', count)
+                count += 1
+            elif dataQueue.get() == '0':
+                print('count', count)
+                count = 0
+
+            if count >= 2:
+                print('count criical', count)
+                count = 0

@@ -15,9 +15,9 @@ def main():
     Network_ = Communicate.Network()                    # Экземпляр класса сервера
 
 
-    getScreenValidationTread = threading.Thread(target=Validation_.GetScreenValidation, args=(lowScreenStateQueue,))       # Поток проверки экрана
-    checkScreenValidationTread = threading.Thread(target=Validation_.CheckScreenValidation, args=(lowScreenStateQueue,))   # Счетчик проверки экрана
-    serverThread = threading.Thread(target=Network_.Server, args=(Config.localhost, Config.CMSUserAgentPort, CMSCoreDataQueue))           # Сокет, принимающий данные от CMSCore
+    getScreenValidationTread = threading.Thread(target=Validation_.GetScreenValidation, args=(lowScreenStateQueue,))                # Поток проверки экрана
+    checkScreenValidationTread = threading.Thread(target=Validation_.CheckScreenValidation, args=(lowScreenStateQueue,))            # Счетчик проверки экрана
+    serverThread = threading.Thread(target=Network_.Server, args=(Config.localhost, Config.CMSUserAgentPort, CMSCoreDataQueue))     # Сокет, принимающий данные от CMSCore
 
 
 
