@@ -1,4 +1,5 @@
 import time
+from App import Execution
 
 class Handler:
 
@@ -46,6 +47,8 @@ class Handler:
                 if type(data) == list:
                     if data[0] == 'CoreScreenValidation':
                         if data[1] == '1':
+                            Execute_ = Execution.Execute()
                             print('CMSCoreDataQueue', data)
+                            Execute_.RestartNovaStudio()
             else:
                 pass
