@@ -131,19 +131,19 @@ class System:
                     screenFreezeCount, checkCount = 0, 0
 
 
-    def CoreScreenValidation(self, dataQueue):
-
+    def CoreScreenValidation(self, ScreenValidationQueue, ExecutionQueue):
         count = 0
         while True:
-            if dataQueue.empty() == True:
-                time.sleep(5)
-            elif dataQueue.get() == '1':
-                print('count', count)
-                count += 1
-            elif dataQueue.get() == '0':
-                print('count', count)
-                count = 0
+            if ScreenValidationQueue.empty() == False:
+                if ScreenValidationQueue.get() == '1':
+                    count += 1
+                    print('CoreScreenValidation count', count)
 
+                else:
+
+                    count = 0
+                    print('CoreScreenValidation count', count)
             if count >= 2:
-                print('count criical', count)
+                print('''ExecutionQueue.put(['CoreScreenValidation', '1'])''')
+                ExecutionQueue.put(['CoreScreenValidation', '1'])
                 count = 0
