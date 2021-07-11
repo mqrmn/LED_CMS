@@ -36,7 +36,7 @@ SCHTASKS /run /TN "cmsValidate"
 
 TIMEOUT /T 1 /NOBREAK
 
-Python "C:\MOBILE\Local\CMS\cmsService.py" --startup auto install
+Python "C:\MOBILE\Local\CMS\App\CMSCore.py" --startup manual install
 
 TIMEOUT /T 1 /NOBREAK
 

@@ -1,9 +1,11 @@
 import socket
+import time
+
 from App.Config import Config
 
 class Network:
 
-    def Server(self, host, port, dataQueue):
+    def Server(self, host, port, Q_):
         print('RUN SERVER', host, port,)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((host, port))
@@ -23,26 +25,22 @@ class Network:
                             break
                         dataArr.append(data.decode())
                         conn.sendall(data)
-                    dataQueue.put(dataArr)
+                    Q_.put(dataArr)
 
-    def SendUserAgent(self,host, port, SendUserAgentQueue, ):
+    def Client(self, host, port, Q_, ):
         while True:
-            if SendUserAgentQueue.empty() == False:
-                data = SendUserAgentQueue.get()
-                if type(data) == list:
-                    if data[0] == 'CoreScreenValidation':
-                        if data[1] == '1':
-                            self.Client(host, port, data)
-
+            if Q_.empty() == False:
+                data = Q_.get()
+                self.Send(host, port, data)
             else:
-                pass
+                time.sleep(3)
 
 
-    def Client(self, host, port, data):
+    def Send(self, host, port, data):
 
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((host, port))
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as Socket:
+            Socket.connect((host, port))
             for d in data:
-                s.sendall(str(d).encode())
-                dataRecv = s.recv(1024)
+                Socket.sendall(str(d).encode())
+                dataRecv = Socket.recv(1024)
 

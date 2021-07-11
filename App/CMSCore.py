@@ -1,5 +1,6 @@
 #v.1.1.1
 import sys
+
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 import win32serviceutil
@@ -81,8 +82,6 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         network_ = Communicate.Network()
 
 
-
-
         # Обновляю CMS
         file_manager.CMSUpgrade()
         # Проверяю NovaStudio
@@ -100,41 +99,42 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         file_manager.LogArchiever()
         file_manager.LogDeleter()
 
-        # Удаляю экземпляры классов
-
+        handlers_ = Handlers.Handler()
+        network_ = Communicate.Network()
 
         # Очереди
         Q_CMSUserAgent = queue.Queue()
         #InternalQueue = queue.Queue()
-        Q_ScreenValidation = queue.Queue()
         Q_Execution = queue.Queue()
         Q_SendUserAgent = queue.Queue()
 
-        # Экземпляры классов
+        Q_ScreenValidation = queue.Queue()
 
 
         # Потоки
-        T_server = threading.Thread(target=network_.Server,
-                                        args=(Config.localhost, Config.CMSCoreInternalPort, Q_CMSUserAgent))  # Поток внутреннего сокета
+        T_InternalSocket = threading.Thread(target=network_.Server, args=(Config.localhost, Config.CMSCoreInternalPort, Q_CMSUserAgent))    # Прием данных от CMSUserAgent
 
-        TQH_CMSUserAgent = threading.Thread(target=handlers_.CMSUserAgentQueueHandler,
-                                                    args=(Q_CMSUserAgent, Q_ScreenValidation))  # Обработчик очереди данных CMSUserAgent
+        TQH_CMSUserAgent = threading.Thread(target=handlers_.CMSUserAgentQueueHandler, args=(Q_CMSUserAgent, Q_ScreenValidation))   # Обработчик очереди данных от CMSUserAgent
 
-        TQH_CoreScreenValidation = threading.Thread(target=validation_.CoreScreenValidation,
-                                                      args=(Q_ScreenValidation, Q_Execution))  # Поток проверки данных валидатора экран
 
-        TQH_Execution = threading.Thread(target=handlers_.ExecutionQueueHandler,
-                                           args=(Q_Execution, Q_SendUserAgent))
 
-        T_SendUserAgent = threading.Thread(target=network_.SendUserAgent,
-                                               args=(Config.localhost, Config.CMSUserAgentPort, Q_SendUserAgent))
+
+
+        TQH_Execution = threading.Thread(target=handlers_.ExecutionQueueHandler, args=(Q_Execution, Q_SendUserAgent))               # Обработчик очереди команд для CMSUserAgent
+
+        T_NetworkClient = threading.Thread(target=network_.Client, args=(Config.localhost, Config.CMSUserAgentPort, Q_SendUserAgent))  # Отправка данных на CMSUserAgent
+
+        TQH_ValidationScreen = threading.Thread(target=handlers_.ValidationHandler, args=(Q_ScreenValidation, Q_Execution, '0', 2, 'CoreScreenValidation')) # Счетчик кондиции экрана
+
+        # Execution
 
         # Запуск потоков
-        T_server.start()
+        T_InternalSocket.start()
         TQH_CMSUserAgent.start()
-        TQH_CoreScreenValidation.start()
         TQH_Execution.start()
-        T_SendUserAgent.start()
+        T_NetworkClient.start()
+
+        TQH_ValidationScreen.start()
 
         validation_ = None
         file_manager = None

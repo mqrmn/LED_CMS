@@ -8,46 +8,47 @@ from App import Handlers
 from App import Execution
 
 def main():
-    # # Очереди
-    # CMSUserAgentQueue = queue.Queue()
-    # InternalQueue = queue.Queue()
-    # ScreenValidationQueue = queue.Queue()
-    # ExecutionQueue = queue.Queue()
-    # SendUserAgentQueue = queue.Queue()
-    #
-    # # Экземпляры классов
-    # Handlers_ = Handlers.Handler()
-    # Network_ = Communicate.Network()  # Сокет, принимающий данные от CMSUserAgent
-    # Validation_ = Validation.System()
-    # Execute_ = Execution.Execute()
-    #
-    # # Потоки
-    # serverThread = threading.Thread(target=Network_.Server,
-    #                                 args=(Config.localhost, Config.CMSCoreInternalPort,
-    #                                       CMSUserAgentQueue))  # Поток внутреннего сокета
-    #
-    # CMSUserAgentQueueHandler = threading.Thread(target=Handlers_.CMSUserAgentQueueHandler,
-    #                                             args=(CMSUserAgentQueue, ScreenValidationQueue))  # Обработчик очереди данных CMSUserAgent
-    #
-    # CoreScreenValidationThread = threading.Thread(target=Validation_.CoreScreenValidation,
-    #                                               args=(ScreenValidationQueue,
-    #                                                     ExecutionQueue))  # Поток проверки данных валидатора экран
-    #
-    # ExecutionThread = threading.Thread(target=Handlers_.ExecutionQueueHandler,
-    #                                    args=(ExecutionQueue, SendUserAgentQueue))
-    #
-    # SendUserAgentThread = threading.Thread(target=Network_.SendUserAgent,
-    #                                        args=(Config.localhost, Config.CMSUserAgentPort, SendUserAgentQueue))
-    #
-    # # Запуск потоков
-    # serverThread.start()
-    # CMSUserAgentQueueHandler.start()
-    # CoreScreenValidationThread.start()
-    # ExecutionThread.start()
-    # SendUserAgentThread.start()
+    handlers_ = Handlers.Handler()
+    network_ = Communicate.Network()
 
-    # While TEST
+    # Очереди
+    Q_CMSUserAgent = queue.Queue()
+    # InternalQueue = queue.Queue()
+    Q_Execution = queue.Queue()
+    Q_SendUserAgent = queue.Queue()
+
+    Q_ScreenValidation = queue.Queue()
+
+    # Потоки
+    T_InternalSocket = threading.Thread(target=network_.Server, args=(
+    Config.localhost, Config.CMSCoreInternalPort, Q_CMSUserAgent))  # Прием данных от CMSUserAgent
+
+    TQH_CMSUserAgent = threading.Thread(target=handlers_.CMSUserAgentQueueHandler, args=(
+    Q_CMSUserAgent, Q_ScreenValidation))  # Обработчик очереди данных от CMSUserAgent
+
+    TQH_Execution = threading.Thread(target=handlers_.ExecutionQueueHandler,
+                                     args=(Q_Execution, Q_SendUserAgent))  # Обработчик очереди команд для CMSUserAgent
+
+    T_SendUserAgent = threading.Thread(target=network_.Client, args=(
+    Config.localhost, Config.CMSUserAgentPort, Q_SendUserAgent))  # Отправка данных на CMSUserAgent
+
+    TQH_ValidationScreen = threading.Thread(target=handlers_.ValidationHandler, args=(
+    Q_ScreenValidation, Q_Execution, '0', 2, 'CoreScreenValidation'))  # Счетчик кондиции экрана
+
+    # Запуск потоков
+    T_InternalSocket.start()
+    TQH_CMSUserAgent.start()
+    TQH_Execution.start()
+    T_SendUserAgent.start()
+
+    TQH_ValidationScreen.start()
+
     CMSUserAgent.main()
+
+    # from App import WinApi
+    # meth = WinApi.API()
+    # a = meth.CheckProcessNovaStudio()
+    # print(a)
 
 
 

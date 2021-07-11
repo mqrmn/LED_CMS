@@ -3,7 +3,6 @@
 import re
 import shutil
 import psutil
-from App.Config import Config
 
 import numpy as np
 import pyautogui
@@ -78,7 +77,7 @@ class System:
             e += 1
 
     # Создание скриншотов, проверка экрана на статичность
-    def GetScreenValidation(self, screenStateQueue):
+    def GetScreenStatic(self, screenStateQueue):
         chanelSumArr = []
         if Config.screenNum == 1:  # По количеству областей будет допиливаться
             while True:
@@ -93,57 +92,43 @@ class System:
                 # Проверка значений, передача результата в очередь
                 if len(chanelSumArr) == 2:
                     if (chanelSumArr[0] == chanelSumArr[1]):                                    # Экран статичен
-                        screenStateQueue.put(1)
+                        screenStateQueue.put(True)
                         # print('screenStateQueue.put(1)')
                     else:
                         # print('screenStateQueue.put(0)')
-                        screenStateQueue.put(0)
+                        screenStateQueue.put(False)
                     del chanelSumArr[0]                                                         # Удаляю из словаря запись с индексом 0
                 time.sleep(random.randint(10, 20))
         else:
             pass
 
     # Счетчик статичности экрана
-    def CheckScreenValidation(self, screenStateQueue):
-        screenFreezeCount = 0
+    def CheckScreenStatic(self, screenStateQueue):
+        staticCount = 0
         checkCount = 0
         Network_ = Communicate.Network()            # Экземпляр класса для передачи состояния службе
         while True:
                # Принимает данные из очереди
             if screenStateQueue.empty() == True:
-                time.sleep(5)
+                time.sleep(1)
             else:
-                screenState = screenStateQueue.get()
+                screenStatic = screenStateQueue.get()
                 # print('screenState', screenState)
-                if screenState == 0:                    # Проверяет состояние экрана
+                if screenStatic == False:                    # Проверяет состояние экрана
                     pass
-                if screenState == 1:
-                    screenFreezeCount += 1
+                if screenStatic == True:
+                    staticCount += 1
                 checkCount += 1
                 # print('checkCount', checkCount)
                 # print('screenFreezeCount', screenFreezeCount)
                 if checkCount >= 2:
-                    if screenFreezeCount == checkCount:
-                        screenFreezeCount = 1
+                    if staticCount == checkCount:
+                        print('screenFreezeCount == checkCount', )
+                        staticCount = True
                     else:
-                        screenFreezeCount = 0
-                    Network_.Client(Config.localhost, Config.CMSCoreInternalPort, ['CheckScreenValidation', screenFreezeCount])
-                    screenFreezeCount, checkCount = 0, 0
+                        print('screenFreezeCount != checkCount', )
+                        staticCount = False
+                    Network_.Send(Config.localhost, Config.CMSCoreInternalPort, ['CheckScreenValidation', staticCount])
+                    staticCount, checkCount = 0, 0
 
 
-    def CoreScreenValidation(self, ScreenValidationQueue, ExecutionQueue):
-        count = 0
-        while True:
-            if ScreenValidationQueue.empty() == False:
-                if ScreenValidationQueue.get() == '1':
-                    count += 1
-                    print('CoreScreenValidation count', count)
-
-                else:
-
-                    count = 0
-                    print('CoreScreenValidation count', count)
-            if count >= 2:
-                print('''ExecutionQueue.put(['CoreScreenValidation', '1'])''')
-                ExecutionQueue.put(['CoreScreenValidation', '1'])
-                count = 0
