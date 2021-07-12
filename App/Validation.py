@@ -98,7 +98,7 @@ class System:
                         # print('screenStateQueue.put(0)')
                         screenStateQueue.put(False)
                     del chanelSumArr[0]                                                         # Удаляю из словаря запись с индексом 0
-                time.sleep(random.randint(10, 20))
+                time.sleep(random.randint(3, 3))
         else:
             pass
 

@@ -4,18 +4,20 @@ import win32pdh
 
 class Handler:
     # Обработчик очереди данных, приходящих от CMSUserAgent
-    def CMSUserAgentQueueHandler(self, CMSUserAgentQueue, ScreenValidationQueue):
+    def CMSUserAgentQueueHandler(self, Q_in, Q_screenValidation):
         while True:
-            if CMSUserAgentQueue.empty() == False:
-                    data = CMSUserAgentQueue.get()
+            if Q_in.empty() == False:
+                    data = Q_in.get()
+                    print('CMSUserAgentQueueHandler', data)
                     if type(data) == list:
                         if data[0] == 'CheckScreenValidation':
-                            print('CMSUserAgentQueueHandler', data)
-                            ScreenValidationQueue.put(data[1])
-                        if data[0] == 'Что то другое':
-                            pass
+                            if data[1] == 'True':
+                                data.append(True)
+                            if data[1] == 'False':
+                                data.append(False)
+                            Q_screenValidation.put(data[2])
             else:
-                time.sleep(5)
+                time.sleep(1)
 
     # Обработчик внутренней очереди
     def InternalQueueHandler(self, InternalQueue, ExecutionQueue):
@@ -57,27 +59,32 @@ class Handler:
                 pass
 
     # Обработчик - счетчик валидировочных очередей
-    def ValidationHandler(self, In_Queue, Out_Queue, okValue, maxCount, executionKey):
-        checkCount, noValidCount = 0, 0
+    def ValidationHandler(self, Q_in, Q_out, checkValue, maxCount, executionKey, sendAllCircles, x):
+        checkCount, catchCount = 0, 0
         while True:
-            if In_Queue.empty() == True:
+
+            if Q_in.empty() == True:
                 time.sleep(1)
             else:
-                if In_Queue.get() == okValue:
-                    pass
+                data = Q_in.get()
+                print('----------ValidationHandler', x, 'data', data, type(data))
+                if data == checkValue:
+                    catchCount += 1
                 else:
-                    noValidCount += 1
+                    pass
                 checkCount += 1
-
+                print(x, checkCount, catchCount)
                 if checkCount >= maxCount:
-                    if noValidCount == checkCount:
-                        noValidCount = True
+                    if catchCount == checkCount:
+                        print('----------ValidationHandler', x, True)
+                        Q_out.put([executionKey, True])
                     else:
-                        noValidCount = False
-
-                    Out_Queue.put([executionKey, noValidCount])
-
-                    checkCount, noValidCount = 0, 0
+                        print('----------ValidationHandler', x, False)
+                        if sendAllCircles == True:
+                            Q_out.put([executionKey, False])
+                        else:
+                            pass
+                    checkCount, catchCount = 0, 0
                 else:
                     pass
 

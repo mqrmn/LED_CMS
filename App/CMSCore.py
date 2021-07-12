@@ -110,13 +110,17 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         Q_ScreenValidation = queue.Queue()
 
+        handlers_ = Handlers.Handler()
+        network_ = Communicate.Network()
+
 
         # Потоки
         T_InternalSocket = threading.Thread(target=network_.Server, args=(Config.localhost, Config.CMSCoreInternalPort, Q_CMSUserAgent))    # Прием данных от CMSUserAgent
 
         TQH_CMSUserAgent = threading.Thread(target=handlers_.CMSUserAgentQueueHandler, args=(Q_CMSUserAgent, Q_ScreenValidation))   # Обработчик очереди данных от CMSUserAgent
 
-
+        TQH_ValidationScreen = threading.Thread(target=handlers_.ValidationHandler, args=(
+        Q_ScreenValidation, Q_Execution, False, 4, 'CoreScreenValidation', getframeinfo(currentframe())[2]))  # Счетчик кондиции экрана
 
 
 
@@ -124,7 +128,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         T_NetworkClient = threading.Thread(target=network_.Client, args=(Config.localhost, Config.CMSUserAgentPort, Q_SendUserAgent))  # Отправка данных на CMSUserAgent
 
-        TQH_ValidationScreen = threading.Thread(target=handlers_.ValidationHandler, args=(Q_ScreenValidation, Q_Execution, '0', 2, 'CoreScreenValidation')) # Счетчик кондиции экрана
+
 
         # Execution
 
@@ -133,7 +137,6 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         TQH_CMSUserAgent.start()
         TQH_Execution.start()
         T_NetworkClient.start()
-
         TQH_ValidationScreen.start()
 
         validation_ = None
