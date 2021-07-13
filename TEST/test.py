@@ -1,45 +1,51 @@
 import logging
-import threading
-from App import Validation, Communicate
-from App.Config import Config
-from App.UserAgent import CMSUserAgent
 import queue
-from App import Handlers
-from App import Execution
-from inspect import currentframe, getframeinfo
+import threading
+import time
+from multiprocessing import Process
 
+from App import Validation
+from App import WinApi
+from App import Handlers
+from App import Handlers, Communicate
+from App.Config import Config
+from  App.UserAgent import CMSUserAgent
+from App import Resource
+
+module = 'TEST'
 def TEST():
-    handlers_ = Handlers.Handler()
-    network_ = Communicate.Network()
+
+    print(Resource.ActionKey[0])
+
+
+    _validation_ = Validation._System_()
+    _handlers_ = Handlers._QHandler_()
+    _network_ = Communicate._Network_()
+
+    # Простые очереди
+    Q_ScreenValidation_ = queue.Queue()
 
     # Очереди
-    Q_CMSUserAgent = queue.Queue()
-    # InternalQueue = queue.Queue()
-    Q_Execution = queue.Queue()
-    Q_SendUserAgent = queue.Queue()
-
-    Q_ScreenValidation = queue.Queue()
-
+    Q_CMSUserAgent_ = queue.Queue()
+    Q_Execution_ = queue.Queue()
+    Q_SendUserAgent_ = queue.Queue()
+    Q_procValidation_ = queue.Queue()
 
     # Потоки
-    T_InternalSocket = threading.Thread(target=network_.Server, args=(
-    Config.localhost, Config.CMSCoreInternalPort, Q_CMSUserAgent))  # Прием данных от CMSUserAgent
+    T_InternalSocket = threading.Thread(target=_network_.Server, args=(
+        Config.localhost, Config.CMSCoreInternalPort, Q_CMSUserAgent_))  # Прием данных от CMSUserAgent
+    TQH_CMSUserAgent = threading.Thread(target=_handlers_.FromUserAgent, args=(
+        Q_CMSUserAgent_, Q_ScreenValidation_, Q_procValidation_))  # Обработчик очереди данных от CMSUserAgent
+    TQH_ValidationScreen = threading.Thread(target=_handlers_.Validation, args=(
+        Q_ScreenValidation_, Q_Execution_, True, 2, 'CoreScreenValidation', False, module))  # Счетчик кондиции экрана
 
 
-    TQH_CMSUserAgent = threading.Thread(target=handlers_.CMSUserAgentQueueHandler, args=(Q_CMSUserAgent, Q_ScreenValidation))  # Обработчик очереди данных от CMSUserAgent
+    THQ_ProcValidation_ = threading.Thread(target=_handlers_.Validation, args=(Q_procValidation_, Q_Execution_, True, 2, 'RunNovaStudio', False, module))
 
-
-
-
-
-
-    TQH_ValidationScreen = threading.Thread(target=handlers_.ValidationHandler, args=(Q_ScreenValidation, Q_Execution, True, 4, 'CoreScreenValidation', False, getframeinfo(currentframe())[2]))  # Счетчик кондиции экрана
-
-    TQH_Execution = threading.Thread(target=handlers_.ExecutionQueueHandler,
-                                     args=(Q_Execution, Q_SendUserAgent))  # Обработчик очереди команд для CMSUserAgent
-
-    T_NetworkClient = threading.Thread(target=network_.Client, args=(
-    Config.localhost, Config.CMSUserAgentPort, Q_SendUserAgent))  # Отправка данных на CMSUserAgent
+    TQH_Execution = threading.Thread(target=_handlers_.Execution, args=(
+        Q_Execution_, Q_SendUserAgent_))  # Обработчик очереди команд для CMSUserAgent
+    T_NetworkClient = threading.Thread(target=_network_.Client, args=(
+        Config.localhost, Config.CMSUserAgentPort, Q_SendUserAgent_))  # Отправка данных на CMSUserAgent
 
     # Execution
 
@@ -49,13 +55,9 @@ def TEST():
     TQH_Execution.start()
     T_NetworkClient.start()
     TQH_ValidationScreen.start()
+    THQ_ProcValidation_.start()
 
     CMSUserAgent.main()
-
-    # from App import WinApi
-    # meth = WinApi.API()
-    # a = meth.CheckProcessNovaStudio()
-    # print(a)
 
 
 

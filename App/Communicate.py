@@ -3,7 +3,7 @@ import time
 
 from App.Config import Config
 
-class Network:
+class _Network_:
 
     def Server(self, host, port, Q_):
         print('RUN SERVER', host, port,)
@@ -14,7 +14,7 @@ class Network:
             while True:
 
                 conn, addr = s.accept()
-                print('CONN', conn, addr)
+
                 # Действие при соединении с сервером
                 with conn:
                     dataArr = []
@@ -26,6 +26,7 @@ class Network:
                         dataArr.append(data.decode())
                         conn.sendall(data)
                     Q_.put(dataArr)
+                    # print('Server', dataArr)
 
     def Client(self, host, port, Q_, ):
         while True:

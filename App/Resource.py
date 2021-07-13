@@ -1,4 +1,10 @@
 
-_Q_ValidationScreen = ['0', 2, 'MoveScreen']
+ProcessList = {'NovaStudio': True, 'MarsServerProvider': False, }
+
+NovaFileKey = {'Backup', 'Restore', }
+
+ActionKey = ['RunNova', 'RestartNova', 'TerminateNova', 'RestartSystem', ]
+
+ScreenKey = ['RestoreScreen', ]
 
 

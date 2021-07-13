@@ -12,11 +12,11 @@ from inspect import currentframe, getframeinfo
 import psutil
 import xml.etree.ElementTree as ET
 
-logging = LogManager.LogManager()
+logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
 
-class System:
+class _System_:
 
     def LogArchiever(self):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')

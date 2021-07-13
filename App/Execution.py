@@ -2,7 +2,7 @@ import subprocess
 import psutil
 import time
 
-class Execute:
+class _Execute_:
     def RestartNovaStudio(self):
 
         for proc in psutil.process_iter():

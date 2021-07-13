@@ -23,7 +23,7 @@ from App import Execution
 from inspect import currentframe, getframeinfo
 import subprocess
 
-logging = LogManager.LogManager()
+logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 
 
@@ -75,58 +75,49 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         # Инициализация
         # --------------------------------------------------------------------
         # Создаю экземпляры классов
-        validation_ = Validation.System()
-        file_manager = FileManager.System()
-        default_ = Restore.Default()
-        handlers_ = Handlers.Handler()
-        network_ = Communicate.Network()
+        _validation_ = Validation._System_()
+        _file_manager_ = FileManager._System_()
+        _default_ = Restore._Default_()
+        _handlers_ = Handlers._QHandler_()
+        _network_ = Communicate._Network_()
 
 
         # Обновляю CMS
-        file_manager.CMSUpgrade()
+        _file_manager_.CMSUpgrade()
         # Проверяю NovaStudio
-        validation_.NovaStudio()
+        _validation_.NovaStudio()
         # Обновляю контент
-        file_manager.ContentRenewHandler()
+        _file_manager_.ContentRenewHandler()
 
         # Проверяю статус последнего выключения
-        validation_.LastShutdown()
+        _validation_.LastShutdown()
         # Обнуляю временные файлы
-        file_manager.TempDeleter()
-        default_.TempFiles()
+        _file_manager_.TempDeleter()
+        _default_.TempFiles()
 
         # Чищу логи
-        file_manager.LogArchiever()
-        file_manager.LogDeleter()
-
-        handlers_ = Handlers.Handler()
-        network_ = Communicate.Network()
+        _file_manager_.LogArchiever()
+        _file_manager_.LogDeleter()
 
         # Очереди
-        Q_CMSUserAgent = queue.Queue()
-        #InternalQueue = queue.Queue()
-        Q_Execution = queue.Queue()
-        Q_SendUserAgent = queue.Queue()
+        Q_CMSUserAgent_ = queue.Queue()
+        Q_Execution_ = queue.Queue()
+        Q_SendUserAgent_ = queue.Queue()
+        Q_ScreenValidation_ = queue.Queue()
 
-        Q_ScreenValidation = queue.Queue()
-
-        handlers_ = Handlers.Handler()
-        network_ = Communicate.Network()
 
 
         # Потоки
-        T_InternalSocket = threading.Thread(target=network_.Server, args=(Config.localhost, Config.CMSCoreInternalPort, Q_CMSUserAgent))    # Прием данных от CMSUserAgent
-
-        TQH_CMSUserAgent = threading.Thread(target=handlers_.CMSUserAgentQueueHandler, args=(Q_CMSUserAgent, Q_ScreenValidation))   # Обработчик очереди данных от CMSUserAgent
-
-        TQH_ValidationScreen = threading.Thread(target=handlers_.ValidationHandler, args=(
-        Q_ScreenValidation, Q_Execution, False, 4, 'CoreScreenValidation', getframeinfo(currentframe())[2]))  # Счетчик кондиции экрана
-
-
-
-        TQH_Execution = threading.Thread(target=handlers_.ExecutionQueueHandler, args=(Q_Execution, Q_SendUserAgent))               # Обработчик очереди команд для CMSUserAgent
-
-        T_NetworkClient = threading.Thread(target=network_.Client, args=(Config.localhost, Config.CMSUserAgentPort, Q_SendUserAgent))  # Отправка данных на CMSUserAgent
+        T_InternalSocket = threading.Thread(target=_network_.Server, args=(
+        Config.localhost, Config.CMSCoreInternalPort, Q_CMSUserAgent_))  # Прием данных от CMSUserAgent
+        TQH_CMSUserAgent = threading.Thread(target=_handlers_.FromUserAgent, args=(
+        Q_CMSUserAgent_, Q_ScreenValidation_))  # Обработчик очереди данных от CMSUserAgent
+        TQH_ValidationScreen = threading.Thread(target=_handlers_.Validation, args=(
+        Q_ScreenValidation_, Q_Execution_, True, 4, 'CoreScreenValidation', False,))  # Счетчик кондиции экрана
+        TQH_Execution = threading.Thread(target=_handlers_.Execution, args=(
+        Q_Execution_, Q_SendUserAgent_))  # Обработчик очереди команд для CMSUserAgent
+        T_NetworkClient = threading.Thread(target=_network_.Client, args=(
+        Config.localhost, Config.CMSUserAgentPort, Q_SendUserAgent_))  # Отправка данных на CMSUserAgent
 
 
 
@@ -139,9 +130,9 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         T_NetworkClient.start()
         TQH_ValidationScreen.start()
 
-        validation_ = None
-        file_manager = None
-        default_ = None
+        _validation_ = None
+        _file_manager_ = None
+        _default_ = None
 
 
         # Цикл проверок

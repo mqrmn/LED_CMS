@@ -9,10 +9,10 @@ from App import LogManager
 
 import os
 import App.Config.Config as Config
-logging = LogManager.LogManager()
+logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 
-class ProcessManager:
+class _ProcessManager_:
 
     def KillMars(self):
         popenSate = subprocess.Popen('C:\\Users\\rAdmin_local\\AppData\\Roaming\\Nova Star\\NovaLCT\\Bin\\NovaLCT.exe')

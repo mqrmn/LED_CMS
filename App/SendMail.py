@@ -8,7 +8,7 @@ from App.Config import Config
 from App import LogManager
 import os
 
-logging = LogManager.LogManager()
+logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 
 def sendmail(messagetext):

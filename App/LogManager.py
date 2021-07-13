@@ -5,7 +5,7 @@ from App.Config import Config
 from datetime import date
 import time
 
-class LogManager:
+class _Log_Manager_:
 
     def InitModule(self, module):
 

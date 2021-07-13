@@ -3,7 +3,7 @@
 from App.Config import Config
 
 
-class Default:
+class _Default_:
 
     def TempFiles(self):
         f = open('{}lastShutDown.txt'.format(Config.tempPath), 'w')

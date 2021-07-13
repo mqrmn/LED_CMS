@@ -11,9 +11,12 @@ import time
 from App.Config import Config
 import random
 import os
+import threading
 from App import Communicate
+from App import WinApi
+from App import Resource
 
-class System:
+class _System_:
 
     # Проверка последнего отключения системы
     def LastShutdown(self):
@@ -69,13 +72,6 @@ class System:
                 pass
         return x5
 
-    def test(self):
-        e = 0
-        while e < 2:
-            print('TEST')
-            time.sleep(10)
-            e += 1
-
     # Создание скриншотов, проверка экрана на статичность
     def GetScreenStatic(self, screenStateQueue):
         chanelSumArr = []
@@ -102,33 +98,11 @@ class System:
         else:
             pass
 
-    # Счетчик статичности экрана
-    def CheckScreenStatic(self, screenStateQueue):
-        staticCount = 0
-        checkCount = 0
-        Network_ = Communicate.Network()            # Экземпляр класса для передачи состояния службе
+    def GetProcessState(self, Q_ProcState_):
+        _WinApi_ = WinApi._API_()
         while True:
-               # Принимает данные из очереди
-            if screenStateQueue.empty() == True:
-                time.sleep(1)
-            else:
-                screenStatic = screenStateQueue.get()
-                # print('screenState', screenState)
-                if screenStatic == False:                    # Проверяет состояние экрана
-                    pass
-                if screenStatic == True:
-                    staticCount += 1
-                checkCount += 1
-                # print('checkCount', checkCount)
-                # print('screenFreezeCount', screenFreezeCount)
-                if checkCount >= 2:
-                    if staticCount == checkCount:
-                        print('screenFreezeCount == checkCount', )
-                        staticCount = True
-                    else:
-                        print('screenFreezeCount != checkCount', )
-                        staticCount = False
-                    Network_.Send(Config.localhost, Config.CMSCoreInternalPort, ['CheckScreenValidation', staticCount])
-                    staticCount, checkCount = 0, 0
-
+            T_GetProcessState = threading.Thread(target=_WinApi_.GetProcessState, args=(Q_ProcState_,))
+            T_GetProcessState.start()
+            T_GetProcessState.join()
+            time.sleep(5)
 
