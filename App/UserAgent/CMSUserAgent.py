@@ -22,6 +22,7 @@ def main():
     Q_SendCore = queue.Queue()
     Q_ProcState_ = queue.Queue()
     Q_CheckedProcState_ = queue.Queue()
+    Q_PrepareToSend_ = queue.Queue()
 
     Validation_ = Validation._System_()                   # Экземпляр класса валидации
     Network_ = Communicate._Network_()                    # Экземпляр класса сервера
@@ -33,14 +34,17 @@ def main():
 
     serverThread = threading.Thread(target=Network_.Server, args=(Config.localhost, Config.CMSUserAgentPort, CMSCoreDataQueue,))  # Сокет, принимающий данные от CMSCore
 
+    # Проаерка экрана
     getScreenValidationTread = threading.Thread(target=Validation_.GetScreenStatic, args=(lowScreenStateQueue,))                # Поток проверки экрана
-
-    checkScreenValidationTread = threading.Thread(target=Handlers_.Validation, args=(lowScreenStateQueue, Q_SendCore, True, 4, 'CheckScreenValidation', True, module,))
+    checkScreenValidationTread = threading.Thread(target=Handlers_.Validation, args=(lowScreenStateQueue, Q_PrepareToSend_, True, 4, 'state', True, module,))
 
 
     T_GetProcState = threading.Thread(target=_Validation_.GetProcessState, args=(Q_ProcState_,))
     TQH_CheckProcList = threading.Thread(target=_QHandler_.CheckProcList, args=(Q_ProcState_, Q_CheckedProcState_))
-    THQ_ValidateProcState = threading.Thread(target=_QHandler_.Validation, args=(Q_CheckedProcState_, Q_SendCore, False, 2, None, True, module,))
+
+    THQ_ValidateProcState = threading.Thread(target=_QHandler_.Validation, args=(Q_CheckedProcState_, Q_PrepareToSend_, False, 2, 'state', False, module,))
+
+    T_PrepareToSend = threading.Thread(target=Handlers_.PrepareToSend, args=(Q_PrepareToSend_, Q_SendCore, ))
 
     T_NetworkClient = threading.Thread(target=network_.Client, args=(Config.localhost, Config.CMSCoreInternalPort, Q_SendCore))
 
@@ -50,13 +54,12 @@ def main():
     serverThread.start()
     getScreenValidationTread.start()
     checkScreenValidationTread.start()
-
     TQH_CheckProcList.start()
     THQ_ValidateProcState.start()
     T_GetProcState.start()
-
     CMSCoreDataQueueHandlerThread.start()
     T_NetworkClient.start()
+    T_PrepareToSend.start()
 
 
 
