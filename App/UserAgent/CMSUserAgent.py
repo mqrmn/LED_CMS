@@ -42,7 +42,7 @@ def main():
     T_GetProcState = threading.Thread(target=_Validation_.GetProcessState, args=(Q_ProcState_,))
     TQH_CheckProcList = threading.Thread(target=_QHandler_.CheckProcList, args=(Q_ProcState_, Q_CheckedProcState_))
 
-    THQ_ValidateProcState = threading.Thread(target=_QHandler_.Validation, args=(Q_CheckedProcState_, Q_PrepareToSend_, False, 2, 'state', False, module,))
+    THQ_ValidateProcState = threading.Thread(target=_QHandler_.Validation, args=(Q_CheckedProcState_, Q_PrepareToSend_, False, 2, 'state', True, module,))
 
     T_PrepareToSend = threading.Thread(target=Handlers_.PrepareToSend, args=(Q_PrepareToSend_, Q_SendCore, ))
 

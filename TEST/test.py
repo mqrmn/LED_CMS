@@ -16,9 +16,6 @@ from App import Resource
 module = 'TEST'
 def TEST():
 
-
-
-
     _validation_ = Validation._System_()
     _handlers_ = Handlers._QHandler_()
     _network_ = Communicate._Network_()
@@ -37,8 +34,8 @@ def TEST():
     T_InternalSocket = threading.Thread(target=_network_.Server, args=(Config.localhost, Config.CMSCoreInternalPort, Q_CMSUserAgent_))                                  # Прием данных от CMSUserAgent
     TQH_CMSUserAgent = threading.Thread(target=_handlers_.FromUserAgent, args=(Q_CMSUserAgent_, Q_ScreenValidation_, Q_procValidation_))                                # Обработчик очереди данных от CMSUserAgent
 
-    TQH_ValidationScreen = threading.Thread(target=_handlers_.Validation, args=(Q_ScreenValidation_, Q_Execution_, True, 2, 'State', False, module))     # Счетчик кондиции экрана
-    THQ_ProcValidation_ = threading.Thread(target=_handlers_.Validation_2, args=(Q_procValidation_, Q_Execution_, False, 2, 'State', True, module))
+    TQH_ValidationScreen = threading.Thread(target=_handlers_.Validation, args=(Q_ScreenValidation_, Q_Execution_, True, 2, 'State', True, module))     # Счетчик кондиции экрана
+    THQ_ProcValidation_ = threading.Thread(target=_handlers_.Validation, args=(Q_procValidation_, Q_Execution_, False, 2, 'State', True, module))
     TQH_Execution = threading.Thread(target=_handlers_.Execution, args=(Q_Execution_, Q_PrepareToSend_))                                                                # Обработчик очереди команд для CMSUserAgent
 
     # T_PrepareToSend = threading.Thread(target=_handlers_.PrepareToSend, args=(Q_SendUserAgent_, Q_SendCore,))

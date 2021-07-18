@@ -1,9 +1,7 @@
 import time
 from App import Execution
 from App import Resource
-import json
-import pickle
-from App import Communicate
+
 
 class _QHandler_:
 
@@ -31,13 +29,33 @@ class _QHandler_:
 
     # Обработчик команд, отправляемых на CMSUserAgent
     def Execution(self, Q_in, Q_out):
+        Dict = {}
+        DictAction_1 = {'ProcState': ['NovaStudio', False], 'ScreenState': ['Static', True]}
+        DictAction_2 = {'ProcState': ['NovaStudio', True], 'ScreenState': ['Static', True]}
+        DictAction_3 = {'ProcState': ['NovaStudio', True], 'ScreenState': ['Static', False]}
+        DictAction_4 = {'ProcState': ['NovaStudio', False], 'ScreenState': ['Static', False]}
         while True:
+
             data = Q_in.get()
-            print('Execution', data, )
-            # if type(data) == list:
-            #     if data[0] == 'RunNovaStudio':
-            #         if data[1] == True:
-            #             Q_out.put(data)
+            # print('Execution', data, )
+            if (data['key'] == 'ScreenState') or (data['key'] == 'ProcState' and data['data'][0] == 'NovaStudio' ):
+                Dict[data['key']] = data['data']
+                print(Dict)
+
+            if Dict == DictAction_1:
+                print('RunNova')
+                Dict = {}
+            if Dict == DictAction_2:
+                print('RestartNova')
+                Dict = {}
+            if Dict == DictAction_3:
+                print('NovaStudioOK')
+                Dict = {}
+            if Dict == DictAction_4:
+                print('RebootSystem')
+
+
+
 
 
 
@@ -55,52 +73,14 @@ class _QHandler_:
                 pass
 
     # Обработчик - счетчик валидировочных очередей
-
-
     def Validation(self, Q_in, Q_out, checkValue, maxCount, head, sendAllCircles, module):
-        checkCount, catchCount = 0, 0
-        Dict = {}
-        while True:
-            data = Q_in.get()
-            if type(data) == dict:
-                if data['key'] == Resource.UAKey[1]:
-                    maxCountH = maxCount * Resource.ProcessList.__len__()
-                else:
-                    maxCountH = maxCount
-                if data['data'][0] not in Dict:
-                    Dict[data['data'][0]] = 0
-                else:
-                    pass
-                checkCount += 1
-                if data['data'][1] == checkValue:
-                    Dict[data['data'][0]] += 1
-                else:
-                    pass
-                if checkCount >= maxCountH:
-                    for i in Dict:
-                        if Dict[i] == maxCount:
-                            Q_out.put({'head': head, 'key': data['key'], 'data': [i, checkValue]})
-                        else:
-                            if sendAllCircles == True:
-                                Q_out.put({'head': head, 'key': data['key'], 'data': [i, not checkValue]})
-                            else:
-                                pass
-                    Dict = {}
-                    checkCount, catchCount = 0, 0
-                else:
-                    pass
-
-    def Validation_2(self, Q_in, Q_out, checkValue, maxCount, head, sendAllCircles, module):
         checkCount, catchCount = 0, 0
         maxCountH = maxCount
         Dict = {}
         while True:
             data = Q_in.get()
+            # print('Validation', module, 'data', data)
             if type(data) == dict:
-                if Dict.__len__() > 1:
-                    maxCountH = maxCount * Dict.__len__()
-                else:
-                    maxCountH = maxCount
                 if data['data'][0] not in Dict:
                     Dict[data['data'][0]] = 0
                 else:
@@ -110,8 +90,14 @@ class _QHandler_:
                     Dict[data['data'][0]] += 1
                 else:
                     pass
+                # print('Validation', module, 'Dict', Dict )
+                if Dict.__len__() > 1:
+                    maxCountH = maxCount * Dict.__len__()
+                else:
+                    maxCountH = maxCount
                 if checkCount >= maxCountH:
                     for i in Dict:
+
                         if Dict[i] == maxCount:
                             Q_out.put({'head': head, 'key': data['key'], 'data': [i, checkValue]})
                         else:
@@ -135,7 +121,6 @@ class _QHandler_:
                 else:
                     state = False
                 Q_out.put({'key': Resource.UAKey[1], 'data': [data[0], state]})
-
 
     def StrToBool(self, D_in):
         D_out = None
