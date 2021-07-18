@@ -29,34 +29,41 @@ class _QHandler_:
 
     # Обработчик команд, отправляемых на CMSUserAgent
     def Execution(self, Q_in, Q_out):
-        Dict = {}
+        Dict_1 = {}
+        Dict_2 = {}
         DictAction_1 = {'ProcState': ['NovaStudio', False], 'ScreenState': ['Static', True]}
         DictAction_2 = {'ProcState': ['NovaStudio', True], 'ScreenState': ['Static', True]}
         DictAction_3 = {'ProcState': ['NovaStudio', True], 'ScreenState': ['Static', False]}
         DictAction_4 = {'ProcState': ['NovaStudio', False], 'ScreenState': ['Static', False]}
+        DictAction_5 = {'ProcState': ['MarsServerProvider', False], }
+        DictAction_6 = {'ProcState': ['MarsServerProvider', True], }
         while True:
 
             data = Q_in.get()
             # print('Execution', data, )
             if (data['key'] == 'ScreenState') or (data['key'] == 'ProcState' and data['data'][0] == 'NovaStudio' ):
-                Dict[data['key']] = data['data']
-                print(Dict)
-
-            if Dict == DictAction_1:
-                print('RunNova')
-                Dict = {}
-            if Dict == DictAction_2:
-                print('RestartNova')
-                Dict = {}
-            if Dict == DictAction_3:
-                print('NovaStudioOK')
-                Dict = {}
-            if Dict == DictAction_4:
-                print('RebootSystem')
-
-
-
-
+                Dict_1[data['key']] = data['data']
+                print(Dict_1)
+                if Dict_1 == DictAction_1:
+                    print('RunNova')
+                    Dict_1 = {}
+                if Dict_1 == DictAction_2:
+                    print('RestartNova')
+                    Dict_1 = {}
+                if Dict_1 == DictAction_3:
+                    print('NovaStudioOK')
+                    Dict_1 = {}
+                if Dict_1 == DictAction_4:
+                    print('RebootSystem')
+            if data['key'] == 'ProcState' and data['data'][0] == 'MarsServerProvider':
+                Dict_2[data['key']] = data['data']
+                print(Dict_2)
+                if Dict_2 == DictAction_5:
+                    print('TerminateMars')
+                    Dict_2 = {}
+                if Dict_2 == DictAction_6:
+                    print('MarsTerminated')
+                    Dict_2 = {}
 
 
     # Обработчик данных, приходящих на CMSUserAgent
