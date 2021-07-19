@@ -8,7 +8,7 @@ class _API_:
 
     def GetProcessState(self, Q_out):
         processList = self.GetProcessList()
-        for i in Resource.ProcessList:
+        for i in Resource.ProcDict:
             if i in processList:
                 procState = True
             else:

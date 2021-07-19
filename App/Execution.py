@@ -1,8 +1,22 @@
 import subprocess
 import psutil
 import time
+from App import Resource
 
 class _Execute_:
+
+    def StartProc(self, data):
+        if data == Resource.ProcList[0]:
+            self.RunNovaStudio()
+
+    def TerminateProc(self, data):
+        if data == Resource.ProcList[1]:
+            self.TerminateMars()
+
+    def RestartProc(self, data):
+        if data == Resource.ProcList[0]:
+            self.RestartNovaStudio()
+
     def RestartNovaStudio(self):
         self.TerminateNovaStudio()
         self.RunNovaStudio()
@@ -11,6 +25,7 @@ class _Execute_:
         subprocess.Popen('C:\\Program Files (x86)\\Nova Star\\NovaStudio\\Bin\\NovaStudio.exe')
 
     def TerminateNovaStudio(self):
+        print('TerminateNovaStudio')
         for proc in psutil.process_iter():
             processName = proc.as_dict(attrs=['name'])
             processPid = proc.as_dict(attrs=['pid'])
@@ -21,7 +36,6 @@ class _Execute_:
                 novaProcess.kill()
             else:
                 pass
-
 
     def TerminateMars(self):
         popenState = subprocess.Popen('C:\\Users\\rAdmin_local\\AppData\\Roaming\\Nova Star\\NovaLCT\\Bin\\NovaLCT.exe')

@@ -3,104 +3,92 @@ from App import Execution
 from App import Resource
 
 
+
 class _QHandler_:
 
     def PrepareToSend(self, Q_in, Q_out):
         while True:
-
             data = Q_in.get()
-            print(data)
-            data['method'] = 'put'
+            data['method'] = Resource.ComDict['method'][0]
             Q_out.put(data)
 
     # Обработчик очереди данных, приходящих от CMSUserAgent
     def FromUserAgent(self, Q_in, Q_screenValidation, Q_procValidation):
         while True:
             data = Q_in.get()
-
-            if data['method'] == 'put':
-                if data['head'] == 'state':
-                    if data['key'] == 'ScreenState':
-                        Q_screenValidation.put( { 'key':data['key'], 'data':data['data'],} )
-                    if data['key'] == 'ProcState':
-                        Q_procValidation.put( { 'key':data['key'], 'data':data['data'],} )
+            print('FromUA', data)
+            if data['method'] == Resource.ComDict['method'][0]:
+                if data['head'] == Resource.ComDict['head'][0]:
+                    if data['key'] == Resource.ComDict['key'][0]:
+                        Q_screenValidation.put({'key': data['key'], 'data': data['data'], })
+                    if data['key'] == Resource.ComDict['key'][1]:
+                        Q_procValidation.put({'key': data['key'], 'data': data['data'], })
 
     # Обработчик внутренней очереди
     def Internal(self, InternalQueue, ExecutionQueue):
-        while True:
-            data = InternalQueue.get()
-            command = {}
+        pass
 
     # Обработчик команд, отправляемых на CMSUserAgent
     def Execution(self, Q_in, Q_out):
-        Dict_1 = {}
-        Dict_2 = {}
+        DictNova = {}
+        DictMars = {}
         command = None
-        DictAction_1 = {'ProcState': ['NovaStudio', False], 'ScreenState': ['Static', True]}
-        DictAction_2 = {'ProcState': ['NovaStudio', True], 'ScreenState': ['Static', True]}
-        DictAction_3 = {'ProcState': ['NovaStudio', True], 'ScreenState': ['Static', False]}
-        DictAction_4 = {'ProcState': ['NovaStudio', False], 'ScreenState': ['Static', False]}
-
         DictAction_5 = {'ProcState': ['MarsServerProvider', False], }
-        DictAction_6 = {'ProcState': ['MarsServerProvider', True], }
         while True:
 
             data = Q_in.get()
             # print('Execution', data, )
-            if (data['key'] == 'ScreenState') or (data['key'] == 'ProcState' and data['data'][0] == 'NovaStudio' ):
-                Dict_1[data['key']] = data['data']
+            if (data['key'] == Resource.ComDict['key'][0]) \
+                    or (data['key'] == Resource.ComDict['key'][1] and data['data'][0] == Resource.ProcList[0]):
+
+                DictNova[data['key']] = data['data']
                 # print('Execution', Dict_1)
-                if Dict_1 == DictAction_1:
-                    command = {'head': 'Action', 'key': 'Process', 'data': ['NovaStudio', 'Run'], }
-                    # print(command)
-                    Dict_1 = {}
-                if Dict_1 == DictAction_2:
-                    command = {'head': 'Action', 'key': 'Process', 'data': ['NovaStudio', 'Restart'], }
-                    # print(command)
-                    Dict_1 = {}
-                if Dict_1 == DictAction_3:
-                    command = {'head': 'Action', 'key': 'Process', 'data': ['NovaStudio', 'Continue'], }
-                    # print(command)
-                    Dict_1 = {}
-                if Dict_1 == DictAction_4:
-                    command = {'head': 'Action', 'key': 'System', 'data': ['System', 'Restart'], }
-                    # print(command)
-                    Dict_1 = {}
+                if DictNova == Resource.RunNova[0]:
+                    command = Resource.RunNova[1]
+                    DictNova = {}
+                if DictNova == Resource.RestartNova[0]:
+                    command = Resource.RestartNova[1]
+                    DictNova = {}
                 if command:
                     Q_out.put(command)
                     command = None
-                    Dict_1 = {}
+                    DictNova = {}
 
-            if data['key'] == 'ProcState' and data['data'][0] == 'MarsServerProvider':
-                Dict_2[data['key']] = data['data']
-                # print(Dict_2)
-                if Dict_2 == DictAction_5:
-                    command = {'head': 'Action', 'key': 'Process', 'data': ['MarsServerProvider', 'Terminate'], }
-                    # print(command)
-                    Dict_2 = {}
-                if Dict_2 == DictAction_6:
-                    command = {'head': 'Action', 'key': 'Process', 'data': ['MarsServerProvider', 'TerminatedOK'], }
-                    # print(command)
-                    Dict_2 = {}
-
+            if data['key'] == Resource.ComDict['key'][1] and data['data'][0] == Resource.ProcList[1]:
+                DictMars[data['key']] = data['data']
+                if DictMars == Resource.TerminateMars[0]:
+                    command = Resource.TerminateMars[1]
+                    DictMars = {}
                 if command:
                     Q_out.put(command)
                     command = None
-                    Dict_2 = {}
-
-
-
+                    DictMars = {}
 
     # Обработчик данных, приходящих на CMSUserAgent
-    def FromCore(self, CMSCoreDataQueue):
+    def FromCore(self, Q_in, Q_out, ):
         while True:
-            data = CMSCoreDataQueue.get()
+            data = Q_in.get()
             print('FromCore', data)
-            if type(data) == list:
-                if data[0] == 'RunNovaStudio':
-                    if data[1] == True:
-                        Execute_ = Execution._Execute_()
-                        Execute_.RestartNovaStudio()
+            if data['method'] == Resource.ComDict['method'][0]:
+                if data['head'] == Resource.ComDict['head'][1]:
+                    Q_out.put(data)
+
+    def UAExec(self, Q_in, Q_out):
+        _Execute_ = Execution._Execute_()
+        while True:
+
+            data = Q_in.get()
+            if data['key'] == Resource.ComDict['key'][2]:
+                _Execute_.StartProc(data['data'])
+                print('UAExec RunProc', data)
+            if data['key'] == Resource.ComDict['key'][3]:
+                _Execute_.TerminateProc(data['data'])
+                print('UAExec TerminateProc', data)
+            if data['key'] == Resource.ComDict['key'][4]:
+                _Execute_.RestartProc(data['data'])
+                print('UAExec RestartProc', data)
+            if data['key'] == Resource.ComDict['key'][5]:
+                print('UAExec System', data)
 
 
     # Обработчик - счетчик валидировочных очередей
@@ -147,16 +135,8 @@ class _QHandler_:
                 time.sleep(1)
             else:
                 data = Q_in.get()
-                if data[1] == Resource.ProcessList[data[0]]:
+                if data[1] == Resource.ProcDict[data[0]]:
                     state = True
                 else:
                     state = False
-                Q_out.put({'key': Resource.UAKey[1], 'data': [data[0], state]})
-
-    def StrToBool(self, D_in):
-        D_out = None
-        if D_in == 'True':
-            D_out = True
-        if D_in == 'False':
-            D_out = False
-        return D_out
+                Q_out.put({'key': Resource.Key[1], 'data': [data[0], state]})

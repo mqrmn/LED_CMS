@@ -88,9 +88,9 @@ class _System_:
                 # Проверка значений, передача результата в очередь
                 if len(chanelSumArr) == 2:
                     if (chanelSumArr[0] == chanelSumArr[1]):                                    # Экран статичен
-                        screenStateQueue.put({'key': Resource.UAKey[0], 'data': [Resource.ScreenState[0], True], })
+                        screenStateQueue.put({'key': Resource.ComDict['key'][0], 'data': [Resource.ComDict['data'][Resource.ComDict['key'][0]][0], True], })
                     else:
-                        screenStateQueue.put({'key': Resource.UAKey[0], 'data': [Resource.ScreenState[0], False], })
+                        screenStateQueue.put({'key': Resource.ComDict['key'][0], 'data': [Resource.ComDict['data'][Resource.ComDict['key'][0]][0], False], })
                     del chanelSumArr[0]                                                         # Удаляю из словаря запись с индексом 0
                 time.sleep(random.randint(3, 3))
         else:
