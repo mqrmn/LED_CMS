@@ -7,7 +7,9 @@ class _QHandler_:
 
     def PrepareToSend(self, Q_in, Q_out):
         while True:
+
             data = Q_in.get()
+            print(data)
             data['method'] = 'put'
             Q_out.put(data)
 
@@ -15,6 +17,7 @@ class _QHandler_:
     def FromUserAgent(self, Q_in, Q_screenValidation, Q_procValidation):
         while True:
             data = Q_in.get()
+
             if data['method'] == 'put':
                 if data['head'] == 'state':
                     if data['key'] == 'ScreenState':
@@ -26,15 +29,18 @@ class _QHandler_:
     def Internal(self, InternalQueue, ExecutionQueue):
         while True:
             data = InternalQueue.get()
+            command = {}
 
     # Обработчик команд, отправляемых на CMSUserAgent
     def Execution(self, Q_in, Q_out):
         Dict_1 = {}
         Dict_2 = {}
+        command = None
         DictAction_1 = {'ProcState': ['NovaStudio', False], 'ScreenState': ['Static', True]}
         DictAction_2 = {'ProcState': ['NovaStudio', True], 'ScreenState': ['Static', True]}
         DictAction_3 = {'ProcState': ['NovaStudio', True], 'ScreenState': ['Static', False]}
         DictAction_4 = {'ProcState': ['NovaStudio', False], 'ScreenState': ['Static', False]}
+
         DictAction_5 = {'ProcState': ['MarsServerProvider', False], }
         DictAction_6 = {'ProcState': ['MarsServerProvider', True], }
         while True:
@@ -43,41 +49,59 @@ class _QHandler_:
             # print('Execution', data, )
             if (data['key'] == 'ScreenState') or (data['key'] == 'ProcState' and data['data'][0] == 'NovaStudio' ):
                 Dict_1[data['key']] = data['data']
-                print(Dict_1)
+                # print('Execution', Dict_1)
                 if Dict_1 == DictAction_1:
-                    print('RunNova')
+                    command = {'head': 'Action', 'key': 'Process', 'data': ['NovaStudio', 'Run'], }
+                    # print(command)
                     Dict_1 = {}
                 if Dict_1 == DictAction_2:
-                    print('RestartNova')
+                    command = {'head': 'Action', 'key': 'Process', 'data': ['NovaStudio', 'Restart'], }
+                    # print(command)
                     Dict_1 = {}
                 if Dict_1 == DictAction_3:
-                    print('NovaStudioOK')
+                    command = {'head': 'Action', 'key': 'Process', 'data': ['NovaStudio', 'Continue'], }
+                    # print(command)
                     Dict_1 = {}
                 if Dict_1 == DictAction_4:
-                    print('RebootSystem')
+                    command = {'head': 'Action', 'key': 'System', 'data': ['System', 'Restart'], }
+                    # print(command)
+                    Dict_1 = {}
+                if command:
+                    Q_out.put(command)
+                    command = None
+                    Dict_1 = {}
+
             if data['key'] == 'ProcState' and data['data'][0] == 'MarsServerProvider':
                 Dict_2[data['key']] = data['data']
-                print(Dict_2)
+                # print(Dict_2)
                 if Dict_2 == DictAction_5:
-                    print('TerminateMars')
+                    command = {'head': 'Action', 'key': 'Process', 'data': ['MarsServerProvider', 'Terminate'], }
+                    # print(command)
                     Dict_2 = {}
                 if Dict_2 == DictAction_6:
-                    print('MarsTerminated')
+                    command = {'head': 'Action', 'key': 'Process', 'data': ['MarsServerProvider', 'TerminatedOK'], }
+                    # print(command)
                     Dict_2 = {}
+
+                if command:
+                    Q_out.put(command)
+                    command = None
+                    Dict_2 = {}
+
+
 
 
     # Обработчик данных, приходящих на CMSUserAgent
     def FromCore(self, CMSCoreDataQueue):
         while True:
-            if CMSCoreDataQueue.empty() == False:
-                data = CMSCoreDataQueue.get()
-                if type(data) == list:
-                    if data[0] == 'RunNovaStudio':
-                        if data[1] == True:
-                            Execute_ = Execution._Execute_()
-                            Execute_.RestartNovaStudio()
-            else:
-                pass
+            data = CMSCoreDataQueue.get()
+            print('FromCore', data)
+            if type(data) == list:
+                if data[0] == 'RunNovaStudio':
+                    if data[1] == True:
+                        Execute_ = Execution._Execute_()
+                        Execute_.RestartNovaStudio()
+
 
     # Обработчик - счетчик валидировочных очередей
     def Validation(self, Q_in, Q_out, checkValue, maxCount, head, sendAllCircles, module):
