@@ -1,11 +1,10 @@
 import time
-from App import Execution
-from App import Resource
+from App import Action, Resource
 
+# Обработчики очередей
+class Queue:
 
-
-class _QHandler_:
-
+    # Подготовка данных к отправке на сокет, метод условно резервный
     def PrepareToSend(self, Q_in, Q_out):
         while True:
             data = Q_in.get()
@@ -13,10 +12,10 @@ class _QHandler_:
             Q_out.put(data)
 
     # Обработчик очереди данных, приходящих от CMSUserAgent
-    def FromUserAgent(self, Q_in, Q_screenValidation, Q_procValidation):
+    def FromUA(self, Q_in, Q_screenValidation, Q_procValidation):
         while True:
             data = Q_in.get()
-            print('FromUA', data)
+            print(data)
             if data['method'] == Resource.ComDict['method'][0]:
                 if data['head'] == Resource.ComDict['head'][0]:
                     if data['key'] == Resource.ComDict['key'][0]:
@@ -24,25 +23,19 @@ class _QHandler_:
                     if data['key'] == Resource.ComDict['key'][1]:
                         Q_procValidation.put({'key': data['key'], 'data': data['data'], })
 
-    # Обработчик внутренней очереди
-    def Internal(self, InternalQueue, ExecutionQueue):
-        pass
-
-    # Обработчик команд, отправляемых на CMSUserAgent
-    def Execution(self, Q_in, Q_out):
+    # Подготавливает команты, отправляеемые на UA
+    def CreateAction(self, Q_in, Q_out):
         DictNova = {}
         DictMars = {}
         command = None
-        DictAction_5 = {'ProcState': ['MarsServerProvider', False], }
+
         while True:
-
             data = Q_in.get()
-            # print('Execution', data, )
-            if (data['key'] == Resource.ComDict['key'][0]) \
-                    or (data['key'] == Resource.ComDict['key'][1] and data['data'][0] == Resource.ProcList[0]):
 
+            if (data['key'] == Resource.ComDict['key'][0]) \
+                or (data['key'] == Resource.ComDict['key'][1] and data['data'][0] == Resource.ProcList[0]):
                 DictNova[data['key']] = data['data']
-                # print('Execution', Dict_1)
+
                 if DictNova == Resource.RunNova[0]:
                     command = Resource.RunNova[1]
                     DictNova = {}
@@ -64,41 +57,36 @@ class _QHandler_:
                     command = None
                     DictMars = {}
 
-    # Обработчик данных, приходящих на CMSUserAgent
+    # Обработчик данных, приходящих на UA
     def FromCore(self, Q_in, Q_out, ):
         while True:
             data = Q_in.get()
-            print('FromCore', data)
             if data['method'] == Resource.ComDict['method'][0]:
                 if data['head'] == Resource.ComDict['head'][1]:
                     Q_out.put(data)
 
-    def UAExec(self, Q_in, Q_out):
-        _Execute_ = Execution._Execute_()
+    # Проверяет ключи в данных приходящих на UA, в соответсвии с ними запускает действия
+    def UAAction(self, Q_in, Q_out):
+        _Execute_ = Action.Process()
         while True:
 
             data = Q_in.get()
             if data['key'] == Resource.ComDict['key'][2]:
-                _Execute_.StartProc(data['data'])
-                print('UAExec RunProc', data)
+                _Execute_.Start(data['data'])
             if data['key'] == Resource.ComDict['key'][3]:
-                _Execute_.TerminateProc(data['data'])
-                print('UAExec TerminateProc', data)
+                _Execute_.Terminate(data['data'])
             if data['key'] == Resource.ComDict['key'][4]:
-                _Execute_.RestartProc(data['data'])
-                print('UAExec RestartProc', data)
+                _Execute_.Restart(data['data'])
             if data['key'] == Resource.ComDict['key'][5]:
-                print('UAExec System', data)
+                pass
 
-
-    # Обработчик - счетчик валидировочных очередей
-    def Validation(self, Q_in, Q_out, checkValue, maxCount, head, sendAllCircles, module):
+    # Проверяет поток приходящих данных на заданное соответсвие
+    def Valid(self, Q_in, Q_out, checkValue, maxCount, head, sendAllCircles, ):
         checkCount, catchCount = 0, 0
-        maxCountH = maxCount
         Dict = {}
+
         while True:
             data = Q_in.get()
-            # print('Validation', module, 'data', data)
             if type(data) == dict:
                 if data['data'][0] not in Dict:
                     Dict[data['data'][0]] = 0
@@ -109,14 +97,12 @@ class _QHandler_:
                     Dict[data['data'][0]] += 1
                 else:
                     pass
-                # print('Validation', module, 'Dict', Dict )
                 if Dict.__len__() > 1:
                     maxCountH = maxCount * Dict.__len__()
                 else:
                     maxCountH = maxCount
                 if checkCount >= maxCountH:
                     for i in Dict:
-
                         if Dict[i] == maxCount:
                             Q_out.put({'head': head, 'key': data['key'], 'data': [i, checkValue]})
                         else:
@@ -129,6 +115,7 @@ class _QHandler_:
                 else:
                     pass
 
+    # Проверка списка процессов на соответсвие статусу активности
     def CheckProcList(self, Q_in, Q_out):
         while True:
             if Q_in.empty() == True:

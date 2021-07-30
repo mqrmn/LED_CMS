@@ -1,10 +1,7 @@
 import socket
-import time
 import pickle
 
-from App.Config import Config
-
-class _Network_:
+class Socket:
 
     def Server(self, host, port, Q_):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:

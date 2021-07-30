@@ -3,28 +3,29 @@ import psutil
 import time
 from App import Resource
 
-class _Execute_:
 
-    def StartProc(self, data):
+class Process:
+
+    def Start(self, data):
         if data == Resource.ProcList[0]:
-            self.RunNovaStudio()
+            self.RunNova()
 
-    def TerminateProc(self, data):
+    def Terminate(self, data):
         if data == Resource.ProcList[1]:
             self.TerminateMars()
 
-    def RestartProc(self, data):
+    def Restart(self, data):
         if data == Resource.ProcList[0]:
-            self.RestartNovaStudio()
+            self.RestartNova()
 
-    def RestartNovaStudio(self):
-        self.TerminateNovaStudio()
-        self.RunNovaStudio()
+    def RestartNova(self):
+        self.TerminateNova()
+        self.RunNova()
 
-    def RunNovaStudio(self):
+    def RunNova(self):
         subprocess.Popen('C:\\Program Files (x86)\\Nova Star\\NovaStudio\\Bin\\NovaStudio.exe')
 
-    def TerminateNovaStudio(self):
+    def TerminateNova(self):
         print('TerminateNovaStudio')
         for proc in psutil.process_iter():
             processName = proc.as_dict(attrs=['name'])
@@ -54,3 +55,15 @@ class _Execute_:
 
             else:
                 pass
+
+class Service:
+
+    def Start(self):
+        pass
+
+    def Stop(self):
+        pass
+
+    def Restart(self):
+        pass
+

@@ -35,6 +35,8 @@ globalCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\CMS_DEV\\'
 groupCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\{}\\CMS_DEV\\'.format(objType)
 localCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\{}\\{}\\CMS\\'.format(objType, objCode)
 
+timeoutSCheck = [10, 30]
+timeoutPCheck = 30
 # Настройка сокетов для внутренних коммуникаций
 localhost = 'localhost'
 CMSCoreInternalPort = 2203

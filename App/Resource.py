@@ -43,3 +43,5 @@ TerminateMars = [{'ProcState': ['MarsServerProvider', False], },
 Res_ContinueNova = {'ProcState': ['NovaStudio', True], 'ScreenState': ['Static', False]}
 Res_Reserved = {'ProcState': ['NovaStudio', False], 'ScreenState': ['Static', False]}
 Res_ContinueMars = {'ProcState': ['MarsServerProvider', True], }
+
+CMSCore = 'CMSCore'

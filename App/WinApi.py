@@ -1,7 +1,9 @@
-import win32pdh
+import win32pdh, win32service
 from App import Resource
 
-class _API_:
+import wmi
+
+class Process:
     def GetProcessList(self):
         junk, list = win32pdh.EnumObjectItems(None, None, "Процесс", win32pdh.PERF_DETAIL_WIZARD)
         return list
@@ -15,3 +17,20 @@ class _API_:
                 procState = False
 
             Q_out.put([i, procState])
+
+
+    def GetService(self, name):
+        pass
+        c = wmi.WMI()
+        for x in c.Win32_Service():
+            if x.name == name:
+                return x
+
+    def StopService(self, name):
+        self.GetService(name).StopService()
+
+    def StartService(self, name):
+        self.GetService(name).StartService()
+
+    def RestartService(self):
+        pass

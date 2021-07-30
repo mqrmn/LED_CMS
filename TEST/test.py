@@ -6,8 +6,8 @@ from multiprocessing import Process
 
 from App import Validation
 from App import WinApi
-from App import Handlers
-from App import Handlers, Communicate
+from App import Handler
+from App import Handler, Comm
 from App.Config import Config
 from  App.UserAgent import CMSUserAgent
 from App import Resource
@@ -15,45 +15,51 @@ from App import Resource
 
 module = 'TEST'
 def TEST():
+    # # Создаю экземпляры классов
+    # C_Handlers = Handler.Queue()
+    # C_Network = Comm.Socket()
+    #
+    # # Очереди
+    # Q_FromUA = queue.Queue()
+    # Q_Action = queue.Queue()
+    # Q_Send = queue.Queue()
+    # Q_ValidProc = queue.Queue()
+    # Q_PrepareToSend = queue.Queue()
+    # Q_ValidScreen = queue.Queue()
+    #
+    # # Потоки
+    # T_Server = threading.Thread(target=C_Network.Server,
+    #                             args=(Config.localhost, Config.CMSCoreInternalPort, Q_FromUA))  # Прием данных TCP
+    # T_Client = threading.Thread(target=C_Network.Client,
+    #                             args=(Config.localhost, Config.CMSUserAgentPort, Q_Send))  # Отправка данных TCP
+    # TQ_FromUA = threading.Thread(target=C_Handlers.FromUA, args=(
+    # Q_FromUA, Q_ValidScreen, Q_ValidProc))  # Обработчик очереди данных от CMSUserAgent
+    # TQ_CreateAction = threading.Thread(target=C_Handlers.CreateAction,
+    #                                    args=(Q_Action, Q_PrepareToSend))  # Обработчик очереди команд для CMSUserAgent
+    # TQ_PrepareToSend = threading.Thread(target=C_Handlers.PrepareToSend, args=(Q_PrepareToSend, Q_Send,))
+    # TQ_ValidScreen = threading.Thread(target=C_Handlers.Valid, args=(
+    # Q_ValidScreen, Q_Action, True, 2, Resource.ComDict['head'][0], True, ))  # Счетчик кондиции экрана
+    # TQ_ValidProc = threading.Thread(target=C_Handlers.Valid,
+    #                                 args=(Q_ValidProc, Q_Action, False, 2, Resource.ComDict['head'][0], True, ))
+    #
+    # # Запуск потоков
+    # T_Server.start()
+    # T_Client.start()
+    # TQ_FromUA.start()
+    # TQ_CreateAction.start()
+    # TQ_PrepareToSend.start()
+    # TQ_ValidScreen.start()
+    # TQ_ValidProc.start()
+    #
+    #
+    #
+    # CMSUserAgent.main()
 
-    _validation_ = Validation._System_()
-    _handlers_ = Handlers._QHandler_()
-    _network_ = Communicate._Network_()
+    x = WinApi.Process()
+    # x.StartService('CMS')
 
-    # Простые очереди
-    Q_ScreenValidation_ = queue.Queue()
-
-    # Очереди
-    Q_CMSUserAgent_ = queue.Queue()
-    Q_Execution_ = queue.Queue()
-    Q_SendUserAgent_ = queue.Queue()
-    Q_procValidation_ = queue.Queue()
-    Q_PrepareToSend_ = queue.Queue()
-
-    # Потоки
-    T_InternalSocket = threading.Thread(target=_network_.Server, args=(Config.localhost, Config.CMSCoreInternalPort, Q_CMSUserAgent_))                                  # Прием данных от CMSUserAgent
-    TQH_CMSUserAgent = threading.Thread(target=_handlers_.FromUserAgent, args=(Q_CMSUserAgent_, Q_ScreenValidation_, Q_procValidation_))                                # Обработчик очереди данных от CMSUserAgent
-
-    TQH_ValidationScreen = threading.Thread(target=_handlers_.Validation, args=(Q_ScreenValidation_, Q_Execution_, True, 2, 'State', True, module))     # Счетчик кондиции экрана
-    THQ_ProcValidation_ = threading.Thread(target=_handlers_.Validation, args=(Q_procValidation_, Q_Execution_, False, 2, 'State', True, module))
-    TQH_Execution = threading.Thread(target=_handlers_.Execution, args=(Q_Execution_, Q_PrepareToSend_))                                                                # Обработчик очереди команд для CMSUserAgent
-
-    T_PrepareToSend = threading.Thread(target=_handlers_.PrepareToSend, args=(Q_PrepareToSend_, Q_SendUserAgent_,))
-    T_NetworkClient = threading.Thread(target=_network_.Client, args=(Config.localhost, Config.CMSUserAgentPort, Q_SendUserAgent_))                                     # Отправка данных на CMSUserAgent
-
-    # Запуск потоков
-    T_InternalSocket.start()
-    TQH_CMSUserAgent.start()
-    TQH_Execution.start()
-    T_NetworkClient.start()
-    TQH_ValidationScreen.start()
-    T_PrepareToSend.start()
-    THQ_ProcValidation_.start()
-
-
-
-    CMSUserAgent.main()
-
+    x.StopService('CMS')
+    # print(x.StartService())
 
 
 

@@ -1,24 +1,27 @@
 #v.1.1.1
 import sys
 sys.path.append("C:\\MOBILE\\Local\\CMS")
-from App.Config import Config
+
 import datetime
 from datetime import date
 import os
 import re
 import shutil
-from App import LogManager
 from inspect import currentframe, getframeinfo
 import psutil
 import xml.etree.ElementTree as ET
+
+from App.Config import Config
+from App import LogManager
 
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
 
-class _System_:
+class Manager:
 
-    def LogArchiever(self):
+    # Архивирует логи
+    def LogArch(self):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         listForArchiving = []
         # Перечисляю файлы, хранящиеся в дирректории
@@ -43,8 +46,8 @@ class _System_:
             logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Журналов для архивирования не обнаружено')
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
 
-
-    def LogDeleter(self):
+    # Удаляет устаревшие логи
+    def LogDel(self):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         listForDeleting = []
 
@@ -62,11 +65,13 @@ class _System_:
             logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Файл удален ' + file)
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
 
-    def TempDeleter(self):
+    # Чистит папку с временными файлами
+    def TempDel(self):
         for file in os.listdir(Config.tempPath):
             os.remove('{}{}'.format(Config.tempPath, file))
             logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Файл удален ' + file)
 
+    # Обновление CMS
     def CMSUpgrade(self):
 
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
@@ -116,6 +121,7 @@ class _System_:
             pass
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
 
+    # Проверяет ключи обновления CMS
     def CheckCMSUpdates(self, path, type):
 
         upgradeScoreKey = {'IGNORE': 0, 'FREE': 200, 'FORCE': 300, 'LOCK': 400}
@@ -140,6 +146,7 @@ class _System_:
             score, version = 0, '0.0.0'
         return score, version
 
+    # Архивирует текущий пакет CMS
     def CurrentCMSArch(self, version):
 
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
@@ -150,6 +157,7 @@ class _System_:
 
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
 
+    # Непосредственно обновляет файлы CMS
     def RenewCMSFiles(self, path):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         shutil.rmtree(os.path.dirname(__file__))
@@ -158,7 +166,7 @@ class _System_:
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Обновление выполнено')
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
 
-
+    # Ниже методы обновления контента. Под переработку.
     def ContentRenewHandler(self):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
 

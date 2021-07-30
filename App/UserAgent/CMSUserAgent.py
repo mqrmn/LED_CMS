@@ -3,67 +3,54 @@
 from App import Validation
 import threading
 import queue
-from App import Communicate
+
 from App.Config import Config
-from App import Handlers
-from App import WinApi
-from inspect import currentframe, getframeinfo
-
-import logging
-import time
-
-module = 'CMSUserAgent'
+from App import Resource, Comm, Handler
 
 def main():
 
-    lowScreenStateQueue = queue.Queue()                    # Очередь результатов проверки экрана
+    # Очереди
+    Q_ValidScreenRAW = queue.Queue()                    # Очередь результатов проверки экрана
+    Q_FromCore = queue.Queue()
+    Q_ToSend = queue.Queue()
+    Q_ProcStateRAW = queue.Queue()
+    Q_ProcState = queue.Queue()
+    Q_PrepareToSend = queue.Queue()
+    Q_Action = queue.Queue()
 
-    CMSCoreDataQueue = queue.Queue()
-    Q_SendCore = queue.Queue()
-    Q_ProcState_ = queue.Queue()
-    Q_CheckedProcState_ = queue.Queue()
-    Q_PrepareToSend_ = queue.Queue()
-    Q_Exec = queue.Queue()
+    # Экземпляры классов
+    C_Valid = Validation._System_()                   # Экземпляр класса валидации
+    C_Handlers = Handler.Queue()
+    C_Network = Comm.Socket()
+    C_Handler = Handler.Queue()
+    C_Validation = Validation._System_()
 
-    Validation_ = Validation._System_()                   # Экземпляр класса валидации
-    Network_ = Communicate._Network_()                    # Экземпляр класса сервера
-    Handlers_ = Handlers._QHandler_()
-    network_ = Communicate._Network_()
-    _WinApi_ = WinApi._API_()
-    _QHandler_ = Handlers._QHandler_()
-    _Validation_ = Validation._System_()
+    # Потоки
+    T_Server = threading.Thread(target=C_Network.Server, args=(Config.localhost, Config.CMSUserAgentPort, Q_FromCore,))
+    T_Client = threading.Thread(target=C_Network.Client, args=(Config.localhost, Config.CMSCoreInternalPort, Q_ToSend))
+    T_ActionRun = threading.Thread(target=C_Handlers.UAAction, args=(Q_Action, Q_PrepareToSend))
+    T_GetScreen = threading.Thread(target=C_Valid.GetScreenStatic, args=(Q_ValidScreenRAW,))
+    T_CheckScreen = threading.Thread(target=C_Handlers.Valid, args=(Q_ValidScreenRAW, Q_PrepareToSend, True, 4, Resource.ComDict['head'][0], True, ))
+    T_GetProcState = threading.Thread(target=C_Validation.GetProcessState, args=(Q_ProcStateRAW,))
+    TQ_CheckProc = threading.Thread(target=C_Handler.CheckProcList, args=(Q_ProcStateRAW, Q_ProcState))
+    TQ_ValidProc = threading.Thread(target=C_Handler.Valid, args=(Q_ProcState, Q_PrepareToSend, False, 2, Resource.ComDict['head'][0], True, ))
+    TQ_PrepareToSend = threading.Thread(target=C_Handlers.PrepareToSend, args=(Q_PrepareToSend, Q_ToSend, ))
+    TQ_FromCore = threading.Thread(target=C_Handlers.FromCore, args=(Q_FromCore, Q_Action))
 
-    serverThread = threading.Thread(target=Network_.Server, args=(Config.localhost, Config.CMSUserAgentPort, CMSCoreDataQueue,))  # Сокет, принимающий данные от CMSCore
-
-    # Проаерка экрана
-    getScreenValidationTread = threading.Thread(target=Validation_.GetScreenStatic, args=(lowScreenStateQueue,))                # Поток проверки экрана
-    checkScreenValidationTread = threading.Thread(target=Handlers_.Validation, args=(lowScreenStateQueue, Q_PrepareToSend_, True, 4, 'State', True, module,))
-
-
-    T_GetProcState = threading.Thread(target=_Validation_.GetProcessState, args=(Q_ProcState_,))
-    TQH_CheckProcList = threading.Thread(target=_QHandler_.CheckProcList, args=(Q_ProcState_, Q_CheckedProcState_))
-
-    THQ_ValidateProcState = threading.Thread(target=_QHandler_.Validation, args=(Q_CheckedProcState_, Q_PrepareToSend_, False, 2, 'State', True, module,))
-
-    T_PrepareToSend = threading.Thread(target=Handlers_.PrepareToSend, args=(Q_PrepareToSend_, Q_SendCore, ))
-
-    T_NetworkClient = threading.Thread(target=network_.Client, args=(Config.localhost, Config.CMSCoreInternalPort, Q_SendCore))
-
-    CMSCoreDataQueueHandlerThread = threading.Thread(target=Handlers_.FromCore, args=(CMSCoreDataQueue, Q_Exec))
-
-    ExecThread = threading.Thread(target=Handlers_.UAExec, args=(Q_Exec, Q_PrepareToSend_))
-
-
-    serverThread.start()
-    getScreenValidationTread.start()
-    checkScreenValidationTread.start()
-    TQH_CheckProcList.start()
-    THQ_ValidateProcState.start()
+    # Запуск потоков
+    T_Server.start()
+    T_Client.start()
+    T_ActionRun.start()
+    T_GetScreen.start()
+    T_CheckScreen.start()
     T_GetProcState.start()
-    CMSCoreDataQueueHandlerThread.start()
-    T_NetworkClient.start()
-    T_PrepareToSend.start()
-    ExecThread.start()
+    TQ_CheckProc.start()
+    TQ_ValidProc.start()
+    TQ_FromCore.start()
+    TQ_PrepareToSend.start()
+
+# if __name__ == '__main__':
+#     main()
 
 
 

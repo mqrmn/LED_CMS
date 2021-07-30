@@ -3,7 +3,6 @@
 import re
 import shutil
 import psutil
-
 import numpy as np
 import pyautogui
 import cv2
@@ -12,7 +11,6 @@ from App.Config import Config
 import random
 import os
 import threading
-from App import Communicate
 from App import WinApi
 from App import Resource
 
@@ -92,15 +90,15 @@ class _System_:
                     else:
                         screenStateQueue.put({'key': Resource.ComDict['key'][0], 'data': [Resource.ComDict['data'][Resource.ComDict['key'][0]][0], False], })
                     del chanelSumArr[0]                                                         # Удаляю из словаря запись с индексом 0
-                time.sleep(random.randint(3, 3))
+                time.sleep(random.randint(Config.timeoutSCheck[0], Config.timeoutSCheck[1]))
         else:
             pass
 
     def GetProcessState(self, Q_ProcState_):
-        _WinApi_ = WinApi._API_()
+        _WinApi_ = WinApi.Process()
         while True:
             T_GetProcessState = threading.Thread(target=_WinApi_.GetProcessState, args=(Q_ProcState_,))
             T_GetProcessState.start()
             T_GetProcessState.join()
-            time.sleep(5)
+            time.sleep(Config.timeoutPCheck)
 
