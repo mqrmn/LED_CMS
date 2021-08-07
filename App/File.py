@@ -8,19 +8,22 @@ import os
 import re
 import shutil
 from inspect import currentframe, getframeinfo
-import psutil
 import xml.etree.ElementTree as ET
+import time
 
 from App.Config import Config
-from App import LogManager
+from App import Resource, LogManager
+
 
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
+
+
 logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
 
 class Manager:
 
-    #### Архивирует логи
+    # Архивирует логи
     def LogArch(self):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         listForArchiving = []
@@ -71,8 +74,10 @@ class Manager:
             os.remove('{}{}'.format(Config.tempPath, file))
             logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Файл удален ' + file)
 
+
+
     # Обновление CMS
-    def CMSUpgrade(self):
+    def CMSUpgrade(self, key):
 
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         priorities = {'GLOBAL': 0, 'GROUP': 0, 'LOCAL': 0}
@@ -92,9 +97,13 @@ class Manager:
 
             maxPriority = sorted(priorities, key=priorities.__getitem__)[-1]
             logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Определен приоритет каталога обновлений: ' + maxPriority)
+
             if priorities[maxPriority] > 200:
                 currentVArr = versions['CURRENT'].split('.')
                 newtVArr = versions[maxPriority].split('.')
+
+
+
 
                 # Сравнение версий
                 stopCheck = 0
@@ -104,17 +113,26 @@ class Manager:
                             logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Не обнаружено обновлений')
                         elif int(currentVArr[2]) < int(newtVArr[2]):
                             logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Обнаружено обновление ' + versions[maxPriority])
-                            self.CurrentCMSArch(currentV)
-                            self.RenewCMSFiles(Config.globalCmsRenew)
+                            if key == True:
+                                self.CurrentCMSArch(currentV)
+                                self.RenewCMSFiles(Config.globalCmsRenew)
+                            else:
+                                return True
                             stopCheck = 1
                     elif int(currentVArr[1]) < int(newtVArr[1]) and stopCheck != 1:
+                        if key == True:
+                            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Обнаружено обновление ' + versions[maxPriority])
+                            self.CurrentCMSArch(currentV)
+                            self.RenewCMSFiles(Config.groupCmsRenew)
+                        else:
+                            return True
+                elif  int(currentVArr[0]) < int(newtVArr[0]) and stopCheck != 1:
+                    if key == True:
                         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Обнаружено обновление ' + versions[maxPriority])
                         self.CurrentCMSArch(currentV)
-                        self.RenewCMSFiles(Config.groupCmsRenew)
-                elif  int(currentVArr[0]) < int(newtVArr[0]) and stopCheck != 1:
-                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Обнаружено обновление ' + versions[maxPriority])
-                    self.CurrentCMSArch(currentV)
-                    self.RenewCMSFiles(Config.globalCmsRenew)
+                        self.RenewCMSFiles(Config.globalCmsRenew)
+                    else:
+                        return True
             else:
                 logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Приоритет недостаточен. Отмена обновления.')
         else:
@@ -126,10 +144,10 @@ class Manager:
 
         upgradeScoreKey = {'IGNORE': 0, 'FREE': 200, 'FORCE': 300, 'LOCK': 400}
         upgradeScoreType = {'GLOBAL': 30, 'GROUP': 20, 'LOCAL': 10}
-        upgradeScoreTypeLock = {'GLOBAL': 10, 'GROUP': 20, 'LOCAL': 30}
+        upgradeScoreTypeLoc = {'GLOBAL': 10, 'GROUP': 20, 'LOCAL': 30}
 
         if os.path.exists(path + 'PACKAGE.ver'):
-            file = open(Config.globalCmsRenew + 'PACKAGE.ver', 'r')
+            file = open(path + 'PACKAGE.ver', 'r')
             version = file.read()
             file.close()
 
@@ -139,7 +157,7 @@ class Manager:
 
             score = upgradeScoreKey[key]
             if key == 'LOCK':
-                score += upgradeScoreTypeLock[type]
+                score += upgradeScoreTypeLoc[type]
             else:
                 score += upgradeScoreType[type]
         else:
@@ -160,31 +178,94 @@ class Manager:
     # Непосредственно обновляет файлы CMS
     def RenewCMSFiles(self, path):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
-        shutil.rmtree(os.path.dirname(__file__))
-        shutil.copytree(path, os.path.dirname(__file__))
+        # shutil.rmtree(os.path.dirname(__file__))
+        # shutil.copytree(path, os.path.dirname(__file__))
 
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Обновление выполнено')
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
 
+
+    def CheckNewContent(self):
+        x = 0
+        for formatPath in Config.screenFormat:
+            yaListFilesExcept = os.listdir(Config.yaFilesExcept + formatPath)
+            yaListFilesUnex = os.listdir(Config.yaFilesUnex + formatPath)
+            yaListFilesEx = os.listdir(Config.yaFilesEx + formatPath)
+            localListFilesUnex = os.listdir(Config.localFilesUnex + formatPath)
+            localListFilesEx = os.listdir(Config.localFilesEx + formatPath)
+
+            for file in yaListFilesExcept:
+                if file in localListFilesUnex:
+                    x = 1
+                    break
+                else:
+                    pass
+
+            for file in localListFilesUnex:
+                if file in yaListFilesExcept:
+                    x = 1
+                    break
+                else:
+                    pass
+
+            if localListFilesUnex == yaListFilesUnex:
+                pass
+            else:
+                c1 = yaListFilesUnex
+                c2 = localListFilesUnex
+                for file in list(set(c1) - set(c2)):
+                    if file not in yaListFilesExcept:
+                        x = 1
+                c1 = yaListFilesUnex
+                c2 = localListFilesUnex
+                if list(set(c2) - set(c1)):
+                    x = 1
+
+            if localListFilesEx == yaListFilesEx:
+                pass
+            else:
+                x = 1
+
+            if x == 1:
+                return [yaListFilesExcept, yaListFilesUnex, yaListFilesEx, ]
+            else:
+                return None
+
+    def DynamicRenewCont(self, Q_out):
+
+        list = None
+        fix = False
+        countPass = 0
+        while True:
+            x = self.CheckNewContent()
+            if x != list:
+                list = x
+                fix = True
+                countPass = 0
+
+            if fix  ==  True:
+                countPass += 1
+            if countPass >= 5:
+                # Action
+                Q_out.put(Resource.TerminateNova[0])
+                time.sleep(5)
+                self.ContentRenewHandle()
+                Q_out.put(Resource.RunNova[1])
+
+                list = None
+                fix = False
+                countPass = 0
+            time.sleep(10)
+
+
     # Ниже методы обновления контента. Под переработку.
-    def ContentRenewHandler(self):
+    def ContentRenewHandle(self):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
 
-        for proc in psutil.process_iter():
-            processName = proc.as_dict(attrs=['name'])
-            if processName['name'] == 'NovaStudio.exe': # Долгая проверка. Оптимизировать.
-                isNova = 1
-                break
-            else:
-                isNova = 0
-        if isNova == 0:
-            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'NovaStudio.exe не запущен')
-            if self.RefreshContent() == 1:
-                self.Generate()
-            else:
-                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Не обнаружено файлов для обновления. Обновление отменено.')
+        if self.RefreshContent() == 1:
+            self.Generate()
         else:
-            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'NovaStudio.exe запущен. Обновление контента отменено.')
+            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Не обнаружено файлов для обновления. Обновление отменено.')
 
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
 

@@ -1,5 +1,8 @@
 #v.1.1.1
 
+import sys
+sys.path.append("C:\\MOBILE\\Local\\CMS")
+
 import win32serviceutil
 import win32service
 import win32event
@@ -8,15 +11,13 @@ import time
 import os
 import threading
 import queue
-import sys
-sys.path.append("C:\\MOBILE\\Local\\CMS")
+
 from App.Config import Config
-from App import LogManager, Comm, Resource, Handler
+from App import LogManager, API, File, Comm, Resource, Action
+import LogManager
 
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
-
-
 
 class AppServerSvc(win32serviceutil.ServiceFramework):
     _svc_name_ = "CMSController"
@@ -58,19 +59,31 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         self.main()
 
 
-
     def main(self):
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
-        # Проверка обновлений, обновление, при необходимости - откат
-        # Отслеживание работу ядра, при неполадках - отправляет уведомление
+        C_Win = API.Win()
+        C_FileMan = File.Manager()
 
+        C_Action = Action.System()
 
         # Цикл
         # --------------------------------------------------------------------
         while True:
 
-            time.sleep(10)
+            if C_FileMan.CMSUpgrade(False) == True:
+                if C_Win.StopService('CMS')[0] == 0:
+                    C_FileMan.CMSUpgrade(True)
+                    C_Action.Reboot()
+
+            if C_Win.GetServiceState('CMS') == 'Running':
+                pass
+            else:
+                if C_Win.StartService('CMS')[0] == 0:
+                    pass
+                else:
+                    pass
+            time.sleep(180)
 
         # Граница цикла
         #----------------------------------------------------------------------

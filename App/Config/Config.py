@@ -1,5 +1,5 @@
 # v.1.1.1
-from ConfigEx import ConfigEx
+from App.ConfigEx import ConfigEx
 
 objType = ConfigEx.objType
 objCode = ConfigEx.objCode
@@ -19,7 +19,7 @@ tempPath = '{}Temp\\'.format(workPath)
 cmsConfigPath = '{}Config\\'.format(workPath)
 
 # Настройка локальных директорий
-configTargetPath = 'C:\\MOBILE\\Local\\ConfigEx\\'
+configTargetPath = 'C:\\MOBILE\\Local\\Config\\'
 cmsLocalPath = 'C:\\MOBILE\\Local\\CMS\\'
 CMSArchPath = 'C:\\MOBILE\\Local\\Arch\\'
 

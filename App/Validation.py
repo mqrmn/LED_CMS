@@ -1,5 +1,8 @@
 #v.1.1.1
 
+import sys
+sys.path.append("C:\\MOBILE\\Local\\CMS")
+
 import re
 import shutil
 import psutil
@@ -11,8 +14,8 @@ from App.Config import Config
 import random
 import os
 import threading
-from App import WinApi
-from App import Resource
+from App import API, Resource
+
 
 class _System_:
 
@@ -95,10 +98,16 @@ class _System_:
             pass
 
     def GetProcessState(self, Q_ProcState_):
-        _WinApi_ = WinApi.Process()
+        _WinApi_ = API.Win()
         while True:
             T_GetProcessState = threading.Thread(target=_WinApi_.GetProcessState, args=(Q_ProcState_,))
             T_GetProcessState.start()
             T_GetProcessState.join()
             time.sleep(Config.timeoutPCheck)
+
+    def Threads(self, Threads):
+        state = []
+        for i in Threads:
+            state.append(i.is_alive())
+        return state
 

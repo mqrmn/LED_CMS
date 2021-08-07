@@ -1,21 +1,76 @@
+
+import sys
+sys.path.append("C:\\MOBILE\\Local\\CMS")
+
 import time
 from App import Action, Resource
+import datetime
+
+import os
+
 
 # Обработчики очередей
 class Queue:
 
     # Подготовка данных к отправке на сокет, метод условно резервный
-    def PrepareToSend(self, Q_in, Q_out):
+    def SendController(self, Q_in, Q_out):
+        termNovaCount = 0
+        termMarsCount = 0
+        resNovaCount = 0
+        runNovaCount = 0
+        termNovaTime = datetime.datetime.now()
+        termMarsTime = datetime.datetime.now()
+        resNovaTime = datetime.datetime.now()
+        runNovaTime = datetime.datetime.now()
+
         while True:
             data = Q_in.get()
-            data['method'] = Resource.ComDict['method'][0]
-            Q_out.put(data)
+
+            if data == Resource.RunNova[1]:
+                if ((datetime.datetime.now() - runNovaTime).seconds >= 30) or runNovaCount == 0:
+                    print('TRUE', (datetime.datetime.now() - runNovaTime).seconds)
+                    self.ToSend(data, Q_out)
+                    runNovaTime = datetime.datetime.now()
+                    runNovaCount += 1
+                else:
+                    print('FALSE', (datetime.datetime.now() - runNovaTime).seconds)
+                data = None
+
+            if data == Resource.TerminateNova:
+                if ((datetime.datetime.now() - termNovaTime).seconds >= 30) or termNovaCount == 0:
+                    print((datetime.datetime.now() - termNovaTime).seconds)
+                    self.ToSend(data, Q_out)
+                    termNovaTime = datetime.datetime.now()
+                    termNovaCount += 1
+                else:
+                    pass
+                    data = None
+            if data == Resource.TerminateMars[1]:
+                print('SendController', data)
+                if ((datetime.datetime.now() - termMarsTime).seconds >= 30) or termMarsCount == 0:
+                    self.ToSend(data, Q_out)
+                    termMarsTime = datetime.datetime.now()
+                    termMarsCount += 1
+                else:
+                    pass
+                data = None
+            if data == Resource.RestartNova[1]:
+                if ((datetime.datetime.now() - resNovaTime).seconds >= 30) or resNovaCount == 0:
+                    self.ToSend(data, Q_out)
+                    resNovaTime = datetime.datetime.now()
+                    resNovaCount += 1
+                else:
+                    pass
+                data = None
+
+            if data != None:
+                self.ToSend(data, Q_out)
+
 
     # Обработчик очереди данных, приходящих от CMSUserAgent
     def FromUA(self, Q_in, Q_screenValidation, Q_procValidation):
         while True:
             data = Q_in.get()
-            print(data)
             if data['method'] == Resource.ComDict['method'][0]:
                 if data['head'] == Resource.ComDict['head'][0]:
                     if data['key'] == Resource.ComDict['key'][0]:
@@ -61,16 +116,18 @@ class Queue:
     def FromCore(self, Q_in, Q_out, ):
         while True:
             data = Q_in.get()
+            print('FromCore', data)
             if data['method'] == Resource.ComDict['method'][0]:
                 if data['head'] == Resource.ComDict['head'][1]:
                     Q_out.put(data)
 
     # Проверяет ключи в данных приходящих на UA, в соответсвии с ними запускает действия
-    def UAAction(self, Q_in, Q_out):
+    def UAAction(self, Q_in, Q_out,):
         _Execute_ = Action.Process()
         while True:
 
             data = Q_in.get()
+            print('UAAction', data)
             if data['key'] == Resource.ComDict['key'][2]:
                 _Execute_.Start(data['data'])
             if data['key'] == Resource.ComDict['key'][3]:
@@ -79,6 +136,9 @@ class Queue:
                 _Execute_.Restart(data['data'])
             if data['key'] == Resource.ComDict['key'][5]:
                 pass
+            if data['key'] == Resource.ComDict['key'][6]:
+                print('UAAction', data['key'], data['data'], )
+                Q_out.put({'key': data['key'], 'data': data['data'], })
 
     # Проверяет поток приходящих данных на заданное соответсвие
     def Valid(self, Q_in, Q_out, checkValue, maxCount, head, sendAllCircles, ):
@@ -127,3 +187,8 @@ class Queue:
                 else:
                     state = False
                 Q_out.put({'key': Resource.Key[1], 'data': [data[0], state]})
+
+    def ToSend(self, data, Q_out):
+        print('ToSend', data)
+        data['method'] = Resource.ComDict['method'][0]
+        Q_out.put(data)

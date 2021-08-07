@@ -1,5 +1,6 @@
 #v.1.1.1
 
+
 import logging.config
 from App.Config import Config
 from datetime import date
@@ -15,7 +16,6 @@ class _Log_Manager_:
         logger.addHandler(handler)
 
         return(logger)
-
 
     def CMSLogger(self, module, method, string):
         module.info('{} {}: {}'.format(time.ctime(), method, string))

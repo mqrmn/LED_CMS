@@ -1,5 +1,12 @@
+
+import sys
+sys.path.append("C:\\MOBILE\\Local\\CMS")
+
 import socket
 import pickle
+import os
+
+
 
 class Socket:
 
@@ -17,6 +24,7 @@ class Socket:
                         data = conn.recv(1024)
                         if not data:
                             break
+
                         Q_.put(pickle.loads(data))
 
 

@@ -1,5 +1,9 @@
 #v.1.1.1
 
+import sys
+sys.path.append("C:\\MOBILE\\Local\\CMS")
+
+
 import win32serviceutil
 import win32service
 import win32event
@@ -8,15 +12,12 @@ import time
 import os
 import threading
 import queue
-import sys
-sys.path.append("C:\\MOBILE\\Local\\CMS")
 from App.Config import Config
-from App import LogManager, Comm, Resource, Handler
+from App import LogManager, Comm, Resource, Handler, Validation, File
 
+import LogManager
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
-
-
 
 class AppServerSvc(win32serviceutil.ServiceFramework):
     _svc_name_ = "CMS"
@@ -65,9 +66,9 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         # Создаю экземпляры классов
         C_Handlers = Handler.Queue()
         C_Network = Comm.Socket()
-
+        C_Valid = Validation._System_()
+        C_File = File.Manager()
         # Обновление CMS
-
 
         # Очереди
         Q_FromUA = queue.Queue()
@@ -82,9 +83,11 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         T_Client = threading.Thread(target=C_Network.Client, args=(Config.localhost, Config.CMSUserAgentPort, Q_Send))          # Отправка данных TCP
         TQ_FromUA = threading.Thread(target=C_Handlers.FromUA, args=(Q_FromUA, Q_ValidScreen, Q_ValidProc))              # Обработчик очереди данных от CMSUserAgent
         TQ_CreateAction = threading.Thread(target=C_Handlers.CreateAction, args=(Q_Action, Q_PrepareToSend))                       # Обработчик очереди команд для CMSUserAgent
-        TQ_PrepareToSend = threading.Thread(target=C_Handlers.PrepareToSend, args=(Q_PrepareToSend, Q_Send,))
-        TQ_ValidScreen = threading.Thread(target=C_Handlers.Valid, args=(Q_ValidScreen, Q_Action, True, 2, Resource.ComDict['head'][0], True,))  # Счетчик кондиции экрана
-        TQ_ValidProc = threading.Thread(target=C_Handlers.Valid, args=(Q_ValidProc, Q_Action, False, 2, Resource.ComDict['head'][0], True,))
+        TQ_PrepareToSend = threading.Thread(target=C_Handlers.SendController, args=(Q_PrepareToSend, Q_Send,))
+        TQ_ValidScreen = threading.Thread(target=C_Handlers.Valid, args=(Q_ValidScreen, Q_Action, True, 1, Resource.ComDict['head'][0], True,))  # Счетчик кондиции экрана
+        TQ_ValidProc = threading.Thread(target=C_Handlers.Valid, args=(Q_ValidProc, Q_Action, False, 1, Resource.ComDict['head'][0], True,))
+
+        T_CheckNewContent = threading.Thread(target=C_File.DynamicRenewCont, args=(Q_PrepareToSend,))
 
         # Запуск потоков
         T_Server.start()
@@ -94,26 +97,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         TQ_PrepareToSend.start()
         TQ_ValidScreen.start()
         TQ_ValidProc.start()
-
-
-        # # Вынести
-        # # -----------------------------------
-        # # Обновляю CMS
-        # _file_manager_.CMSUpgrade()
-        # # Проверяю NovaStudio
-        # _validation_.NovaStudio()
-        # # Обновляю контент
-        # _file_manager_.ContentRenewHandler()
-        #
-        # # Проверяю статус последнего выключения
-        # _validation_.LastShutdown()
-
-        #
-        # # Чищу логи
-        # _file_manager_.LogArchiever()
-        # _file_manager_.LogDeleter()
-        # # -----------------------------------
-
+        T_CheckNewContent.start()
 
         # Цикл
         # --------------------------------------------------------------------
@@ -128,6 +112,8 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
             rc = win32event.WaitForSingleObject(self.hWaitStop, self.timeout)
             if rc == win32event.WAIT_OBJECT_0:
                 # Здесь выполняем необходимые действия при остановке службы
+                C_Comm = Comm.Socket()
+                C_Comm.Send(Config.localhost, Config.CMSUserAgentPort, Resource.TerminateThread)
                 servicemanager.LogInfoMsg("Service finished")
                 break
             # Здесь выполняем необходимые действия при приостановке службы
