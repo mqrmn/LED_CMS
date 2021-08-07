@@ -20,7 +20,7 @@ logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
 
 class Manager:
 
-    # Архивирует логи
+    ## Архивирует логи
     def LogArch(self):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         listForArchiving = []
