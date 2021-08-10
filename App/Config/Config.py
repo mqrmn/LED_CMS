@@ -1,5 +1,9 @@
 # v.1.1.1
-from App.ConfigEx import ConfigEx
+
+import sys
+sys.path.append("C:\\MOBILE\\Local\\CMS")
+from ConfigEx import ConfigEx
+
 
 objType = ConfigEx.objType
 objCode = ConfigEx.objCode

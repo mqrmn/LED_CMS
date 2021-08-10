@@ -143,8 +143,8 @@ class Queue:
             if data['key'] == Resource.ComDict['key'][5]:
                 pass
             if data['key'] == Resource.ComDict['key'][6]:
-                print('UAAction', data['key'], data['data'], )
-                Q_out.put({'key': data['key'], 'data': data['data'], })
+                print('UAAction', data)
+                Q_out.put(data)
 
     # Проверяет поток приходящих данных на заданное соответсвие
     def Valid(self, Q_in, Q_out, checkValue, maxCount, head, sendAllCircles, ):

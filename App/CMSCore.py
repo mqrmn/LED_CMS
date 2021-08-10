@@ -66,7 +66,8 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         C_Handlers = Handler.Queue()
         C_Network = Comm.Socket()
         C_File = File.Manager()
-        # Обновление CMS
+        C_Valid = Validation._System_()
+       
 
         # Очереди
         Q_FromUA = queue.Queue()
@@ -76,6 +77,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         Q_PrepareToSend = queue.Queue()
         Q_ValidScreen = queue.Queue()
         Q_Internal = queue.Queue()
+        Q_UAValid = queue.Queue()
 
         # Потоки
         T_Server = threading.Thread(target=C_Network.Server, args=(Config.localhost, Config.CMSCoreInternalPort, Q_FromUA))     # Прием данных TCP
@@ -87,7 +89,8 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         TQ_ValidProc = threading.Thread(target=C_Handlers.Valid, args=(Q_ValidProc, Q_Action, False, 1, Resource.ComDict['head'][0], True,))
         T_CheckNewContent = threading.Thread(target=C_File.DynamicRenewCont, args=(Q_PrepareToSend,))
 
-        TQ_Internal = threading.Thread(target=C_Handlers.Internal, args=(Q_Internal,))
+        TQ_Internal = threading.Thread(target=C_Handlers.Internal, args=(Q_Internal, Q_UAValid,))
+        TQ_UAValid = threading.Thread(target=C_Valid.UAValid, args=(Q_UAValid,))
 
         # Запуск потоков
         T_Server.start()
@@ -100,6 +103,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         T_CheckNewContent.start()
 
         TQ_Internal.start()
+        TQ_UAValid.start()
 
         # Цикл
         # --------------------------------------------------------------------
@@ -115,7 +119,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
             if rc == win32event.WAIT_OBJECT_0:
                 # Здесь выполняем необходимые действия при остановке службы
                 C_Comm = Comm.Socket()
-                C_Comm.Send(Config.localhost, Config.CMSUserAgentPort, Resource.TerminateThread)
+                C_Comm.Send(Config.localhost, Config.CMSUserAgentPort, Resource.TerminateThread[0])
                 servicemanager.LogInfoMsg("Service finished")
                 break
             # Здесь выполняем необходимые действия при приостановке службы

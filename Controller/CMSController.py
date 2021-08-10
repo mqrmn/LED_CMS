@@ -8,14 +8,12 @@ import win32service
 import win32event
 import servicemanager
 import time
-import os
-import threading
-import queue
-
+import socket
+from App import API, File, Action
 from App.Config import Config
-from App import LogManager, API, File, Comm, Resource, Action
-import LogManager
-
+import os
+from App import LogManager
+from inspect import currentframe, getframeinfo
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 
@@ -69,21 +67,27 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         # Цикл
         # --------------------------------------------------------------------
+
         while True:
 
             if C_FileMan.CMSUpgrade(False) == True:
+                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Обнаружено обновление CMS')
                 if C_Win.StopService('CMS')[0] == 0:
                     C_FileMan.CMSUpgrade(True)
+                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Обновление установлено')
                     C_Action.Reboot()
 
-            if C_Win.GetServiceState('CMS') == 'Running':
-                pass
-            else:
-                if C_Win.StartService('CMS')[0] == 0:
-                    pass
-                else:
-                    pass
-            time.sleep(180)
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as Socket:
+                try:
+                    conn = Socket.connect(Config.localhost, Config.CMSCoreInternalPort)
+                    if conn:
+                        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'OK {}', )
+                except:
+                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'FALL')
+
+
+                    # C_Action.Reboot()
+            time.sleep(30)
 
         # Граница цикла
         #----------------------------------------------------------------------

@@ -3,11 +3,11 @@ encoding="UTF-8"
 # Тип объекта
 objType = 'LM'
 # Код объекта
-objCode = 'DEV'
+objCode = 'DEV_TEST_1'
 # Формат экрана
-screenFormat = ['1920@1080', ]
+screenFormat = ['960@360', ]
 # Адрес салона
-objAddress = 'DEV'
+objAddress = 'DEV_TEST_1'
 
 # Количество экранов
 screen_num = 1

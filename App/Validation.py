@@ -1,6 +1,9 @@
 #v.1.1.1
 
 import sys
+
+import wmi
+
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 import re
@@ -15,7 +18,12 @@ import random
 import os
 import threading
 import datetime
-from App import API, Resource
+import pythoncom
+from App import API, Resource, LogManager, Action
+from inspect import currentframe, getframeinfo
+
+logging = LogManager._Log_Manager_()
+logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 
 
 class _System_:
@@ -113,15 +121,17 @@ class _System_:
         return state
 
     def UAValid(self, Q_in):
+        C_Action = Action.System()
         data = datetime.datetime.now()
         while True:
-            print('UAValid', (datetime.datetime.now() - data).seconds)
             if Q_in.empty() == False:
                 data = Q_in.get()
             else:
-                if ((datetime.datetime.now() - data).seconds) > 300:
-                    print('UAValid ALERT', (datetime.datetime.now() - data).seconds)
-                time.sleep(3)
+
+                if ((datetime.datetime.now() - data).seconds) >= 90:
+                    pythoncom.CoInitialize()
+                    C_Action.Reboot()
+            time.sleep(3)
 
 
 
