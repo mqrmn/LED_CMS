@@ -15,7 +15,6 @@ import queue
 from App.Config import Config
 from App import LogManager, Comm, Resource, Handler, Validation, File
 
-import LogManager
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 
@@ -88,7 +87,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         TQ_ValidProc = threading.Thread(target=C_Handlers.Valid, args=(Q_ValidProc, Q_Action, False, 1, Resource.ComDict['head'][0], True,))
         T_CheckNewContent = threading.Thread(target=C_File.DynamicRenewCont, args=(Q_PrepareToSend,))
 
-        TQ_Internal = threading.Thread(target=C_Handlers.Internal(), args=(Q_Internal,))
+        TQ_Internal = threading.Thread(target=C_Handlers.Internal, args=(Q_Internal,))
 
         # Запуск потоков
         T_Server.start()

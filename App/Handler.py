@@ -78,7 +78,10 @@ class Queue:
                         Q_screenValidation.put({'key': data['key'], 'data': data['data'], })
                     if data['key'] == Resource.ComDict['key'][1]:
                         Q_procValidation.put({'key': data['key'], 'data': data['data'], })
-            Q_Internal.put(lastReceive)
+
+            Q_Internal.put({Resource.root[1]: Resource.Head[2],
+                            Resource.root[2]: Resource.Key[7],
+                            Resource.root[3]: lastReceive, })
 
 
     # Подготавливает команты, отправляеемые на UA
@@ -191,17 +194,20 @@ class Queue:
                     state = False
                 Q_out.put({'key': Resource.Key[1], 'data': [data[0], state]})
 
+    # Обработка очереди на отправку 
     def ToSend(self, data, Q_out):
-        print('ToSend', data)
         data['method'] = Resource.ComDict['method'][0]
         Q_out.put(data)
 
-    def Internal(self, Q_in):
-        if Q_in.empty() == False:
-            data = Q_in.get()
-        else:
-            pass
-        if data[Resource.root[1]] == Resource.Head[2]:
-            pass
-            if data[Resource.root[2]] == Resource.Key[7]:
-                print(data)
+    # Обработка внутренней очереди
+    def Internal(self, Q_in, Q_UAValid):
+        while True:
+            if Q_in.empty() != False:
+                data = Q_in.get()
+                if data[Resource.root[1]] == Resource.Head[2]:
+                    if data[Resource.root[2]] == Resource.Key[7]:
+                        Q_UAValid.put(data[Resource.root[3]])
+                        print('Internal', data[Resource.root[3]])
+            else:
+                time.sleep(3)
+

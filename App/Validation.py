@@ -14,6 +14,7 @@ from App.Config import Config
 import random
 import os
 import threading
+import datetime
 from App import API, Resource
 
 
@@ -110,4 +111,17 @@ class _System_:
         for i in Threads:
             state.append(i.is_alive())
         return state
+
+    def UAValid(self, Q_in):
+        data = datetime.datetime.now()
+        while True:
+            print('UAValid', (datetime.datetime.now() - data).seconds)
+            if Q_in.empty() == False:
+                data = Q_in.get()
+            else:
+                if ((datetime.datetime.now() - data).seconds) > 300:
+                    print('UAValid ALERT', (datetime.datetime.now() - data).seconds)
+                time.sleep(3)
+
+
 
