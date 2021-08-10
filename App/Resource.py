@@ -5,8 +5,9 @@ sys.path.append("C:\\MOBILE\\Local\\CMS")
 # ROOT
 root = ['method', 'head', 'key', 'data']
 Method = ['put', 'get', ]
-Head = ['State', 'Action', ]
-Key = ['ScreenState', 'ProcState', 'RunProc', 'TerminateProc', 'RestartProc', 'Win', 'TerminateThread' ]
+Head = ['State', 'Action', 'Report']
+Key = ['ScreenState', 'ProcState', 'RunProc', 'TerminateProc', 'RestartProc',
+       'Win', 'TerminateThread', 'UALastAction', ]
 
 # PROCESS
 ProcList = ['NovaStudio.exe', 'MarsServerProvider.exe', 'NovaSoftwareDog.exe', 'NovaLCT.exe', ]

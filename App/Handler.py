@@ -68,15 +68,18 @@ class Queue:
 
 
     # Обработчик очереди данных, приходящих от CMSUserAgent
-    def FromUA(self, Q_in, Q_screenValidation, Q_procValidation):
+    def FromUA(self, Q_in, Q_screenValidation, Q_procValidation, Q_Internal):
         while True:
             data = Q_in.get()
+            lastReceive = datetime.datetime.now()
             if data['method'] == Resource.ComDict['method'][0]:
                 if data['head'] == Resource.ComDict['head'][0]:
                     if data['key'] == Resource.ComDict['key'][0]:
                         Q_screenValidation.put({'key': data['key'], 'data': data['data'], })
                     if data['key'] == Resource.ComDict['key'][1]:
                         Q_procValidation.put({'key': data['key'], 'data': data['data'], })
+            Q_Internal.put(lastReceive)
+
 
     # Подготавливает команты, отправляеемые на UA
     def CreateAction(self, Q_in, Q_out):
@@ -192,3 +195,13 @@ class Queue:
         print('ToSend', data)
         data['method'] = Resource.ComDict['method'][0]
         Q_out.put(data)
+
+    def Internal(self, Q_in):
+        if Q_in.empty() == False:
+            data = Q_in.get()
+        else:
+            pass
+        if data[Resource.root[1]] == Resource.Head[2]:
+            pass
+            if data[Resource.root[2]] == Resource.Key[7]:
+                print(data)

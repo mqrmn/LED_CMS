@@ -66,7 +66,6 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         # Создаю экземпляры классов
         C_Handlers = Handler.Queue()
         C_Network = Comm.Socket()
-        C_Valid = Validation._System_()
         C_File = File.Manager()
         # Обновление CMS
 
@@ -77,17 +76,19 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         Q_ValidProc = queue.Queue()
         Q_PrepareToSend = queue.Queue()
         Q_ValidScreen = queue.Queue()
+        Q_Internal = queue.Queue()
 
         # Потоки
         T_Server = threading.Thread(target=C_Network.Server, args=(Config.localhost, Config.CMSCoreInternalPort, Q_FromUA))     # Прием данных TCP
         T_Client = threading.Thread(target=C_Network.Client, args=(Config.localhost, Config.CMSUserAgentPort, Q_Send))          # Отправка данных TCP
-        TQ_FromUA = threading.Thread(target=C_Handlers.FromUA, args=(Q_FromUA, Q_ValidScreen, Q_ValidProc))              # Обработчик очереди данных от CMSUserAgent
+        TQ_FromUA = threading.Thread(target=C_Handlers.FromUA, args=(Q_FromUA, Q_ValidScreen, Q_ValidProc, Q_Internal))              # Обработчик очереди данных от CMSUserAgent
         TQ_CreateAction = threading.Thread(target=C_Handlers.CreateAction, args=(Q_Action, Q_PrepareToSend))                       # Обработчик очереди команд для CMSUserAgent
         TQ_PrepareToSend = threading.Thread(target=C_Handlers.SendController, args=(Q_PrepareToSend, Q_Send,))
         TQ_ValidScreen = threading.Thread(target=C_Handlers.Valid, args=(Q_ValidScreen, Q_Action, True, 1, Resource.ComDict['head'][0], True,))  # Счетчик кондиции экрана
         TQ_ValidProc = threading.Thread(target=C_Handlers.Valid, args=(Q_ValidProc, Q_Action, False, 1, Resource.ComDict['head'][0], True,))
-
         T_CheckNewContent = threading.Thread(target=C_File.DynamicRenewCont, args=(Q_PrepareToSend,))
+
+        TQ_Internal = threading.Thread(target=C_Handlers.Internal(), args=(Q_Internal,))
 
         # Запуск потоков
         T_Server.start()
@@ -98,6 +99,8 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         TQ_ValidScreen.start()
         TQ_ValidProc.start()
         T_CheckNewContent.start()
+
+        TQ_Internal.start()
 
         # Цикл
         # --------------------------------------------------------------------
