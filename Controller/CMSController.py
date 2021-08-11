@@ -8,11 +8,15 @@ import win32service
 import win32event
 import servicemanager
 import time
+import datetime
+import threading
+import queue
 import socket
+import pythoncom
 from App import API, File, Action
 from App.Config import Config
 import os
-from App import LogManager
+from App import LogManager, Controller
 from inspect import currentframe, getframeinfo
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
@@ -60,33 +64,48 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
     def main(self):
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
+        # Создание экзепляров классов
         C_Win = API.Win()
         C_FileMan = File.Manager()
-
         C_Action = Action.System()
+        C_Control = Controller.CMS()
+
+        # Создание очередей
+        Q_Internal = queue.Queue()
+
+        # Инициализация потоков
+        T_Updater = threading.Thread(target=C_Control.CMSUpdater, args=(Q_Internal,))
+
+        # Запуск потоков
+        T_Updater.start()
 
         # Цикл
         # --------------------------------------------------------------------
-
+        checkTime = datetime.datetime.now()
         while True:
-
-            if C_FileMan.CMSUpgrade(False) == True:
-                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Обнаружено обновление CMS')
-                if C_Win.StopService('CMS')[0] == 0:
-                    C_FileMan.CMSUpgrade(True)
-                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Обновление установлено')
-                    C_Action.Reboot()
-
+            print((checkTime - datetime.datetime.now()).seconds)
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as Socket:
                 try:
-                    conn = Socket.connect(Config.localhost, Config.CMSCoreInternalPort)
-                    if conn:
-                        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'OK {}', )
+                    Socket.connect((Config.localhost, Config.CMSCoreInternalPort))
+                    checkTime = datetime.datetime.now()
+                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'СЛУЖБА ЗАПУЩЕНА', )
                 except:
-                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'FALL')
 
+                    if Q_Internal.empty() == False:
+                        if Q_Internal.get() == True:
+                            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2],
+                                              'СЛУЖБА ОСТАНОВЛЕНА ВСВЯЗИ С ОБНОВЛЕНИЕМ', )
+                            break
 
-                    # C_Action.Reboot()
+                        else:
+                            pass
+                    else:
+                        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'СЛУЖБА ОСТАНОВЛЕНА', )
+                        if ((checkTime - datetime.datetime.now()).seconds >= 300):
+                            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'REBOOT')
+                            C_Action.Reboot()
+                            break
+
             time.sleep(30)
 
         # Граница цикла
@@ -96,6 +115,8 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
             rc = win32event.WaitForSingleObject(self.hWaitStop, self.timeout)
             if rc == win32event.WAIT_OBJECT_0:
                 # Здесь выполняем необходимые действия при остановке службы
+                pythoncom.CoInitialize()
+                stSvc = C_Win.StopService('CMS')
                 servicemanager.LogInfoMsg("Service finished")
                 break
             # Здесь выполняем необходимые действия при приостановке службы

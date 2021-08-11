@@ -1,15 +1,13 @@
+# 1.1.1
 
 import sys
-sys.path.append("C:\\MOBILE\\Local\\CMS")
-
-import subprocess
 import psutil
 import time
-from App import Resource, API
-
 import wmi
 import pythoncom
 
+sys.path.append("C:\\MOBILE\\Local\\CMS")
+from App import Resource, API
 
 
 class Process:
