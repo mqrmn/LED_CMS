@@ -1,9 +1,6 @@
-#v.1.1.1
+
 
 import sys
-sys.path.append("C:\\MOBILE\\Local\\CMS")
-
-
 import win32serviceutil
 import win32service
 import win32event
@@ -12,6 +9,9 @@ import time
 import os
 import threading
 import queue
+
+sys.path.append("C:\\MOBILE\\Local\\CMS")
+
 from App.Config import Config
 from App import LogManager, Comm, Resource, Handler, Validation, File
 

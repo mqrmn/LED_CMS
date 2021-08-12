@@ -1,12 +1,13 @@
+# 1.1.1
 
 import sys
-sys.path.append("C:\\MOBILE\\Local\\CMS")
-
-from App import Resource, LogManager
-
 import wmi
 import os
 import pythoncom
+
+sys.path.append("C:\\MOBILE\\Local\\CMS")
+
+from App import Resource, LogManager
 
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])

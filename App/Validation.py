@@ -1,11 +1,6 @@
-#v.1.1.1
+# 1.1.1
 
 import sys
-
-import wmi
-
-sys.path.append("C:\\MOBILE\\Local\\CMS")
-
 import re
 import shutil
 import psutil
@@ -13,14 +8,18 @@ import numpy as np
 import pyautogui
 import cv2
 import time
-from App.Config import Config
 import random
 import os
 import threading
 import datetime
 import pythoncom
-from App import API, Resource, LogManager, Action
 from inspect import currentframe, getframeinfo
+
+sys.path.append("C:\\MOBILE\\Local\\CMS")
+
+from App.Config import Config
+from App import API, Resource, LogManager, Action
+
 
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])

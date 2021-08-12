@@ -1,7 +1,12 @@
-import win32pdh, win32service
-from App import Resource
+# 1.1.1
 
+import sys
+import win32pdh
 import wmi
+
+sys.path.append("C:\\MOBILE\\Local\\CMS")
+
+from App import Resource
 
 class Process:
     def GetProcessList(self):

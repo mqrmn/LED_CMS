@@ -1,16 +1,17 @@
+# 1.1.1
 
 import sys
-sys.path.append("C:\\MOBILE\\Local\\CMS")
-
 import socket
 import pickle
 import os
+
+sys.path.append("C:\\MOBILE\\Local\\CMS")
+
 from App import LogManager
 from inspect import currentframe, getframeinfo
+
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
-
-
 
 class Socket:
 

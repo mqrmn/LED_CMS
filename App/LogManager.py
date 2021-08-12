@@ -1,10 +1,13 @@
-#v.1.1.1
+# 1.1.1
 
-
+import sys
 import logging.config
-from App.Config import Config
-from datetime import date
 import time
+from datetime import date
+
+sys.path.append("C:\\MOBILE\\Local\\CMS")
+
+from App.Config import Config
 
 class _Log_Manager_:
 

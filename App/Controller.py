@@ -1,13 +1,14 @@
 #1.1.2
 import sys
+import time
+import pythoncom
+import os
+from inspect import currentframe, getframeinfo
+
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App import Validation, Resource, File, API, Action, LogManager
-import time
-import pythoncom
 
-import os
-from inspect import currentframe, getframeinfo
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')

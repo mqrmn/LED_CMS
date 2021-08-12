@@ -1,22 +1,21 @@
-#v.1.1.1
-import sys
-sys.path.append("C:\\MOBILE\\Local\\CMS")
+# 1.1.1
 
+import sys
+import os
 import datetime
 from datetime import date
-import os
-import re
-import shutil
-from inspect import currentframe, getframeinfo
 import xml.etree.ElementTree as ET
 import time
+from inspect import currentframe, getframeinfo
+
+sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
-from App import Resource
+from App import Resource, LogManager
 
-import os
-from App import LogManager
-from inspect import currentframe, getframeinfo
+
+
+
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 

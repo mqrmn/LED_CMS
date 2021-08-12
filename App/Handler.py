@@ -1,13 +1,12 @@
+# 1.1.1
 
 import sys
-sys.path.append("C:\\MOBILE\\Local\\CMS")
-
 import time
-from App import Action, Resource
 import datetime
 
-import os
+sys.path.append("C:\\MOBILE\\Local\\CMS")
 
+from App import Action, Resource
 
 # Обработчики очередей
 class Queue:
