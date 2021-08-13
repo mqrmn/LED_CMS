@@ -1,8 +1,6 @@
-#v.1.1.1
+# 1.1.1
 
 import sys
-sys.path.append("C:\\MOBILE\\Local\\CMS")
-
 import win32serviceutil
 import win32service
 import win32event
@@ -13,11 +11,14 @@ import threading
 import queue
 import socket
 import pythoncom
-from App import API, File, Action
-from App.Config import Config
 import os
-from App import LogManager, Controller
 from inspect import currentframe, getframeinfo
+
+sys.path.append("C:\\MOBILE\\Local\\CMS")
+
+from App.Config import Config
+from App import API, File, Action, LogManager, Controller
+
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 

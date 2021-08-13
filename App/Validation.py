@@ -27,11 +27,7 @@ logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 
 class _System_:
 
-    # Проверка последнего отключения системы
-    def LastShutdown(self):
-        f = open('{}lastShutDown.txt'.format(Config.tempPath), 'r')
-        lastShutDown = f.read()
-        f.close()
+
 
     # Проверка состояния файла NovaStudio
     def NovaStudio(self):

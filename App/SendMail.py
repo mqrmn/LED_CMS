@@ -1,12 +1,16 @@
-#v.1.1.1
+# 1.1.1
 
+import sys
 import smtplib
+import socket
+import os
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import socket
+
+sys.path.append("C:\\MOBILE\\Local\\CMS")
+
 from App.Config import Config
 from App import LogManager
-import os
 
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])

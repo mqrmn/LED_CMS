@@ -3,16 +3,22 @@
 import sys
 import time
 import datetime
+import os
+from inspect import currentframe, getframeinfo
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
-from App import Action, Resource
+from App import Action, Resource, LogManager
+
+logging = LogManager._Log_Manager_()
+logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 
 # Обработчики очередей
 class Queue:
 
     # Подготовка данных к отправке на сокет, метод условно резервный
     def SendController(self, Q_in, Q_out):
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         termNovaCount = 0
         termMarsCount = 0
         resNovaCount = 0
@@ -68,6 +74,7 @@ class Queue:
 
     # Обработчик очереди данных, приходящих от CMSUserAgent
     def FromUA(self, Q_in, Q_screenValidation, Q_procValidation, Q_Internal):
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         while True:
             data = Q_in.get()
             lastReceive = datetime.datetime.now()
@@ -85,6 +92,7 @@ class Queue:
 
     # Подготавливает команты, отправляеемые на UA
     def CreateAction(self, Q_in, Q_out):
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         DictNova = {}
         DictMars = {}
         command = None
@@ -119,6 +127,7 @@ class Queue:
 
     # Обработчик данных, приходящих на UA
     def FromCore(self, Q_in, Q_out, ):
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         while True:
             data = Q_in.get()
             print('FromCore', data)
@@ -128,6 +137,7 @@ class Queue:
 
     # Проверяет ключи в данных приходящих на UA, в соответсвии с ними запускает действия
     def UAAction(self, Q_in, Q_out,):
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         _Execute_ = Action.Process()
         while True:
 
@@ -147,6 +157,7 @@ class Queue:
 
     # Проверяет поток приходящих данных на заданное соответсвие
     def Valid(self, Q_in, Q_out, checkValue, maxCount, head, sendAllCircles, ):
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         checkCount, catchCount = 0, 0
         Dict = {}
 
@@ -182,6 +193,7 @@ class Queue:
 
     # Проверка списка процессов на соответсвие статусу активности
     def CheckProcList(self, Q_in, Q_out):
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         while True:
             if Q_in.empty() == True:
                 time.sleep(1)
@@ -200,6 +212,7 @@ class Queue:
 
     # Обработка внутренней очереди
     def Internal(self, Q_in, Q_UAValid):
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         while True:
             if Q_in.empty() != False:
                 data = Q_in.get()

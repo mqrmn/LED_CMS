@@ -1,4 +1,4 @@
-
+# 1.1.1
 
 import sys
 import win32serviceutil
@@ -9,6 +9,7 @@ import time
 import os
 import threading
 import queue
+from inspect import currentframe, getframeinfo
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
@@ -61,13 +62,14 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
     def main(self):
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
 
         # Создаю экземпляры классов
         C_Handlers = Handler.Queue()
         C_Network = Comm.Socket()
         C_File = File.Manager()
         C_Valid = Validation._System_()
-       
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Экземпляры классов созданы')
 
         # Очереди
         Q_FromUA = queue.Queue()
@@ -78,6 +80,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         Q_ValidScreen = queue.Queue()
         Q_Internal = queue.Queue()
         Q_UAValid = queue.Queue()
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Очереди созданы')
 
         # Потоки
         T_Server = threading.Thread(target=C_Network.Server, args=(Config.localhost, Config.CMSCoreInternalPort, Q_FromUA))     # Прием данных TCP
@@ -92,6 +95,8 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         TQ_Internal = threading.Thread(target=C_Handlers.Internal, args=(Q_Internal, Q_UAValid,))
         TQ_UAValid = threading.Thread(target=C_Valid.UAValid, args=(Q_UAValid,))
 
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Потоки инициализированы')
+
         # Запуск потоков
         T_Server.start()
         T_Client.start()
@@ -104,7 +109,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         TQ_Internal.start()
         TQ_UAValid.start()
-
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Потоки запущены')
         # Цикл
         # --------------------------------------------------------------------
         while True:
@@ -114,24 +119,22 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         # Граница цикла
         #----------------------------------------------------------------------
 
-            # Проверяем не поступила ли команда завершения работы службы
             rc = win32event.WaitForSingleObject(self.hWaitStop, self.timeout)
             if rc == win32event.WAIT_OBJECT_0:
-                # Здесь выполняем необходимые действия при остановке службы
+
+                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Получена команда на остановку службы')
                 C_Comm = Comm.Socket()
                 C_Comm.Send(Config.localhost, Config.CMSUserAgentPort, Resource.TerminateThread[0])
+                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Команда на остановку UA отправлена')
                 servicemanager.LogInfoMsg("Service finished")
                 break
-            # Здесь выполняем необходимые действия при приостановке службы
+
             if self._paused:
                 servicemanager.LogInfoMsg("Service paused")
-            # Приостановка работы службы
             while self._paused:
-                # Проверям не поступила ли команда возобновления работы службы
                 rc = win32event.WaitForSingleObject(self.hWaitResume, self.resumeTimeout)
                 if rc == win32event.WAIT_OBJECT_0:
                     self._paused = False
-                    # Здесь выполняем необходимые действия при возобновлении работы службы
                     servicemanager.LogInfoMsg("Service continue")
                     break
 

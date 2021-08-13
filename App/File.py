@@ -6,25 +6,21 @@ import datetime
 from datetime import date
 import xml.etree.ElementTree as ET
 import time
+import re
 from inspect import currentframe, getframeinfo
+import shutil
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
 from App import Resource, LogManager
 
-
-
-
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 
-
-logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
-
 class Manager:
 
-    ### Архивирует логи
+    # Архивирует логи
     def LogArch(self):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         listForArchiving = []
@@ -33,7 +29,7 @@ class Manager:
             # Продолжаю работать толь с файлами с расширением .log
             if re.search('log', file):
                 # Проверяю дату создания лог файлов
-                if datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0], "%Y-%m-%d").month < date.today().month:
+                if datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0], "%Y-%m-%d").day < date.today().day:
                     logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Помечен для архивирования ' + file)
                     listForArchiving.append(file)
         # Проверяю существует ли папка которую собираюсь создать

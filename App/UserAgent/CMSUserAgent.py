@@ -1,8 +1,5 @@
-# v.1.1.1
+# 1.1.1
 import sys
-sys.path.append("C:\\MOBILE\\Local\\CMS")
-import time
-
 from multiprocessing import Process, Queue
 
 from App import Validation
@@ -10,20 +7,18 @@ import threading
 import queue
 import os
 
-from App.Config import Config
-from App import Resource, Comm, Handler, Controller
+sys.path.append("C:\\MOBILE\\Local\\CMS")
 
-from App import LogManager
+from App.Config import Config
+from App import Resource, Comm, Handler, Controller, LogManager
 
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 
 def main(Q_External):
 
-
-
     # Очереди
-    Q_ValidScreenRAW = queue.Queue()                    # Очередь результатов проверки экрана
+    Q_ValidScreenRAW = queue.Queue()
     Q_FromCore = queue.Queue()
     Q_ToSend = queue.Queue()
     Q_ProcStateRAW = queue.Queue()
@@ -32,9 +27,8 @@ def main(Q_External):
     Q_Action = queue.Queue()
     Q_Control = queue.Queue()
 
-
     # Экземпляры классов
-    C_Valid = Validation._System_()                   # Экземпляр класса валидации
+    C_Valid = Validation._System_()
     C_Handlers = Handler.Queue()
     C_Network = Comm.Socket()
     C_Handler = Handler.Queue()
