@@ -33,12 +33,12 @@ class Queue:
 
             if data == Resource.RunNova[1]:
                 if ((datetime.datetime.now() - runNovaTime).seconds >= 30) or runNovaCount == 0:
-                    print('TRUE', (datetime.datetime.now() - runNovaTime).seconds)
+
                     self.ToSend(data, Q_out)
                     runNovaTime = datetime.datetime.now()
                     runNovaCount += 1
                 else:
-                    print('FALSE', (datetime.datetime.now() - runNovaTime).seconds)
+                    pass
                 data = None
 
             if data == Resource.TerminateNova:
@@ -51,7 +51,7 @@ class Queue:
                     pass
                     data = None
             if data == Resource.TerminateMars[1]:
-                print('SendController', data)
+
                 if ((datetime.datetime.now() - termMarsTime).seconds >= 30) or termMarsCount == 0:
                     self.ToSend(data, Q_out)
                     termMarsTime = datetime.datetime.now()
@@ -130,7 +130,7 @@ class Queue:
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         while True:
             data = Q_in.get()
-            print('FromCore', data)
+
             if data['method'] == Resource.ComDict['method'][0]:
                 if data['head'] == Resource.ComDict['head'][1]:
                     Q_out.put(data)
@@ -142,7 +142,7 @@ class Queue:
         while True:
 
             data = Q_in.get()
-            print('UAAction', data)
+            
             if data['key'] == Resource.ComDict['key'][2]:
                 _Execute_.Start(data['data'])
             if data['key'] == Resource.ComDict['key'][3]:
@@ -152,7 +152,7 @@ class Queue:
             if data['key'] == Resource.ComDict['key'][5]:
                 pass
             if data['key'] == Resource.ComDict['key'][6]:
-                print('UAAction', data)
+
                 Q_out.put(data)
 
     # Проверяет поток приходящих данных на заданное соответсвие

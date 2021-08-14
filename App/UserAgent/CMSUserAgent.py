@@ -2,13 +2,14 @@
 import sys
 from multiprocessing import Process, Queue
 
-from App import Validation
+
 import threading
 import queue
 import os
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
+from App import Validation
 from App.Config import Config
 from App import Resource, Comm, Handler, Controller, LogManager
 

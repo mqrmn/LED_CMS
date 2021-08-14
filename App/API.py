@@ -15,7 +15,6 @@ logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 
 class Win:
     def GetProcessState(self, Q_out):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         pythoncom.CoInitialize()
         handle = wmi.WMI()
         for i in Resource.ProcDict:

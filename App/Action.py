@@ -76,7 +76,7 @@ class Process:
 
             else:
                 pass
-            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
+
 
 class Service:
 
