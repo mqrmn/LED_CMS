@@ -9,9 +9,12 @@ import os
 import shutil
 from inspect import currentframe, getframeinfo
 import re
+import datetime
+from datetime import date
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
-from App import Resource, API, LogManager
+from App.Config import Config
+from App import Resource, API, LogManager, Database
 
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
@@ -52,9 +55,6 @@ class Process:
         handle = wmi.WMI()
         for proc in handle.Win32_Process(Name=Resource.ProcList[0]):
             proc.Terminate(Reason=1)
-
-
-
 
     def TerminateMars(self):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
@@ -113,3 +113,75 @@ class Files:
 
     def CopyNovaBin(self):
         shutil.copy(Resource.novaBinFileBak,  Resource.novaBinFile)
+
+    # Архивирует логи
+    def LogArch(self):
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        listForArchiving = []
+        # Перечисляю файлы, хранящиеся в дирректории
+        for file in os.listdir(Config.logPath):
+            # Продолжаю работать толь с файлами с расширением .log
+            if re.search('log', file):
+                # Проверяю дату создания лог файлов
+                if datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0], "%Y-%m-%d").day < date.today().day:
+                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Помечен для архивирования ' + file)
+                    listForArchiving.append(file)
+        # Проверяю существует ли папка которую собираюсь создать
+        if listForArchiving and not os.path.exists(Config.logPath + str(date.today())):
+            os.mkdir(Config.logPath + str(date.today()))
+            # Перемещаю журналы в папку
+            for file in listForArchiving:
+                shutil.move(Config.logPath + file, Config.logPath + str(date.today()) + '\\' + file)
+                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Перемещен в архив ' + file)
+            # Архивирую папку
+            shutil.make_archive(base_name=Config.logPath + str(date.today()), format='zip', root_dir=Config.logPath + str(date.today()), )
+            shutil.rmtree(Config.logPath + str(date.today()))
+        else:
+            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Журналов для архивирования не обнаружено')
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
+
+    # Удаляет устаревшие логи
+    def LogDel(self):
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        listForDeleting = []
+
+        # Перечисляю файлы, хранящиеся в дирректории
+        for file in os.listdir(Config.logPath):
+            # Продолжаю работать только с файлами с расширением .zip
+            if re.search('zip', file):
+                # Проверяю дату создания архива
+                if (datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0], "%Y-%m-%d").date() - date.today()).days < -90:
+                    listForDeleting.append(file)
+
+        # Удаляю устаревшие архивы
+        for file in listForDeleting:
+            os.remove(Config.logPath + file)
+            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Файл удален ' + file)
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
+
+class Init(Files):
+    def CMS(self):
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        self.LogArch()
+        self.LogDel()
+        self.CheckSelf()
+
+
+    def CheckDB(self):
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        if os.path.exists(Config.DBFolder):
+            if os.path.exists(Config.DBPath):
+                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Database file exist')
+            else:
+                handle = Database.DBFoo()
+                handle.CreateTables()
+                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Database file created')
+        else:
+            os.mkdir(Config.DBFolder)
+            handle = Database.DBFoo()
+            handle.CreateTables()
+            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Database file created')
+
+    def CheckSelf(self):
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        self.CheckDB()

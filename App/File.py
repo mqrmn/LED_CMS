@@ -20,57 +20,6 @@ logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 
 class Manager:
 
-    # Архивирует логи
-    def LogArch(self):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
-        listForArchiving = []
-        # Перечисляю файлы, хранящиеся в дирректории
-        for file in os.listdir(Config.logPath):
-            # Продолжаю работать толь с файлами с расширением .log
-            if re.search('log', file):
-                # Проверяю дату создания лог файлов
-                if datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0], "%Y-%m-%d").day < date.today().day:
-                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Помечен для архивирования ' + file)
-                    listForArchiving.append(file)
-        # Проверяю существует ли папка которую собираюсь создать
-        if listForArchiving and not os.path.exists(Config.logPath + str(date.today())):
-            os.mkdir(Config.logPath + str(date.today()))
-            # Перемещаю журналы в папку
-            for file in listForArchiving:
-                shutil.move(Config.logPath + file, Config.logPath + str(date.today()) + '\\' + file)
-                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Перемещен в архив ' + file)
-            # Архивирую папку
-            shutil.make_archive(base_name=Config.logPath + str(date.today()), format='zip', root_dir=Config.logPath + str(date.today()), )
-            shutil.rmtree(Config.logPath + str(date.today()))
-        else:
-            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Журналов для архивирования не обнаружено')
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
-
-    # Удаляет устаревшие логи
-    def LogDel(self):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
-        listForDeleting = []
-
-        # Перечисляю файлы, хранящиеся в дирректории
-        for file in os.listdir(Config.logPath):
-            # Продолжаю работать только с файлами с расширением .zip
-            if re.search('zip', file):
-                # Проверяю дату создания архива
-                if (datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0], "%Y-%m-%d").date() - date.today()).days < -90:
-                    listForDeleting.append(file)
-
-        # Удаляю устаревшие архивы
-        for file in listForDeleting:
-            os.remove(Config.logPath + file)
-            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Файл удален ' + file)
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
-
-    # Чистит папку с временными файлами
-    def TempDel(self):
-        for file in os.listdir(Config.tempPath):
-            os.remove('{}{}'.format(Config.tempPath, file))
-            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Файл удален ' + file)
-
 
 
     # Обновление CMS
@@ -253,7 +202,6 @@ class Manager:
                 fix = False
                 countPass = 0
             time.sleep(10)
-
 
     # Ниже методы обновления контента. Под переработку.
     def ContentRenewHandle(self):

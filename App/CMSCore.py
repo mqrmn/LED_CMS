@@ -14,7 +14,7 @@ from inspect import currentframe, getframeinfo
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
-from App import LogManager, Comm, Resource, Handler, Validation, File
+from App import LogManager, Comm, Resource, Handler, Validation, File, Action
 
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
@@ -64,12 +64,18 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
 
+        C_Action = Action.Init()
+        C_Action.CMS()
+
+
         # Создаю экземпляры классов
         C_Handlers = Handler.Queue()
         C_Network = Comm.Socket()
         C_File = File.Manager()
         C_Valid = Validation._System_()
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Экземпляры классов созданы')
+
+
 
         # Очереди
         Q_FromUA = queue.Queue()
