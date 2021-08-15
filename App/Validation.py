@@ -116,25 +116,49 @@ class _System_:
             state.append(i.is_alive())
         return state
 
-    def UAValid(self, Q_in, Q_Internal):
+    def UAValid(self, Q_in, Q_Internal, Q_UAValidSF):
+
         C_Action = Action.System()
         C_Prepare = Database.Prepare()
         data = datetime.datetime.now()
+        table = Database.Tables()
         count = 0
         while True:
+            if Q_UAValidSF.empty() == False:
+                FLAG = Q_UAValidSF.get()
+            else:
+                pass
             if Q_in.empty() == False:
                 data = Q_in.get()
                 if count == 0:
-                    Q_Internal.put({Resource.root[1]: Resource.Head[3], Resource.root[2]: Resource.Key[8],
-                                    Resource.root[3]: {'1': '2'}, }, )
+                    Q_Internal.put(C_Prepare.SystemInit(datetime.datetime.now()))
                     count += 1
             else:
-                print('Q is Empty')
-                if ((datetime.datetime.now() - data).seconds) >= 10:
-                    Q_Internal.put(C_Prepare.SelfInitShutdown(getframeinfo(currentframe())[2], datetime.datetime.now()))
+
+                if ((datetime.datetime.now() - data).seconds) >= 20:
+
 
                     pythoncom.CoInitialize()
-                    # C_Action.Reboot()
-                    break
+
+                    print('UAValid', 'FLAG', FLAG)
+                    if FLAG > 0:
+                        if FLAG > 1:
+                            # C_Action.Reboot()
+                            Q_Internal.put(C_Prepare.SelfInitShutdown(getframeinfo(currentframe())[2], 'reboot', datetime.datetime.now()))
+                            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'reboot')
+                            break
+                        else:
+                            lastReboot = table.SelfInitShutdown().select().order_by(table.SelfInitShutdown.id.desc()).get()
+                            if (datetime.datetime.now() - lastReboot.datetime).seconds <= 300:
+                                # C_Action.Reboot()
+                                Q_Internal.put(C_Prepare.SelfInitShutdown(getframeinfo(currentframe())[2], 'reboot', datetime.datetime.now()))
+                                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'reboot')
+                                break
+                            else:
+                                Q_Internal.put(C_Prepare.SelfInitShutdown(getframeinfo(currentframe())[2], 'rebootAccessDenied', datetime.datetime.now()))
+                                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'rebootAccessDenied')
+                    else:
+                        Q_Internal.put(C_Prepare.SelfInitShutdown(getframeinfo(currentframe())[2], 'rebootAccessDenied', datetime.datetime.now()))
+                        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'rebootAccessDenied')
 
             time.sleep(3)

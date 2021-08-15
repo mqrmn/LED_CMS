@@ -17,7 +17,7 @@ logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 class Queue:
 
     # Подготовка данных к отправке на сокет, метод условно резервный
-    def SendController(self, Q_in, Q_out):
+    def SendController(self, Q_in, Q_out, Q_SetFlag = None, ):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         termNovaCount = 0
         termMarsCount = 0
@@ -31,6 +31,15 @@ class Queue:
         while True:
             data = Q_in.get()
 
+            if Q_SetFlag != None:
+                if Q_SetFlag.empty() == False:
+                    flag = Q_SetFlag.get()
+                else:
+                    pass
+            else:
+                pass
+
+            # Запуск NovaStudio
             if data == Resource.RunNova[1]:
                 if ((datetime.datetime.now() - runNovaTime).seconds >= 30) or runNovaCount == 0:
 
@@ -41,6 +50,7 @@ class Queue:
                     pass
                 data = None
 
+            # Остановка NovaStudio
             if data == Resource.TerminateNova:
                 if ((datetime.datetime.now() - termNovaTime).seconds >= 30) or termNovaCount == 0:
                     print((datetime.datetime.now() - termNovaTime).seconds)
@@ -50,6 +60,8 @@ class Queue:
                 else:
                     pass
                     data = None
+
+            # Остановка MarsServerProvider
             if data == Resource.TerminateMars[1]:
 
                 if ((datetime.datetime.now() - termMarsTime).seconds >= 30) or termMarsCount == 0:
@@ -59,6 +71,8 @@ class Queue:
                 else:
                     pass
                 data = None
+
+            # Перезапуск NovaStudio
             if data == Resource.RestartNova[1]:
                 if ((datetime.datetime.now() - resNovaTime).seconds >= 30) or resNovaCount == 0:
                     self.ToSend(data, Q_out)
@@ -91,7 +105,7 @@ class Queue:
 
 
     # Подготавливает команты, отправляеемые на UA
-    def CreateAction(self, Q_in, Q_out):
+    def CreateAction(self, Q_in, Q_out, Q_SetFlag):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         DictNova = {}
         DictMars = {}
@@ -211,19 +225,34 @@ class Queue:
         Q_out.put(data)
 
     # Обработка внутренней очереди
-    def Internal(self, Q_in, Q_UAValid, Q_DBWrite, ):
+    def Internal(self, Q_in, Q_UAValid, Q_DBWrite, Q_SetFlag):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         while True:
-            if Q_in.empty() != False:
-                data = Q_in.get()
-                if data[Resource.root[1]] == Resource.Head[2]:
-                    if data[Resource.root[2]] == Resource.Key[7]:
-                        Q_UAValid.put(data[Resource.root[3]])
-                        print('Internal', data[Resource.root[3]])
-                if data[Resource.root[1]] == Resource.Head[3]:
-                    if data[Resource.root[2]] == Resource.Key[8]:
-                        Q_DBWrite.put(data[Resource.root[3]])
 
-            else:
-                time.sleep(3)
+            data = Q_in.get()
+            # Проверка агента
+            if data[Resource.root[1]] == Resource.Head[2]:
+                if data[Resource.root[2]] == Resource.Key[7]:
+                    Q_UAValid.put(data[Resource.root[3]])
+            # Запись в БД
+            if data[Resource.root[1]] == Resource.Head[3]:
+                if data[Resource.root[2]] == Resource.Key[8]:
+                    Q_DBWrite.put(data[Resource.root[3]])
+            # Установка флагов
+            if data[Resource.root[1]] == Resource.Head[4]:
+                print('Internal', data)
+                Q_SetFlag.put({Resource.root[2]: data[Resource.root[2]],
+                               Resource.root[3]: data[Resource.root[3]], }, )
+
+
+
+    def SetFlag(self, Q_SetFlag, Q_UAValidSF, Q_Controller):
+        while True:
+            data = Q_SetFlag.get()
+            if data[Resource.root[2]] == Resource.Key[9]:
+                print(data)
+                Q_UAValidSF.put(data[Resource.root[3]])
+            if data[Resource.root[2]] == Resource.Key[10]:
+                # Q_Controller.put()
+                pass
 

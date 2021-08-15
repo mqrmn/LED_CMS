@@ -4,11 +4,12 @@ import sys
 import time
 import pythoncom
 import os
+import datetime
 from inspect import currentframe, getframeinfo
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
-from App import Validation, Resource, File, API, Action, LogManager
+from App import Validation, Resource, File, API, Action, LogManager, Database
 
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
@@ -35,7 +36,7 @@ class CMS:
         pythoncom.CoInitialize()
         while True:
             if C_FileMan.CMSUpgrade(False) == True:
-                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Обнаружено обновлние')
+                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Обнаружено обновление')
                 time.sleep(180)
                 stSvc = C_Win.StopService('CMS')
                 if stSvc[0] == 0:
@@ -43,8 +44,17 @@ class CMS:
                     logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'CMS остановлена')
                     time.sleep(30)
                     C_FileMan.CMSUpgrade(True)
+                    table = Database.Tables()
+                    table.SelfInitShutdown.create(trigger=getframeinfo(currentframe())[2],
+                                                  key='reboot',
+                                                  datetime=datetime.datetime.now(), )
+
+
                     C_Action.Reboot()
                 else:
-                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Не удается остановить CMS, код: {}'.format(stSvc), )
+                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2],
+                                      'Не удается остановить CMS, код: {}'.format(stSvc), )
             else:
                 time.sleep(180)
+
+

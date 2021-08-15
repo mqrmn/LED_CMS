@@ -160,32 +160,96 @@ class Files:
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
 
 class Init(Files):
-    def InitCMS(self):
+    def InitCMS(self, Q_Internal):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         self.LogArch()
         self.LogDel()
-        self.CheckSelf()
-        self.CheckLastShutdown()
+        data = self.CheckSelf()
+        if data == True:
+            self.CheckLastShutdown(Q_Internal)
+        else:
+            pass
 
 
     def CheckDB(self):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        data = True
         if os.path.exists(Config.DBFolder):
             if os.path.exists(Config.DBPath):
                 logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Database file exist')
             else:
                 handle = Database.DBFoo()
                 handle.CreateTables()
+                data = False
                 logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Database file created')
         else:
             os.mkdir(Config.DBFolder)
             handle = Database.DBFoo()
             handle.CreateTables()
+            data = False
             logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Database file created')
+        return data
 
     def CheckSelf(self):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
-        self.CheckDB()
+        data = self.CheckDB()
+        return data
 
-    def CheckLastShutdown(self):
-        pass
+    def CheckLastShutdown(self, Q_Internal):
+        table = Database.Tables()
+        lastReboot = table.SelfInitShutdown().select().order_by(table.SelfInitShutdown.id.desc()).get()
+
+        count = table.SelfInitShutdown().select().where(
+            (table.SelfInitShutdown.datetime.year == datetime.date.today().year) &
+            (table.SelfInitShutdown.datetime.month == datetime.date.today().month) &
+            (table.SelfInitShutdown.datetime.day == datetime.date.today().day)).count()
+
+        if lastReboot.datetime.date() == datetime.datetime.now().date():
+            if (datetime.datetime.now() - lastReboot.datetime).seconds <= 300:
+                if count >= 3:
+                    Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[9],
+                                    Resource.root[3]: Resource.ShutdownFlagData[0]})
+                    Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[10],
+                                    Resource.root[3]: Resource.ShutdownFlagData[0]})
+
+                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Превышено количество '
+                                                                                   'попыток перезапустить систему: {} '
+                                                                                   'Последняя перезагрузка: {} '.format(count, lastReboot))
+                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Перезагрузка запрещена')
+
+                else:
+                    Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[9],
+                                    Resource.root[3]: Resource.ShutdownFlagData[1]})
+                    Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[10],
+                                    Resource.root[3]: Resource.ShutdownFlagData[1]})
+
+                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Превышена'
+                                                                                  'частота попыток перезапустить систему '
+                                                                                  'Последняя перезагрузка: {} '.format(lastReboot))
+            elif count >= 5:
+                Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[9],
+                                Resource.root[3]: Resource.ShutdownFlagData[1]})
+                Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[10],
+                                Resource.root[3]: Resource.ShutdownFlagData[1]})
+
+                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Превышена '
+                                                                               'частота попыток перезапустить систему '
+                                                                               'Последняя перезагрузка: {}'.format(lastReboot))
+                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Перезагрузка запрещена')
+            else:
+                Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[9],
+                                Resource.root[3]: Resource.ShutdownFlagData[2]})
+                Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[10],
+                                Resource.root[3]: Resource.ShutdownFlagData[2]})
+
+                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Перезагрузка разрешена')
+        else:
+            Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[9],
+                            Resource.root[3]: Resource.ShutdownFlagData[2]})
+            Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[10],
+                            Resource.root[3]: Resource.ShutdownFlagData[2]})
+
+            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Перезагрузка разрешена')
+
+
+

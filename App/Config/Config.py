@@ -51,6 +51,6 @@ timeoutPCheck = 30
 localhost = 'localhost'
 CMSCoreInternalPort = 2203
 CMSUserAgentPort = 2303
-
+CMSControllertPort = 2403
 
 

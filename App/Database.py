@@ -2,6 +2,7 @@
 import sys
 import os
 from inspect import currentframe, getframeinfo
+
 from peewee import *
 from App.Config import Config
 
@@ -13,19 +14,24 @@ from App import Resource, LogManager
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 
-database = SqliteDatabase(Config.DBPath)
+dbhandle = SqliteDatabase(Config.DBPath)
+
+
 
 class BaseModel(Model):
     id = AutoField()
     class Meta:
-        database = database
+        database = dbhandle
 
-class Tables(BaseModel):
+class Tables:
 
     class SelfInitShutdown(BaseModel):
-        id = AutoField()
         trigger = TextField()
+        key = TextField()
         datetime = DateTimeField()
+        class Meta:
+            db_table = "SelfInitShutdown"
+            order_by = ('-id',)
 
     class SystemRun(BaseModel):
         datetime = DateTimeField()
@@ -36,29 +42,38 @@ class Tables(BaseModel):
 class DBFoo(Tables):
 
     def CreateTables(self):
-        with database:
-            database.create_tables([self.SelfInitShutdown, ])
-
+        with dbhandle:
+            dbhandle.create_tables([self.SelfInitShutdown, ])
+            dbhandle.create_tables([self.SystemRun, ])
+            dbhandle.create_tables([self.SystemInit, ])
 
     def WriteController(self, Q_in):
         while True:
             data = Q_in.get()
-            print('WriteController', data)
             if data['table'] == 'SystemInit':
                 print('WriteController', 'SystemInit', data)
             if data['table'] == 'SelfInitShutdown':
                 data = data['data']
-                self.SelfInitShutdown.create(trigger=data['trigger'], datetime=data['datetime'], )
-
-                print('WriteController', 'SelfInitShutdown', data)
+                self.SelfInitShutdown.create(trigger=data['trigger'], key=data['key'], datetime=data['datetime'], )
+                print('SelfInitShutdown', data)
 
     def ReadController(self):
         pass
+
+
 class Prepare:
 
-    def SelfInitShutdown(self, trigger, datetimeData):
+    def SelfInitShutdown(self, trigger, key, datetimeData):
         return {Resource.root[1]: Resource.Head[3],
                 Resource.root[2]: Resource.Key[8],
-                Resource.root[3]: {Resource.Data[0]: 'SelfInitShutdown',
+                Resource.root[3]: {Resource.DBWriteData[0]: 'SelfInitShutdown',
                                    Resource.root[3]: {'trigger': trigger,
+                                                      'key': key,
                                                       'datetime': datetimeData}, }, }
+
+    def SystemInit(self, datetimeData):
+        return {Resource.root[1]: Resource.Head[3],
+                Resource.root[2]: Resource.Key[8],
+                Resource.root[3]: {Resource.DBWriteData[0]: 'SystemInit',
+                                   Resource.root[3]: {'datetime': datetimeData,
+                                                      }, }, }

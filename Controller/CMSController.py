@@ -17,7 +17,7 @@ from inspect import currentframe, getframeinfo
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
-from App import API, File, Action, LogManager, Controller
+from App import API, File, Action, LogManager, Controller, Database
 
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
@@ -89,20 +89,24 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
                 try:
                     Socket.connect((Config.localhost, Config.CMSCoreInternalPort))
                     checkTime = datetime.datetime.now()
-                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'СЛУЖБА ЗАПУЩЕНА', )
+                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'CMS Runned', )
                 except:
 
                     if Q_Internal.empty() == False:
                         if Q_Internal.get() == True:
                             logging.CMSLogger(logHandler, getframeinfo(currentframe())[2],
-                                              'СЛУЖБА ОСТАНОВЛЕНА ВСВЯЗИ С ОБНОВЛЕНИЕМ', )
+                                              'CMS Stopped for upgrade', )
                             break
 
                         else:
                             pass
                     else:
-                        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'СЛУЖБА ОСТАНОВЛЕНА', )
+                        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'CMS Stopped', )
                         if ((checkTime - datetime.datetime.now()).seconds >= 300):
+                            table = Database.Tables()
+                            table.SelfInitShutdown.create(trigger='CMSController',
+                                                          key='reboot',
+                                                          datetime=datetime.datetime.now(), )
                             logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'REBOOT')
                             C_Action.Reboot()
                             break

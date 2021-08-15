@@ -3,10 +3,18 @@
 # ROOT
 root = ['method', 'head', 'key', 'data']
 Method = ['put', 'get', ]
-Head = ['State', 'Action', 'Report', 'DB']
+Head = ['State', 'Action', 'Report', 'DB', 'Flag']
 Key = ['ScreenState', 'ProcState', 'RunProc', 'TerminateProc', 'RestartProc',
-       'Win', 'TerminateThread', 'UALastAction', 'DBWrite']
-Data = ['table', ]
+       'Win', 'TerminateThread', 'UALastAction', 'DBWrite', 'UAValid',
+       'CMSController', ]
+
+DBWriteData = ['table', ]
+ShutdownFlagData = [0, 1, 2, ]
+
+
+
+
+
 # PROCESS
 ProcList = ['NovaStudio.exe', 'MarsServerProvider.exe', 'NovaSoftwareDog.exe', 'NovaLCT.exe', ]
 ProcState = [True, False]
