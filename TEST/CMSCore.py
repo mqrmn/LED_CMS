@@ -1,31 +1,42 @@
-import logging
-import queue
-import threading
-import time
-from multiprocessing import Process
+# 1.1.1
+
+import sys
 import win32serviceutil
 import win32service
 import win32event
 import servicemanager
+import time
+import os
+import threading
+import queue
+from inspect import currentframe, getframeinfo
 
-from App import Validation
-from App import WinApi
-from App import Handler
-from App import Handler, Comm
+sys.path.append("C:\\MOBILE\\Local\\CMS")
+
 from App.Config import Config
-from  App.UserAgent import CMSUserAgent
-from App import Resource, CMSCore, File
+from App import LogManager, Comm, Resource, Handler, Validation, File, Action, Database
+
+logging = LogManager._Log_Manager_()
+logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 
 
 module = 'TEST'
 def TEST():
+
+        C_Action = Action.Init()
+        C_Action.InitCMS()
+
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
 
         # Создаю экземпляры классов
         C_Handlers = Handler.Queue()
         C_Network = Comm.Socket()
         C_File = File.Manager()
         C_Valid = Validation._System_()
-        # Обновление CMS
+        C_DB = Database.DBFoo()
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Экземпляры классов созданы')
+
+
 
         # Очереди
         Q_FromUA = queue.Queue()
@@ -36,20 +47,33 @@ def TEST():
         Q_ValidScreen = queue.Queue()
         Q_Internal = queue.Queue()
         Q_UAValid = queue.Queue()
+        Q_DBWrite = queue.Queue()
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Очереди созданы')
 
         # Потоки
-        T_Server = threading.Thread(target=C_Network.Server, args=(Config.localhost, Config.CMSCoreInternalPort, Q_FromUA, ))     # Прием данных TCP
-        T_Client = threading.Thread(target=C_Network.Client, args=(Config.localhost, Config.CMSUserAgentPort, Q_Send, ))          # Отправка данных TCP
-        TQ_FromUA = threading.Thread(target=C_Handlers.FromUA, args=(Q_FromUA, Q_ValidScreen, Q_ValidProc, Q_Internal, ))              # Обработчик очереди данных от CMSUserAgent
-        TQ_CreateAction = threading.Thread(target=C_Handlers.CreateAction, args=(Q_Action, Q_PrepareToSend, ))                       # Обработчик очереди команд для CMSUserAgent
-        TQ_PrepareToSend = threading.Thread(target=C_Handlers.SendController, args=(Q_PrepareToSend, Q_Send, ))
-        TQ_ValidScreen = threading.Thread(target=C_Handlers.Valid, args=(Q_ValidScreen, Q_Action, True, 1, Resource.ComDict['head'][0], True, ))  # Счетчик кондиции экрана
-        TQ_ValidProc = threading.Thread(target=C_Handlers.Valid, args=(Q_ValidProc, Q_Action, False, 1, Resource.ComDict['head'][0], True, ))
-        T_CheckNewContent = threading.Thread(target=C_File.DynamicRenewCont, args=(Q_PrepareToSend, ))
+        # Потоки обмена
+        T_Server = threading.Thread(target=C_Network.Server, args=(Config.localhost, Config.CMSCoreInternalPort, Q_FromUA))
+        T_Client = threading.Thread(target=C_Network.Client, args=(Config.localhost, Config.CMSUserAgentPort, Q_Send))
 
+        # Потоки обработки входящих данных
+        TQ_FromUA = threading.Thread(target=C_Handlers.FromUA, args=(Q_FromUA, Q_ValidScreen, Q_ValidProc, Q_Internal))
+        TQ_ValidScreen = threading.Thread(target=C_Handlers.Valid, args=(
+        Q_ValidScreen, Q_Action, True, 1, Resource.ComDict['head'][0], True,))
+        TQ_ValidProc = threading.Thread(target=C_Handlers.Valid, args=(Q_ValidProc, Q_Action, False, 1, Resource.ComDict['head'][0], True,))
 
-        TQ_Internal = threading.Thread(target=C_Handlers.Internal, args=(Q_Internal, Q_UAValid, ))
-        TQ_UAValid = threading.Thread(target=C_Valid.UAValid, args=(Q_UAValid, ))
+        # Потоки формирования исходящих данных
+        TQ_CreateAction = threading.Thread(target=C_Handlers.CreateAction, args=(Q_Action, Q_PrepareToSend))
+        TQ_PrepareToSend = threading.Thread(target=C_Handlers.SendController, args=(Q_PrepareToSend, Q_Send,))
+
+        # Потоки обработки внутренних данных
+        TQ_Internal = threading.Thread(target=C_Handlers.Internal, args=(Q_Internal, Q_UAValid, Q_DBWrite, ))
+        TQ_UAValid = threading.Thread(target=C_Valid.UAValid, args=(Q_UAValid, Q_Internal, ))
+
+        # Служебные потоки
+        T_CheckNewContent = threading.Thread(target=C_File.DynamicRenewCont, args=(Q_PrepareToSend,))
+        T_DBWriteController = (threading.Thread(target=C_DB.WriteController, args=(Q_DBWrite, )))
+
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Потоки инициализированы')
 
         # Запуск потоков
         T_Server.start()
@@ -63,6 +87,8 @@ def TEST():
 
         TQ_Internal.start()
         TQ_UAValid.start()
+        T_DBWriteController.start()
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Потоки запущены')
 
         # Цикл
         # --------------------------------------------------------------------

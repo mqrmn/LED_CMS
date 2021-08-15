@@ -13,12 +13,13 @@ import os
 import threading
 import datetime
 import pythoncom
+import datetime
 from inspect import currentframe, getframeinfo
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
-from App import API, Resource, LogManager, Action
+from App import API, Resource, LogManager, Action, Database
 
 
 logging = LogManager._Log_Manager_()
@@ -115,18 +116,25 @@ class _System_:
             state.append(i.is_alive())
         return state
 
-    def UAValid(self, Q_in):
+    def UAValid(self, Q_in, Q_Internal):
         C_Action = Action.System()
+        C_Prepare = Database.Prepare()
         data = datetime.datetime.now()
+        count = 0
         while True:
             if Q_in.empty() == False:
                 data = Q_in.get()
+                if count == 0:
+                    Q_Internal.put({Resource.root[1]: Resource.Head[3], Resource.root[2]: Resource.Key[8],
+                                    Resource.root[3]: {'1': '2'}, }, )
+                    count += 1
             else:
+                print('Q is Empty')
+                if ((datetime.datetime.now() - data).seconds) >= 10:
+                    Q_Internal.put(C_Prepare.SelfInitShutdown(getframeinfo(currentframe())[2], datetime.datetime.now()))
 
-                if ((datetime.datetime.now() - data).seconds) >= 90:
                     pythoncom.CoInitialize()
-                    C_Action.Reboot()
+                    # C_Action.Reboot()
+                    break
+
             time.sleep(3)
-
-
-

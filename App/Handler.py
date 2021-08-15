@@ -211,7 +211,7 @@ class Queue:
         Q_out.put(data)
 
     # Обработка внутренней очереди
-    def Internal(self, Q_in, Q_UAValid):
+    def Internal(self, Q_in, Q_UAValid, Q_DBWrite, ):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         while True:
             if Q_in.empty() != False:
@@ -220,6 +220,10 @@ class Queue:
                     if data[Resource.root[2]] == Resource.Key[7]:
                         Q_UAValid.put(data[Resource.root[3]])
                         print('Internal', data[Resource.root[3]])
+                if data[Resource.root[1]] == Resource.Head[3]:
+                    if data[Resource.root[2]] == Resource.Key[8]:
+                        Q_DBWrite.put(data[Resource.root[3]])
+
             else:
                 time.sleep(3)
 

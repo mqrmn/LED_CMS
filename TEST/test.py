@@ -12,7 +12,7 @@ def TEST():
     # SelfInitShutdown.create(trigger='TextField', datetime=datetime.datetime.now(), )
 
     C_Action = Action.Init()
-    C_Action.CMS()
+    C_Action.InitCMS()
 
 
 

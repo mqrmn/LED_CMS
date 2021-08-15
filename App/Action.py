@@ -160,11 +160,12 @@ class Files:
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
 
 class Init(Files):
-    def CMS(self):
+    def InitCMS(self):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         self.LogArch()
         self.LogDel()
         self.CheckSelf()
+        self.CheckLastShutdown()
 
 
     def CheckDB(self):
@@ -185,3 +186,6 @@ class Init(Files):
     def CheckSelf(self):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         self.CheckDB()
+
+    def CheckLastShutdown(self):
+        pass
