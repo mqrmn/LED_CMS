@@ -193,10 +193,10 @@ class Manager:
                 countPass += 1
             if countPass >= 5:
                 # Action
-                Q_out.put(Resource.TerminateNova[0])
-                time.sleep(5)
-                self.ContentRenewHandle()
-                Q_out.put(Resource.RunNova[1])
+                # Q_out.put(Resource.TerminateNova[0])
+                # time.sleep(5)
+                self.ContentRenewHandle(Q_out, )
+                # Q_out.put(Resource.RunNova[1])
 
                 list = None
                 fix = False
@@ -204,15 +204,92 @@ class Manager:
             time.sleep(10)
 
     # Ниже методы обновления контента. Под переработку.
-    def ContentRenewHandle(self):
+    def ContentRenewHandle(self, Q_out, ):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
 
-        if self.RefreshContent() == 1:
+        appendStatus = self.AppendContent()
+        Q_out.put(Resource.TerminateNova[0])
+        time.sleep(10)
+        removeStatus = self.RemoveContent()
+        if (appendStatus == True) or (removeStatus == True):
             self.Generate()
-        else:
-            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Не обнаружено файлов для обновления. Обновление отменено.')
+        Q_out.put(Resource.RunNova[1])
+
+        # if self.RefreshContent() == 1:
+        #     self.Generate()
+        # else:
+        #     logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Не обнаружено файлов для обновления. Обновление отменено.')
 
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
+
+
+
+
+
+    def AppendContent(self):
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+
+        refreshStatus = False
+
+        for formatPath in Config.screenFormat:
+            yaListFilesExcept = os.listdir(Config.yaFilesExcept + formatPath)
+            yaListFilesUnex = os.listdir(Config.yaFilesUnex + formatPath)
+            yaListFilesEx = os.listdir(Config.yaFilesEx + formatPath)
+            localListFilesUnex = os.listdir(Config.localFilesUnex + formatPath)
+            localListFilesEx = os.listdir(Config.localFilesEx + formatPath)
+            if yaListFilesUnex != localListFilesUnex:
+                for file in yaListFilesUnex:
+                    if file not in yaListFilesExcept:
+                        if file not in localListFilesUnex:
+                            shutil.copy(Config.yaFilesUnex + formatPath + '\\' + file,
+                                        Config.localFilesUnex + formatPath)
+                            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Файл добавлен: ' + Config.yaFilesUnex + formatPath + '\\' + file)
+                            refreshStatus = True
+
+            if yaListFilesEx != localListFilesEx:
+                for file in yaListFilesEx:
+                    if file not in localListFilesEx:
+                        shutil.copy(Config.yaFilesEx + formatPath + '\\' + file, Config.localFilesEx + formatPath)
+                        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Файл добавлен: ' + Config.yaFilesEx + formatPath + '\\' + file)
+                        refreshStatus = True
+
+        return refreshStatus
+
+    def RemoveContent(self):
+        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+
+        refreshStatus = False
+
+        for formatPath in Config.screenFormat:
+            yaListFilesExcept = os.listdir(Config.yaFilesExcept + formatPath)
+            yaListFilesUnex = os.listdir(Config.yaFilesUnex + formatPath)
+            yaListFilesEx = os.listdir(Config.yaFilesEx + formatPath)
+            localListFilesUnex = os.listdir(Config.localFilesUnex + formatPath)
+            localListFilesEx = os.listdir(Config.localFilesEx + formatPath)
+
+            for file in yaListFilesExcept:
+                if file in localListFilesUnex:
+                    os.remove(Config.localFilesUnex + formatPath + '\\' + file)
+                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2],
+                                      'Файл удален по исключению: ' + Config.localFilesUnex + formatPath + '\\' + file)
+                    refreshStatus = True
+
+            if yaListFilesUnex != localListFilesUnex:
+                for file in localListFilesUnex:
+                    if file not in yaListFilesUnex:
+                        os.remove(Config.localFilesUnex + formatPath + '\\' + file)
+                        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2],
+                                          'Файл удален: ' + Config.localFilesUnex + formatPath + '\\' + file)
+                        refreshStatus = True
+            if yaListFilesEx != localListFilesEx:
+                for file in localListFilesEx:
+                    if file not in yaListFilesEx:
+                        os.remove(Config.localFilesEx + formatPath + '\\' + file)
+                        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2],
+                                          'Файл удален: ' + Config.localFilesEx + formatPath + '\\' + file)
+                        refreshStatus = True
+        return refreshStatus
+
 
     def RefreshContent(self):
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
@@ -232,6 +309,8 @@ class Manager:
                     logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Файл удален по исключению: ' + Config.localFilesUnex + formatPath + '\\' + file)
                     refreshStatus = 1
 
+
+
             if yaListFilesUnex != localListFilesUnex:
                 for file in yaListFilesUnex:
                     if file not in yaListFilesExcept:
@@ -240,6 +319,8 @@ class Manager:
                                         Config.localFilesUnex + formatPath)
                             logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Файл добавлен: ' + Config.yaFilesUnex + formatPath + '\\' + file)
                             refreshStatus = 1
+
+
                 for file in localListFilesUnex:
                     if file not in yaListFilesUnex:
                         os.remove(Config.localFilesUnex + formatPath + '\\' + file)
@@ -258,6 +339,7 @@ class Manager:
                         os.remove(Config.localFilesEx + formatPath + '\\' + file)
                         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Файл удален: ' + Config.localFilesEx + formatPath + '\\' + file)
                         refreshStatus = 1
+
             if refreshStatus == 0:
                 logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Список контента не изменен')
 

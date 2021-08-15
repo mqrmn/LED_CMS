@@ -40,7 +40,7 @@ globalCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\CMS_DEV\\'
 groupCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\{}\\CMS_DEV\\'.format(objType)
 localCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\{}\\{}\\CMS\\'.format(objType, objCode)
 
-DBFolder = 'C:\\Users\\Alex_S\\YandexDisk\\DEVELOP\\PYTHON\\CMS\\Database\\'
+DBFolder = ConfigEx.DBFolder
 DBFile = 'CMS.db'
 DBPath = DBFolder + DBFile
 

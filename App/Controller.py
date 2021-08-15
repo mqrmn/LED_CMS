@@ -13,8 +13,6 @@ from App import Validation, Resource, File, API, Action, LogManager, Database
 
 logging = LogManager._Log_Manager_()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
-logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
-
 
 class CMS:
     def Thread(self, Q_in, Q_out, data):
