@@ -47,7 +47,6 @@ class CMS:
                                                   key='reboot',
                                                   datetime=datetime.datetime.now(), )
 
-
                     C_Action.Reboot()
                 else:
                     logging.CMSLogger(logHandler, getframeinfo(currentframe())[2],

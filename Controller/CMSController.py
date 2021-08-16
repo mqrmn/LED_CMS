@@ -84,7 +84,6 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         # --------------------------------------------------------------------
         checkTime = datetime.datetime.now()
         while True:
-            print((checkTime - datetime.datetime.now()).seconds)
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as Socket:
                 try:
                     Socket.connect((Config.localhost, Config.CMSCoreInternalPort))

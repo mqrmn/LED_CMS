@@ -75,7 +75,6 @@ def TEST():
         TQ_Internal = threading.Thread(target=C_Handlers.Internal, args=(Q_Internal, Q_UAValid, Q_DBWrite, Q_SetFlag))
         TQ_SetFlag = threading.Thread(target=C_Handlers.SetFlag, args=(Q_SetFlag, Q_UAValidSF, Q_Controller))
 
-
         # Обработка записи в БД
         T_DBWriteController = (threading.Thread(target=C_DB.WriteController, args=(Q_DBWrite,)))
 
