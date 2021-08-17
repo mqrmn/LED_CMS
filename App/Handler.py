@@ -145,9 +145,13 @@ class Queue:
         while True:
             data = Q_in.get()
 
+            print('FromCore', data)
+
             if data['method'] == Resource.ComDict['method'][0]:
                 if data['head'] == Resource.ComDict['head'][1]:
                     Q_out.put(data)
+                if data[Resource.root[1]] == Resource.Head[4]:
+                    Q_out.put(data[Resource.root[3]])
 
     # Проверяет ключи в данных приходящих на UA, в соответсвии с ними запускает действия
     def UAAction(self, Q_in, Q_out,):
@@ -246,13 +250,13 @@ class Queue:
 
 
 
-    def SetFlag(self, Q_SetFlag, Q_UAValidSF, Q_Controller):
+    def SetFlag(self, Q_SetFlag, Q_UAValidSF, Q_Cont_TCPSend):
         while True:
             data = Q_SetFlag.get()
             if data[Resource.root[2]] == Resource.Key[9]:
-                print(data)
                 Q_UAValidSF.put(data[Resource.root[3]])
             if data[Resource.root[2]] == Resource.Key[10]:
-                # Q_Controller.put()
-                pass
+                Q_Cont_TCPSend.put({Resource.root[0]: Resource.Method[0], Resource.root[1]: Resource.Head[4],
+                                    Resource.root[2]: Resource.Key[10], Resource.root[3]: data[Resource.root[3]]})
+
 

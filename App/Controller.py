@@ -52,6 +52,6 @@ class CMS:
                     logging.CMSLogger(logHandler, getframeinfo(currentframe())[2],
                                       'Не удается остановить CMS, код: {}'.format(stSvc), )
             else:
-                time.sleep(180)
+                time.sleep(1800)
 
 

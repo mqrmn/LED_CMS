@@ -37,8 +37,6 @@ def TEST():
         C_DB = Database.DBFoo()
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Экземпляры классов созданы')
 
-
-
         # Очереди
         Q_FromUA = queue.Queue()
         Q_Action = queue.Queue()
@@ -51,7 +49,6 @@ def TEST():
         Q_UAValid = queue.Queue()
         Q_DBWrite = queue.Queue()
         Q_UAValidSF = queue.Queue()
-        Q_Controller = queue.Queue()
 
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Очереди созданы')
 
@@ -59,8 +56,8 @@ def TEST():
         # Потоки обмена
         T_Server = threading.Thread(target=C_Network.Server, args=(Config.localhost, Config.CMSCoreInternalPort, Q_FromUA))
 
-        T_ClientUA = threading.Thread(target=C_Network.Client, args=(Config.localhost, Config.CMSUserAgentPort, Q_UA_TCPSend))
-        T_ClientContr = threading.Thread(target=C_Network.Client, args=(Config.localhost, Config.CMSControllertPort, Q_UA_TCPSend))
+        T_UA_Client = threading.Thread(target=C_Network.Client, args=(Config.localhost, Config.CMSUserAgentPort, Q_UA_TCPSend))
+        T_Contr_Client = threading.Thread(target=C_Network.Client, args=(Config.localhost, Config.CMSControllertPort, Q_Cont_TCPSend))
 
         # Потоки обработки входящих данных
         TQ_FromUA = threading.Thread(target=C_Handlers.FromUA, args=(Q_FromUA, Q_ValidScreen, Q_ValidProc, Q_Internal))
@@ -74,7 +71,7 @@ def TEST():
 
         # Потоки обработки внутренних данных
         TQ_Internal = threading.Thread(target=C_Handlers.Internal, args=(Q_Internal, Q_UAValid, Q_DBWrite, Q_SetFlag))
-        TQ_SetFlag = threading.Thread(target=C_Handlers.SetFlag, args=(Q_SetFlag, Q_UAValidSF, Q_Controller))
+        TQ_SetFlag = threading.Thread(target=C_Handlers.SetFlag, args=(Q_SetFlag, Q_UAValidSF, Q_Cont_TCPSend))
 
         # Обработка записи в БД
         T_DBWriteController = (threading.Thread(target=C_DB.WriteController, args=(Q_DBWrite,)))
@@ -87,13 +84,14 @@ def TEST():
 
         # Запуск потоков
         T_Server.start()
-        T_ClientUA.start()
+        T_UA_Client.start()
         TQ_FromUA.start()
         TQ_CreateAction.start()
         TQ_SendController.start()
         TQ_ValidScreen.start()
         TQ_ValidProc.start()
         T_CheckNewContent.start()
+        T_Contr_Client.start()
 
         TQ_Internal.start()
         TQ_UAValid.start()
