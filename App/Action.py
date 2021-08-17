@@ -98,7 +98,6 @@ class System:
         handle.RestartPC()
 
 class Files:
-
     def RestoreNovaBin(self):
         C_API = API.Win()
         if self.CheckNovaFile() == True:
@@ -124,20 +123,19 @@ class Files:
             # Продолжаю работать толь с файлами с расширением .log
             if re.search('log', file):
                 # Проверяю дату создания лог файлов
-                logDate = datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0], "%Y-%m-%d")
-                if logDate.day < date.today().day:
+                if datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0], "%Y-%m-%d").day < date.today().day:
                     logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Помечен для архивирования ' + file)
                     listForArchiving.append(file)
         # Проверяю существует ли папка которую собираюсь создать
         if listForArchiving and not os.path.exists(Config.logPath + str(date.today())):
-            os.mkdir(Config.logPath + str(logDate))
+            os.mkdir(Config.logPath + str(date.today()))
             # Перемещаю журналы в папку
             for file in listForArchiving:
-                shutil.move(Config.logPath + file, Config.logPath + str(logDate) + '\\' + file)
+                shutil.move(Config.logPath + file, Config.logPath + str(date.today()) + '\\' + file)
                 logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Перемещен в архив ' + file)
             # Архивирую папку
-            shutil.make_archive(base_name=Config.logPath + str(logDate), format='zip', root_dir=Config.logPath + str(date.today()), )
-            shutil.rmtree(Config.logPath + str(logDate))
+            shutil.make_archive(base_name=Config.logPath + str(date.today()), format='zip', root_dir=Config.logPath + str(date.today()), )
+            shutil.rmtree(Config.logPath + str(date.today()))
         else:
             logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Журналов для архивирования не обнаружено')
         logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
