@@ -1,20 +1,12 @@
 
-import datetime
-from App import Action
-from App.Database import *
+from App import LogManager
 
 def TEST():
 
-    #
-    # handle = DBFoo()
-    # handle.CreateTables()
-
-    # SelfInitShutdown.create(trigger='TextField', datetime=datetime.datetime.now(), )
-
-    C_Action = Action.Init()
-    C_Action.InitCMS()
 
 
+    LOG = LogManager.Log_Manager()
+    LOG.CMSLogger('CALLED')
 
 if __name__ == '__main__':
     TEST()

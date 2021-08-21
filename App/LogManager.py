@@ -4,12 +4,13 @@ import sys
 import logging.config
 import time
 from datetime import date
+from inspect import currentframe, getframeinfo, getmodulename
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
 
-class _Log_Manager_:
+class Log_Manager:
 
     def InitModule(self, module):
 
@@ -20,6 +21,11 @@ class _Log_Manager_:
 
         return(logger)
 
-    def CMSLogger(self, module, method, string):
-        module.info('{} {}: {}'.format(time.ctime(), method, string))
+    def CMSLogger(self, string):
+
+
+        frame = getframeinfo(currentframe().f_back)
+        logger = self.InitModule(getmodulename(frame.filename))
+
+        logger.info('{} {}: {}'.format(time.ctime(), frame.function, string))
 

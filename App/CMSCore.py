@@ -16,8 +16,8 @@ sys.path.append("C:\\MOBILE\\Local\\CMS")
 from App.Config import Config
 from App import LogManager, Comm, Resource, Handler, Validation, File, Action, Database
 
-logging = LogManager._Log_Manager_()
-logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
+LOG = LogManager.Log_Manager()
+LOG.CMSLogger('CALLED')
 
 class AppServerSvc(win32serviceutil.ServiceFramework):
     _svc_name_ = "CMS"
@@ -67,7 +67,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         C_Action = Action.Init()
         C_Action.InitCMS(Q_Internal)
 
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        LOG.CMSLogger('Called')
 
         # Создаю экземпляры классов
         C_Handlers = Handler.Queue()
@@ -75,7 +75,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         C_File = File.Manager()
         C_Valid = Validation._System_()
         C_DB = Database.DBFoo()
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Экземпляры классов созданы')
+        LOG.CMSLogger('Экземпляры классов созданы')
 
         # Очереди
         Q_FromUA = queue.Queue()
@@ -90,7 +90,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         Q_UAValidSF = queue.Queue()
         Q_Controller = queue.Queue()
 
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Очереди созданы')
+        LOG.CMSLogger('Очереди созданы')
 
         # Потоки
         # Потоки обмена
@@ -125,7 +125,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         T_CheckNewContent = threading.Thread(target=C_File.DynamicRenewCont, args=(Q_PrepareToSend,))
         TQ_UAValid = threading.Thread(target=C_Valid.UAValid, args=(Q_UAValid, Q_Internal, Q_UAValidSF))
 
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Потоки инициализированы')
+        LOG.CMSLogger( 'Потоки инициализированы')
 
         # Запуск потоков
         T_Server.start()
@@ -141,7 +141,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         TQ_UAValid.start()
         T_DBWriteController.start()
         TQ_SetFlag.start()
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Потоки запущены')
+        LOG.CMSLogger('Потоки запущены')
 
         # Цикл
         # --------------------------------------------------------------------
@@ -155,10 +155,10 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
             rc = win32event.WaitForSingleObject(self.hWaitStop, self.timeout)
             if rc == win32event.WAIT_OBJECT_0:
 
-                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Получена команда на остановку службы')
+                LOG.CMSLogger( 'Получена команда на остановку службы')
                 C_Comm = Comm.Socket()
                 C_Comm.Send(Config.localhost, Config.CMSUserAgentPort, Resource.TerminateThread[0])
-                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Команда на остановку UA отправлена')
+                LOG.CMSLogger('Команда на остановку UA отправлена')
                 servicemanager.LogInfoMsg("Service finished")
                 break
 

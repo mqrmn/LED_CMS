@@ -12,8 +12,8 @@ sys.path.append("C:\\MOBILE\\Local\\CMS")
 from App.Config import Config
 from App import LogManager
 
-logging = LogManager._Log_Manager_()
-logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
+LOG = LogManager.Log_Manager()
+LOG.CMSLogger('CALLED')
 
 def sendmail(messagetext):
     addr_from = 'notification.ktk@yandex.ru'    # Адресат

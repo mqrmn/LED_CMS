@@ -7,7 +7,6 @@ import wmi
 import pythoncom
 import os
 import shutil
-from inspect import currentframe, getframeinfo
 import re
 import datetime
 from datetime import date
@@ -16,48 +15,47 @@ sys.path.append("C:\\MOBILE\\Local\\CMS")
 from App.Config import Config
 from App import Resource, API, LogManager, Database
 
-logging = LogManager._Log_Manager_()
-logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
+LOG = LogManager.Log_Manager()
 
 class Process:
 
     def Start(self, data):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        LOG.CMSLogger( 'Called')
         if data == Resource.ProcList[0]:
             self.RunNova()
 
     def Terminate(self, data):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        LOG.CMSLogger('Called')
         if data == Resource.ProcList[1]:
             self.TerminateMars()
         if data == Resource.ProcList[0]:
             self.TerminateNova()
 
     def Restart(self, data):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        LOG.CMSLogger('Called')
         if data == Resource.ProcList[0]:
             self.RestartNova()
 
     def RestartNova(self):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        LOG.CMSLogger('Called')
         self.TerminateNova()
         self.RunNova()
 
     def RunNova(self):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        LOG.CMSLogger( 'Called')
         pythoncom.CoInitialize()
         handle = wmi.WMI()
         handle.Win32_Process.Create(CommandLine='C:\\Program Files (x86)\\NovaStudio\\Bin\\NovaStudio.exe', )
 
     def TerminateNova(self):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        LOG.CMSLogger( 'Called')
         pythoncom.CoInitialize()
         handle = wmi.WMI()
         for proc in handle.Win32_Process(Name=Resource.ProcList[0]):
             proc.Terminate(Reason=1)
 
     def TerminateMars(self):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        LOG.CMSLogger('Called')
         pythoncom.CoInitialize()
         handle = wmi.WMI()
         handle.Win32_Process.Create(
@@ -92,7 +90,7 @@ class Service:
 class System:
 
     def Reboot(self):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        LOG.CMSLogger('Called')
         handle = API.Win()
         time.sleep(180)
         handle.RestartPC()
@@ -116,7 +114,7 @@ class Files:
 
     # Архивирует логи
     def LogArch(self):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        LOG.CMSLogger( 'Called')
         listForArchiving = []
         # Перечисляю файлы, хранящиеся в дирректории
         for file in os.listdir(Config.logPath):
@@ -126,7 +124,7 @@ class Files:
                 logDate = datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0], "%Y-%m-%d")
                 if logDate.date() < date.today():
                     archName = str(logDate.date())
-                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Помечен для архивирования ' + file)
+                    LOG.CMSLogger( 'Помечен для архивирования ' + file)
                     listForArchiving.append(file)
         # Проверяю существует ли папка которую собираюсь создать
         if listForArchiving and not os.path.exists(Config.logPath + str(date.today())):
@@ -134,17 +132,17 @@ class Files:
             # Перемещаю журналы в папку
             for file in listForArchiving:
                 shutil.move(Config.logPath + file, Config.logPath + archName + '\\' + file)
-                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Перемещен в архив ' + file)
+                LOG.CMSLogger( 'Перемещен в архив ' + file)
             # Архивирую папку
             shutil.make_archive(base_name=Config.logPath + archName, format='zip', root_dir=Config.logPath + archName, )
             shutil.rmtree(Config.logPath + archName)
         else:
-            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Журналов для архивирования не обнаружено')
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
+            LOG.CMSLogger( 'Журналов для архивирования не обнаружено')
+        LOG.CMSLogger('Closed')
 
     # Удаляет устаревшие логи
     def LogDel(self):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        LOG.CMSLogger('Called')
         listForDeleting = []
 
         # Перечисляю файлы, хранящиеся в дирректории
@@ -158,12 +156,12 @@ class Files:
         # Удаляю устаревшие архивы
         for file in listForDeleting:
             os.remove(Config.logPath + file)
-            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Файл удален ' + file)
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
+            LOG.CMSLogger('Файл удален ' + file)
+        LOG.CMSLogger( 'Closed')
 
 class Init(Files):
     def InitCMS(self, Q_Internal):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        LOG.CMSLogger( 'Called')
         self.LogArch()
         self.LogDel()
         data = self.CheckSelf()
@@ -174,26 +172,26 @@ class Init(Files):
 
 
     def CheckDB(self):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        LOG.CMSLogger( 'Called')
         data = True
         if os.path.exists(Config.DBFolder):
             if os.path.exists(Config.DBPath):
-                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Database file exist')
+                LOG.CMSLogger( 'Database file exist')
             else:
                 handle = Database.DBFoo()
                 handle.CreateTables()
                 data = False
-                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Database file created')
+                LOG.CMSLogger( 'Database file created')
         else:
             os.mkdir(Config.DBFolder)
             handle = Database.DBFoo()
             handle.CreateTables()
             data = False
-            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Database file created')
+            LOG.CMSLogger( 'Database file created')
         return data
 
     def CheckSelf(self):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        LOG.CMSLogger( 'Called')
         data = self.CheckDB()
         return data
 
@@ -214,10 +212,10 @@ class Init(Files):
                     Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[10],
                                     Resource.root[3]: Resource.ShutdownFlagData[0]})
 
-                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Превышено количество '
+                    LOG.CMSLogger( 'Превышено количество '
                                                                                    'попыток перезапустить систему: {} '
                                                                                    'Последняя перезагрузка: {} '.format(count, lastReboot))
-                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Перезагрузка запрещена')
+                    LOG.CMSLogger( 'Перезагрузка запрещена')
 
                 else:
                     Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[9],
@@ -225,7 +223,7 @@ class Init(Files):
                     Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[10],
                                     Resource.root[3]: Resource.ShutdownFlagData[1]})
 
-                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Превышена'
+                    LOG.CMSLogger('Превышена'
                                                                                   'частота попыток перезапустить систему '
                                                                                   'Последняя перезагрузка: {} '.format(lastReboot))
             elif count >= 5:
@@ -234,24 +232,24 @@ class Init(Files):
                 Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[10],
                                 Resource.root[3]: Resource.ShutdownFlagData[1]})
 
-                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Превышена '
+                LOG.CMSLogger( 'Превышена '
                                                                                'частота попыток перезапустить систему '
                                                                                'Последняя перезагрузка: {}'.format(lastReboot))
-                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Перезагрузка запрещена')
+                LOG.CMSLogger( 'Перезагрузка запрещена')
             else:
                 Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[9],
                                 Resource.root[3]: Resource.ShutdownFlagData[2]})
                 Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[10],
                                 Resource.root[3]: Resource.ShutdownFlagData[2]})
 
-                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Перезагрузка разрешена')
+                LOG.CMSLogger( 'Перезагрузка разрешена')
         else:
             Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[9],
                             Resource.root[3]: Resource.ShutdownFlagData[2]})
             Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[10],
                             Resource.root[3]: Resource.ShutdownFlagData[2]})
 
-            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Перезагрузка разрешена')
+            LOG.CMSLogger('Перезагрузка разрешена')
 
 
 

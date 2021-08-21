@@ -9,7 +9,7 @@ import logging
 from datetime import date
 import time
 
-# Configire logging
+# Configire LOG
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 f_handler = logging.FileHandler('{}{}.log'.format(config.logPath, date.today()))

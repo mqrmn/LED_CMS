@@ -21,9 +21,8 @@ sys.path.append("C:\\MOBILE\\Local\\CMS")
 from App.Config import Config
 from App import API, Resource, LogManager, Action, Database
 
-
-logging = LogManager._Log_Manager_()
-logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
+LOG = LogManager.Log_Manager()
+LOG.CMSLogger('CALLED')
 
 
 class _System_:
@@ -140,25 +139,24 @@ class _System_:
 
                     pythoncom.CoInitialize()
 
-                    print('UAValid', 'FLAG', FLAG)
                     if FLAG > 0:
                         if FLAG > 1:
                             C_Action.Reboot()
                             Q_Internal.put(C_Prepare.SelfInitShutdown(getframeinfo(currentframe())[2], 'reboot', datetime.datetime.now()))
-                            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'reboot')
+                            LOG.CMSLogger('reboot')
                             break
                         else:
                             lastReboot = table.SelfInitShutdown().select().order_by(table.SelfInitShutdown.id.desc()).get()
                             if (datetime.datetime.now() - lastReboot.datetime).seconds <= 300:
                                 C_Action.Reboot()
                                 Q_Internal.put(C_Prepare.SelfInitShutdown(getframeinfo(currentframe())[2], 'reboot', datetime.datetime.now()))
-                                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'reboot')
+                                LOG.CMSLogger('reboot')
                                 break
                             else:
                                 Q_Internal.put(C_Prepare.SelfInitShutdown(getframeinfo(currentframe())[2], 'rebootAccessDenied', datetime.datetime.now()))
-                                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'rebootAccessDenied')
+                                LOG.CMSLogger('rebootAccessDenied')
                     else:
                         Q_Internal.put(C_Prepare.SelfInitShutdown(getframeinfo(currentframe())[2], 'rebootAccessDenied', datetime.datetime.now()))
-                        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'rebootAccessDenied')
+                        LOG.CMSLogger('rebootAccessDenied')
 
             time.sleep(3)

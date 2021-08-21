@@ -5,7 +5,6 @@ from multiprocessing import Process, Queue
 
 import threading
 import queue
-import os
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
@@ -13,8 +12,8 @@ from App import Validation
 from App.Config import Config
 from App import Resource, Comm, Handler, Controller, LogManager
 
-logging = LogManager._Log_Manager_()
-logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
+LOG = LogManager.Log_Manager()
+LOG.CMSLogger('CALLED')
 
 def main(Q_External):
 

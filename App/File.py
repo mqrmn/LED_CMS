@@ -2,12 +2,8 @@
 
 import sys
 import os
-import datetime
-from datetime import date
 import xml.etree.ElementTree as ET
 import time
-import re
-from inspect import currentframe, getframeinfo
 import shutil
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
@@ -15,8 +11,7 @@ sys.path.append("C:\\MOBILE\\Local\\CMS")
 from App.Config import Config
 from App import Resource, LogManager
 
-logging = LogManager._Log_Manager_()
-logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
+LOG = LogManager.Log_Manager()
 
 class Manager:
 
@@ -25,7 +20,7 @@ class Manager:
     # Обновление CMS
     def CMSUpgrade(self, key):
 
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+
         priorities = {'GLOBAL': 0, 'GROUP': 0, 'LOCAL': 0}
         versions = {'GLOBAL': 0, 'GROUP': 0, 'LOCAL': 0, 'CURRENT':0}
 
@@ -42,7 +37,7 @@ class Manager:
             priorities['LOCAL'], versions['LOCAL'] = self.CheckCMSUpdates(Config.localCmsRenew, 'LOCAL')
 
             maxPriority = sorted(priorities, key=priorities.__getitem__)[-1]
-            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Определен приоритет каталога обновлений: ' + maxPriority)
+            LOG.CMSLogger('Определен приоритет каталога обновлений: ' + maxPriority)
 
             if priorities[maxPriority] > 200:
                 currentVArr = versions['CURRENT'].split('.')
@@ -56,9 +51,9 @@ class Manager:
                 if currentVArr[0] == newtVArr[0]:
                     if currentVArr[1] == newtVArr[1]:
                         if currentVArr[2] == newtVArr[2]:
-                            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Не обнаружено обновлений')
+                            LOG.CMSLogger('Не обнаружено обновлений')
                         elif int(currentVArr[2]) < int(newtVArr[2]):
-                            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Обнаружено обновление ' + versions[maxPriority])
+                            LOG.CMSLogger('Обнаружено обновление ' + versions[maxPriority])
                             if key == True:
                                 self.CurrentCMSArch(currentV)
                                 self.RenewCMSFiles(Config.globalCmsRenew)
@@ -67,23 +62,23 @@ class Manager:
                             stopCheck = 1
                     elif int(currentVArr[1]) < int(newtVArr[1]) and stopCheck != 1:
                         if key == True:
-                            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Обнаружено обновление ' + versions[maxPriority])
+                            LOG.CMSLogger( 'Обнаружено обновление ' + versions[maxPriority])
                             self.CurrentCMSArch(currentV)
                             self.RenewCMSFiles(Config.groupCmsRenew)
                         else:
                             return True
                 elif  int(currentVArr[0]) < int(newtVArr[0]) and stopCheck != 1:
                     if key == True:
-                        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Обнаружено обновление ' + versions[maxPriority])
+                        LOG.CMSLogger('Обнаружено обновление ' + versions[maxPriority])
                         self.CurrentCMSArch(currentV)
                         self.RenewCMSFiles(Config.globalCmsRenew)
                     else:
                         return True
             else:
-                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Приоритет недостаточен. Отмена обновления.')
+                LOG.CMSLogger('Приоритет недостаточен. Отмена обновления.')
         else:
             pass
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
+
 
     # Проверяет ключи обновления CMS
     def CheckCMSUpdates(self, path, type):
@@ -113,22 +108,20 @@ class Manager:
     # Архивирует текущий пакет CMS
     def CurrentCMSArch(self, version):
 
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+
 
         if  not os.path.exists(Config.CMSArchPath + str(version)):
             shutil.copytree(os.getcwd(), Config.CMSArchPath + str(version))
-            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Текщий пакет заархивирован')
+            LOG.CMSLogger( 'Текщий пакет заархивирован')
 
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
+
 
     # Непосредственно обновляет файлы CMS
     def RenewCMSFiles(self, path):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         # shutil.rmtree(os.path.dirname(__file__))
         # shutil.copytree(path, os.path.dirname(__file__))
 
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Обновление выполнено')
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
+        LOG.CMSLogger('Обновление выполнено')
 
 
 
@@ -201,7 +194,6 @@ class Manager:
 
     # Ниже методы обновления контента. Под переработку.
     def ContentRenewHandle(self, Q_out, ):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
 
         appendStatus = self.AppendContent()
         Q_out.put(Resource.TerminateNova[0])
@@ -211,10 +203,8 @@ class Manager:
             self.Generate()
         Q_out.put(Resource.RunNova[1])
 
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
 
     def AppendContent(self):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
 
         refreshStatus = False
 
@@ -230,20 +220,19 @@ class Manager:
                         if file not in localListFilesUnex:
                             shutil.copy(Config.yaFilesUnex + formatPath + '\\' + file,
                                         Config.localFilesUnex + formatPath)
-                            logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Файл добавлен: ' + Config.yaFilesUnex + formatPath + '\\' + file)
+                            LOG.CMSLogger('Файл добавлен: ' + Config.yaFilesUnex + formatPath + '\\' + file)
                             refreshStatus = True
 
             if yaListFilesEx != localListFilesEx:
                 for file in yaListFilesEx:
                     if file not in localListFilesEx:
                         shutil.copy(Config.yaFilesEx + formatPath + '\\' + file, Config.localFilesEx + formatPath)
-                        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Файл добавлен: ' + Config.yaFilesEx + formatPath + '\\' + file)
+                        LOG.CMSLogger('Файл добавлен: ' + Config.yaFilesEx + formatPath + '\\' + file)
                         refreshStatus = True
 
         return refreshStatus
 
     def RemoveContent(self):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
 
         refreshStatus = False
 
@@ -257,28 +246,24 @@ class Manager:
             for file in yaListFilesExcept:
                 if file in localListFilesUnex:
                     os.remove(Config.localFilesUnex + formatPath + '\\' + file)
-                    logging.CMSLogger(logHandler, getframeinfo(currentframe())[2],
-                                      'Файл удален по исключению: ' + Config.localFilesUnex + formatPath + '\\' + file)
+                    LOG.CMSLogger('Файл удален по исключению: ' + Config.localFilesUnex + formatPath + '\\' + file)
                     refreshStatus = True
 
             if yaListFilesUnex != localListFilesUnex:
                 for file in localListFilesUnex:
                     if file not in yaListFilesUnex:
                         os.remove(Config.localFilesUnex + formatPath + '\\' + file)
-                        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2],
-                                          'Файл удален: ' + Config.localFilesUnex + formatPath + '\\' + file)
+                        LOG.CMSLogger('Файл удален: ' + Config.localFilesUnex + formatPath + '\\' + file)
                         refreshStatus = True
             if yaListFilesEx != localListFilesEx:
                 for file in localListFilesEx:
                     if file not in yaListFilesEx:
                         os.remove(Config.localFilesEx + formatPath + '\\' + file)
-                        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2],
-                                          'Файл удален: ' + Config.localFilesEx + formatPath + '\\' + file)
+                        LOG.CMSLogger('Файл удален: ' + Config.localFilesEx + formatPath + '\\' + file)
                         refreshStatus = True
         return refreshStatus
 
     def Generate(self):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
 
         for formatPath in Config.screenFormat:
 
@@ -290,12 +275,12 @@ class Manager:
 
             for file in localListFilesUnex:
                 allFilePathList.append(Config.localFilesUnex + formatPath + '\\' + file)
-                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Файл включен в плейлист: ' + Config.localFilesUnex + formatPath + '\\' + file)
+                LOG.CMSLogger('Файл включен в плейлист: ' + Config.localFilesUnex + formatPath + '\\' + file)
                 allFileNameList.append(file)
 
             for file in localListFilesEx:
                 allFilePathList.append(Config.localFilesEx + formatPath + '\\' + file)
-                logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Файл включен в плейлист: ' + Config.localFilesEx + formatPath + '\\' + file)
+                LOG.CMSLogger('Файл включен в плейлист: ' + Config.localFilesEx + formatPath + '\\' + file)
                 allFileNameList.append(file)
 
             PlayProgram = self.CreateXML(allFilePathList, allFileNameList)
@@ -303,11 +288,10 @@ class Manager:
             tree = ET.ElementTree(PlayProgram)
             tree.write('{}{}_playerConfig.plym'.format(Config.configTargetPath, formatPath), encoding='UTF-8',
                        xml_declaration=True)
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Плейлист сформирован: ' + '{}{}_playerConfig.plym'.format(Config.configTargetPath, formatPath))
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
+        LOG.CMSLogger('Плейлист сформирован: ' + '{}{}_playerConfig.plym'.format(Config.configTargetPath, formatPath))
+
 
     def CreateXML(self, file_path_arr, file_name_arr):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
 
         x = 0
         PlayProgram = ET.Element('PlayProgram', X="0", Y="0", Width="320", Height="120")
@@ -387,11 +371,10 @@ class Manager:
             x += 1
         GlobalPage = ET.SubElement(Context, 'GlobalPage')
         Page = ET.SubElement(GlobalPage, 'Page')
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
+
         return PlayProgram
 
     def Prettify(self, element, ident='   '):
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
         queue = [(0, element)]
         while queue:
             level, element = queue.pop(0)
@@ -403,4 +386,3 @@ class Manager:
             else:
                 element.tail = '\n' + ident * (level - 1)
             queue[0:0] = children
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Closed')
