@@ -6,10 +6,8 @@ import win32service
 import win32event
 import servicemanager
 import time
-import os
 import threading
 import queue
-from inspect import currentframe, getframeinfo
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 

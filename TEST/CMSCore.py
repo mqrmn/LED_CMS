@@ -16,8 +16,9 @@ sys.path.append("C:\\MOBILE\\Local\\CMS")
 from App.Config import Config
 from App import LogManager, Comm, Resource, Handler, Validation, File, Action, Database
 
-logging = LogManager.Log_Manager()
-logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
+LOG = LogManager.Log_Manager()
+
+LOG.CMSLogger('CALLED')
 
 
 module = 'TEST'
@@ -27,7 +28,7 @@ def TEST():
         C_Action = Action.Init()
         C_Action.InitCMS(Q_Internal)
 
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Called')
+        LOG.CMSLogger('Called')
 
         # Создаю экземпляры классов
         C_Handlers = Handler.Queue()
@@ -35,7 +36,7 @@ def TEST():
         C_File = File.Manager()
         C_Valid = Validation._System_()
         C_DB = Database.DBFoo()
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Экземпляры классов созданы')
+        LOG.CMSLogger('Экземпляры классов созданы')
 
         # Очереди
         Q_FromUA = queue.Queue()
@@ -50,7 +51,7 @@ def TEST():
         Q_DBWrite = queue.Queue()
         Q_UAValidSF = queue.Queue()
 
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Очереди созданы')
+        LOG.CMSLogger('Очереди созданы')
 
         # Потоки
         # Потоки обмена
@@ -80,7 +81,7 @@ def TEST():
         T_CheckNewContent = threading.Thread(target=C_File.DynamicRenewCont, args=(Q_PrepareToSend, ))
         TQ_UAValid = threading.Thread(target=C_Valid.UAValid, args=(Q_UAValid, Q_Internal, Q_UAValidSF))
 
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Потоки инициализированы')
+        LOG.CMSLogger( 'Потоки инициализированы')
 
         # Запуск потоков
         T_Server.start()
@@ -97,7 +98,7 @@ def TEST():
         TQ_UAValid.start()
         T_DBWriteController.start()
         TQ_SetFlag.start()
-        logging.CMSLogger(logHandler, getframeinfo(currentframe())[2], 'Потоки запущены')
+        LOG.CMSLogger('Потоки запущены')
 
         # Цикл
         # --------------------------------------------------------------------

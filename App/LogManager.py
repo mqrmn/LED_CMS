@@ -17,6 +17,8 @@ class Log_Manager:
         logger = logging.getLogger(module)
         logging.basicConfig(level=logging.INFO)
         handler = logging.FileHandler('{}{}_{}.log'.format(Config.logPath, date.today(), module), encoding="UTF-8")
+        if (logger.hasHandlers()):
+            logger.handlers.clear()
         logger.addHandler(handler)
 
         return(logger)
