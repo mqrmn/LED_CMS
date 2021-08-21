@@ -134,7 +134,7 @@ class _System_:
                     count += 1
             else:
 
-                if ((datetime.datetime.now() - data).seconds) >= 20:
+                if ((datetime.datetime.now() - data).seconds) >= 300:
 
 
                     pythoncom.CoInitialize()
