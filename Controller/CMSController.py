@@ -11,8 +11,7 @@ import threading
 import queue
 import socket
 import pythoncom
-import os
-from inspect import currentframe, getframeinfo
+
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
@@ -96,11 +95,15 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         FLAG = C_ActionInit.CheckLastShutdown(Q_Manage)
 
+        LOG = LogManager.Log_Manager()
+        LOG.CMSLogger('CALLED')
+
         while True:
             if Q_Manage.empty() == False:
                 FLAG = Q_Manage.get()[Resource.root[3]]
+
                 LOG.CMSLogger('Флаг управления перезагрузкой: {}'.format(FLAG))
-                print('FLAG', FLAG)
+
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as Socket:
                 try:
                     Socket.connect((Config.localhost, Config.CMSCoreInternalPort))
@@ -131,7 +134,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
                                     LOG.CMSLogger('reboot')
                                     break
                                 else:
-                                    LOG.CMSLogger( 'rebootAccessDenied')
+                                    LOG.CMSLogger('rebootAccessDenied')
                         else:
                             LOG.CMSLogger('rebootAccessDenied')
 
