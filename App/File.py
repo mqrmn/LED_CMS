@@ -16,7 +16,6 @@ from App import Resource, Log, API, Act, Database
 
 LOG = Log.Log_Manager()
 
-
 class CMSUpdate:
 
     def CMSUpdater(self, Q_out):
@@ -141,8 +140,6 @@ class CMSUpdate:
         # shutil.copytree(path, os.path.dirname(__file__))
 
         LOG.CMSLogger('Update completed')
-
-
 
 class RenewContent:
     def CheckNewContent(self):
@@ -407,17 +404,24 @@ class RenewContent:
 
 class NovaBin:
 
-    def RestoreNovaBin(self):
+    def BackupHandle(self):
+        if self.CheckNovaFile() == False:
+            self.BackupNovaBin()
+
+    def RestoreHandle(self):
         C_Nova = API.Nova()
         if self.CheckNovaFile() == True:
             if C_Nova.GetProcState(Resource.ProcList[0]) == True:
                 C_Nova.TerminateNova()
-                self.CopyNovaBin()
+                self.RestorekNovaBin()
 
     def CheckNovaFile(self):
-        file = open(Resource.novaBinFile, 'rb')
+        file = open(Config.novaBinFile, 'rb')
         string = file.read()
         return re.search('zh-CN', str(string))
 
-    def CopyNovaBin(self):
-        shutil.copy(Resource.novaBinFileBak,  Resource.novaBinFile)
+    def RestorekNovaBin(self):
+        shutil.copy(Config.novaBinFileBak,  Config.novaBinFile)
+
+    def BackupNovaBin(self):
+        shutil.copy(Config.novaBinFile, Config.novaBinFileBak)

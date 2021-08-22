@@ -10,7 +10,7 @@ H = ['State', 'Action', 'Report', 'DB', 'Flag']
 # Key
 K = ['ScreenState', 'ProcState', 'RunProc', 'TerminateProc', 'RestartProc',
        'Process', 'TerminateThread', 'UALastAction', 'DBWrite', 'UAValid',
-       'CMSController', ]
+       'CMSController', 'RestoreNovaBin', ]
 
 # DB
 DBWriteData = ['table', ]
@@ -25,7 +25,7 @@ ScreenKey = ['ScreenIsStatic', ]
 ScreenState = ['Static', ]
 
 # ACTION
-ActionKey = ['RunNova', 'RestartNova', 'TerminateNova', 'RestartSystem', ]
+ActionKey = ['RunNova', 'RestartNova', 'TerminateNova', 'RestartSystem', 'RestoreNovaBin', ]
 
 ### DEPENDENCY
 
@@ -48,3 +48,5 @@ TerminateNova = [{r[1]: H[1], r[2]: K[3], r[3]: ProcList[0], }, ]
 TerminateNovaSD = [{r[1]: H[1], r[2]: K[3], r[3]: ProcList[2], }, ]
 
 TerminateThread = [{r[0]:M[0], r[1]: H[1], r[2]: K[6], r[3]: 'UA_All', }, ]
+
+RestoreNovaBin = [{r[1]: H[1], r[2]: K[11], r[3]: True}]

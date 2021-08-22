@@ -15,37 +15,43 @@ regiondict = ConfigEx.regiondict
 
 upgradePolitic = 1
 
-# Настройка корневых директорий
+# Setting up root directories
 workPath = 'C:\\MOBILE\\YandexDisk\\MACHINES\\{}\\{}\\'.format(objType, objCode)
 logPath = '{}Log\\'.format(workPath)
 
-# Настройка локальных директорий
+# Setting up local directories
 configTargetPath = 'C:\\MOBILE\\Local\\Config\\'
 CMSArchPath = 'C:\\MOBILE\\Local\\Arch\\'
 
-# Настройка директорий обновления контента
+# Configuring content update directories
 yaFilesUnex = 'C:\\MOBILE\\YandexDisk\\MACHINES\\{}\\Content\\'.format(objType)
 yaFilesEx = 'C:\\MOBILE\\YandexDisk\\MACHINES\\{}\\{}\\Content\\'.format(objType, objCode)
 yaFilesExcept = 'C:\\MOBILE\\YandexDisk\\MACHINES\\{}\\{}\\Content.Except\\'.format(objType, objCode)
 localFilesUnex = 'C:\\MOBILE\\Local\\Content\\Unex\\'
 localFilesEx = 'C:\\MOBILE\\Local\\Content\\Ex\\'
 
-# Настройка директорий обновлений CMS
+# Setting up CMS update directories
 globalCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\CMS_DEV\\'
 groupCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\{}\\CMS_DEV\\'.format(objType)
 localCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\{}\\{}\\CMS\\'.format(objType, objCode)
 
+# Database placement
 DBFolder = 'C:\\MOBILE\\Local\\CMS\\Database\\'
 DBFile = 'CMS.db'
 DBPath = DBFolder + DBFile
 
+# Placing NovaBin
+novaBinFolder = 'C:\\Users\\rUser_local\\AppData\\Roaming\\NovaStudio2012\\'
+novaBinFileBak = novaBinFolder + 'sysInfo.bin.bak'
+novaBinFile = novaBinFolder + 'sysInfo.bin'
 
+# Setting timeouts
 timeoutSCheck = [10, 30]
 timeoutPCheck = 30
-# Настройка сокетов для внутренних коммуникаций
+
+# Setting up sockets for internal communications
 localhost = 'localhost'
 CMSCoreInternalPort = 2203
 CMSUserAgentPort = 2303
 CMSControllertPort = 2403
-
 

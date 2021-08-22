@@ -6,7 +6,7 @@ import datetime
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
-from App import Act
+from App import Act, File
 from App import Resource as R
 
 
@@ -89,6 +89,8 @@ class Queue:
 
     # Prepares commands to be sent to the UA
     def CreateAction(self, Q_in, Q_out, Q_SetFlag):
+        restartNovaCount = 0
+        lastNovaRestart = None
         DictNova = {}
         DictMars = {}
         command = None
@@ -97,12 +99,16 @@ class Queue:
             if (data[R.r[2]] == R.K[0]) or (data[R.r[2]] == R.K[1] and data[R.r[3]][0] == R.ProcList[0]):
                 DictNova[data[R.r[2]]] = data[R.r[3]]
 
+                # Run Nova
                 if DictNova == R.RunNova[0]:
                     command = R.RunNova[1]
                     DictNova = {}
+                # Restart Nova
                 if DictNova == R.RestartNova[0]:
                     command = R.RestartNova[1]
                     DictNova = {}
+                    restartNovaCount += 1
+                    lastNovaRestart = datetime.datetime.now()
                 if command:
                     Q_out.put(command)
                     command = None
@@ -110,6 +116,7 @@ class Queue:
 
             if data[R.r[2]] == R.K[1] and data[R.r[3]][0] == R.ProcList[1]:
                 DictMars[data[R.r[2]]] = data[R.r[3]]
+                # TerminateMars
                 if DictMars == R.TerminateMars[0]:
                     command = R.TerminateMars[1]
                     DictMars = {}
@@ -117,32 +124,37 @@ class Queue:
                     Q_out.put(command)
                     command = None
                     DictMars = {}
+            if restartNovaCount >= 3 and ((datetime.datetime.now() - lastNovaRestart).seconds <= 300):
+                pass
 
     # Processor of data coming to UA
     def FromCore(self, Q_in, Q_out, ):
         while True:
             data = Q_in.get()
-            if data[R.r[0]] == R.M[0]:
-                if data[R.r[1]] == R.H[1]:
+            if data[R.r[0]] == R.M[0]:      # Method == put
+                if data[R.r[1]] == R.H[1]:  # Head == Action
                     Q_out.put(data)
-                if data[R.r[1]] == R.H[4]:
+                if data[R.r[1]] == R.H[4]:  # Head == Flag
                     Q_out.put(data[R.r[3]])
 
     # Checks the keys in the data coming to the UA, in accordance with them, launches actions
     def UAAction(self, Q_in, Q_out,):
-        Exec = Act.Process()
+        C_Exec = Act.Process()
+        C_File = File.NovaBin()
         while True:
             data = Q_in.get()
-            if data[R.r[2]] == R.K[2]:
-                Exec.Start(data[R.r[3]])
-            if data[R.r[2]] == R.K[3]:
-                Exec.Terminate(data[R.r[3]])
-            if data[R.r[2]] == R.K[4]:
-                Exec.Restart(data[R.r[3]])
-            if data[R.r[2]] == R.K[5]:
+            if data[R.r[2]] == R.K[2]:      # Key == RunProc
+                C_Exec.Start(data[R.r[3]])
+            if data[R.r[2]] == R.K[3]:      # Key == TerminateProc
+                C_Exec.Terminate(data[R.r[3]])
+            if data[R.r[2]] == R.K[4]:      # Key == RestartProc
+                C_Exec.Restart(data[R.r[3]])
+            if data[R.r[2]] == R.K[5]:      # Key == Process
                 pass
-            if data[R.r[2]] == R.K[6]:
+            if data[R.r[2]] == R.K[6]:      # Key == TerminateThread
                 Q_out.put(data)
+            if data[R.r[2]] == R.K[11]:     # Key == RestoreNovaBin
+                C_File.RestoreHandle()
 
     # Checks the flow of incoming data for a given match
     def Valid(self, Q_in, Q_out, checkValue, maxCount, head, sendAllCircles, ):

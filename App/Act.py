@@ -10,7 +10,7 @@ from datetime import date
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 from App.Config import Config
-from App import API, Log, Database
+from App import API, Log, Database, File
 from App import Resource as R
 
 LOG = Log.Log_Manager()
@@ -20,10 +20,11 @@ class Init:
         global C_Nova
         global C_Win
         global C_Sys
+        global C_File
         C_Nova = API.Nova()
         C_Win = API.Process()
         C_Sys = API.System()
-
+        C_File = File.NovaBin()
 
 class Process(Init):
 
@@ -43,7 +44,11 @@ class Process(Init):
 
 class System(Init):
 
+    def PreShutdown(self):
+        C_File.BackupHandle()
+
     def RebootInit(self):
+        self.PreShutdown()
         time.sleep(180)
         C_Sys.RestartPC()
 
