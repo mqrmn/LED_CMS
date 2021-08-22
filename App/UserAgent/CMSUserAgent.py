@@ -28,11 +28,11 @@ def main(Q_External):
     Q_Control = queue.Queue()
 
     # Экземпляры классов
-    C_Valid = Validation._System_()
+    C_Valid = Validation.System()
     C_Handlers = Handler.Queue()
     C_Network = Comm.Socket()
     C_Handler = Handler.Queue()
-    C_Validation = Validation._System_()
+    C_Validation = Validation.System()
     C_Control = Controller.CMS()
 
     # Потоки

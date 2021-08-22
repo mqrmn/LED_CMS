@@ -71,7 +71,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         C_Handlers = Handler.Queue()
         C_Network = Comm.Socket()
         C_File = File.Manager()
-        C_Valid = Validation._System_()
+        C_Valid = Validation.System()
         C_DB = Database.DBFoo()
         LOG.CMSLogger('Экземпляры классов созданы')
 

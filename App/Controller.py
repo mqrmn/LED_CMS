@@ -20,7 +20,7 @@ class CMS:
                 Q_data = Q_in.get()
                 if Q_data == Resource.TerminateThread[0]:
                     break
-            C_Valid = Validation._System_()
+            C_Valid = Validation.System()
             Th_States = C_Valid.Threads(data)
             if False in Th_States:
                 pass

@@ -11,12 +11,23 @@ from App import Resource, LogManager
 LOG = LogManager.Log_Manager()
 
 class Win:
-    def GetProcessState(self, Q_out):
+
+    def CoinInit(self):
         pythoncom.CoInitialize()
+
+    def GetWMI(self):
+        self.CoinInit()
         handle = wmi.WMI()
+        return handle
+
+    def GetProcState(self, i):
+        proc = self.GetWMI().Win32_Process(Name=i)
+        return proc
+
+
+    def GetProcessState(self, Q_out):
         for i in Resource.ProcDict:
-            proc = handle.Win32_Process(Name=i)
-            if proc:
+            if self.GetProcState(i):
                 procState = True
             else:
                 procState = False
@@ -47,3 +58,5 @@ class Win:
         LOG.CMSLogger('Called')
         handle = wmi.WMI(privileges=["Shutdown"])
         handle.Win32_OperatingSystem()[0].Reboot()
+
+

@@ -22,10 +22,10 @@ from App.Config import Config
 from App import API, Resource, LogManager, Action, Database
 
 LOG = LogManager.Log_Manager()
-LOG.CMSLogger('CALLED')
 
 
-class _System_:
+
+class System:
 
 
 
@@ -101,10 +101,10 @@ class _System_:
         else:
             pass
 
-    def GetProcessState(self, Q_ProcState_):
-        _WinApi_ = API.Win()
+    def GetProcessState(self, Q_ProcState):
+        C_WinApi = API.Win()
         while True:
-            T_GetProcessState = threading.Thread(target=_WinApi_.GetProcessState, args=(Q_ProcState_,))
+            T_GetProcessState = threading.Thread(target=C_WinApi.GetProcessState, args=(Q_ProcState,))
             T_GetProcessState.start()
             T_GetProcessState.join()
             time.sleep(Config.timeoutPCheck)
