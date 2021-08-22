@@ -16,6 +16,7 @@ from App import Resource, Log, API, Act, Database
 
 LOG = Log.Log_Manager()
 
+
 class CMSUpdate:
 
     def CMSUpdater(self, Q_out):
@@ -24,12 +25,12 @@ class CMSUpdate:
         pythoncom.CoInitialize()
         while True:
             if self.CMSUpgrade(False) == True:
-                LOG.CMSLogger('Обнаружено обновление')
+                LOG.CMSLogger('Update detected')
                 time.sleep(180)
                 stSvc = C_API.StopService('CMS')
                 if stSvc[0] == 0:
                     Q_out.put(True)
-                    LOG.CMSLogger( 'CMS остановлена')
+                    LOG.CMSLogger( 'CMS stopped')
                     time.sleep(30)
                     self.CMSUpgrade(True)
                     table = Database.Tables()
@@ -39,7 +40,7 @@ class CMSUpdate:
 
                     C_Action.RebootInit()
                 else:
-                    LOG.CMSLogger('Не удается остановить CMS, код: {}'.format(stSvc), )
+                    LOG.CMSLogger('Cant stop CMS, code: {}'.format(stSvc), )
             else:
                 time.sleep(1800)
 
@@ -49,7 +50,7 @@ class CMSUpdate:
         versions = {'GLOBAL': 0, 'GROUP': 0, 'LOCAL': 0, 'CURRENT': 0}
 
         if Config.upgradePolitic == 1:
-            # Чтение текщей версии
+            # Reading the current version
             if os.path.exists(os.path.dirname(__file__) + '\\PACKAGE.ver'):
                 file = open(os.path.dirname(__file__) + '\\PACKAGE.ver', 'r')
                 currentV = file.read()
@@ -61,20 +62,20 @@ class CMSUpdate:
             priorities['LOCAL'], versions['LOCAL'] = self.CheckCMSUpdates(Config.localCmsRenew, 'LOCAL')
 
             maxPriority = sorted(priorities, key=priorities.__getitem__)[-1]
-            LOG.CMSLogger('Определен приоритет каталога обновлений: ' + maxPriority)
+            LOG.CMSLogger('The priority of the update catalog has been determined: ' + maxPriority)
 
             if priorities[maxPriority] > 200:
                 currentVArr = versions['CURRENT'].split('.')
                 newtVArr = versions[maxPriority].split('.')
 
-                # Сравнение версий
+                # Version comparison
                 stopCheck = 0
                 if currentVArr[0] == newtVArr[0]:
                     if currentVArr[1] == newtVArr[1]:
                         if currentVArr[2] == newtVArr[2]:
-                            LOG.CMSLogger('Не обнаружено обновлений')
+                            LOG.CMSLogger('No updates found')
                         elif int(currentVArr[2]) < int(newtVArr[2]):
-                            LOG.CMSLogger('Обнаружено обновление ' + versions[maxPriority])
+                            LOG.CMSLogger('Update detected ' + versions[maxPriority])
                             if key == True:
                                 self.CurrentCMSArch(currentV)
                                 self.RenewCMSFiles(Config.globalCmsRenew)
@@ -83,23 +84,23 @@ class CMSUpdate:
                             stopCheck = 1
                     elif int(currentVArr[1]) < int(newtVArr[1]) and stopCheck != 1:
                         if key == True:
-                            LOG.CMSLogger('Обнаружено обновление ' + versions[maxPriority])
+                            LOG.CMSLogger('ОUpdate detected ' + versions[maxPriority])
                             self.CurrentCMSArch(currentV)
                             self.RenewCMSFiles(Config.groupCmsRenew)
                         else:
                             return True
                 elif int(currentVArr[0]) < int(newtVArr[0]) and stopCheck != 1:
                     if key == True:
-                        LOG.CMSLogger('Обнаружено обновление ' + versions[maxPriority])
+                        LOG.CMSLogger('Update detected ' + versions[maxPriority])
                         self.CurrentCMSArch(currentV)
                         self.RenewCMSFiles(Config.globalCmsRenew)
                     else:
                         return True
             else:
-                LOG.CMSLogger('Приоритет недостаточен. Отмена обновления.')
+                LOG.CMSLogger('The priority is insufficient. Cancel update.')
         else:
             pass
-        # Проверяет ключи обновления CMS
+        # Checks CMS update keys
 
     def CheckCMSUpdates(self, path, type):
 
@@ -125,21 +126,21 @@ class CMSUpdate:
             score, version = 0, '0.0.0'
         return score, version
 
-        # Архивирует текущий пакет CMS
+        # Archives the current CMS package
 
     def CurrentCMSArch(self, version):
 
         if not os.path.exists(Config.CMSArchPath + str(version)):
             shutil.copytree(os.getcwd(), Config.CMSArchPath + str(version))
-            LOG.CMSLogger('Текщий пакет заархивирован')
+            LOG.CMSLogger('The current package is archived')
 
-        # Непосредственно обновляет файлы CMS
+        # Updates CMS files directly
 
     def RenewCMSFiles(self, path):
         # shutil.rmtree(os.path.dirname(__file__))
         # shutil.copytree(path, os.path.dirname(__file__))
 
-        LOG.CMSLogger('Обновление выполнено')
+        LOG.CMSLogger('Update completed')
 
 
 
@@ -211,7 +212,7 @@ class RenewContent:
                 countPass = 0
             time.sleep(10)
 
-    # Ниже методы обновления контента. Под переработку.
+
     def ContentRenewHandle(self, Q_out, ):
 
         appendStatus = self.AppendContent()
@@ -238,14 +239,14 @@ class RenewContent:
                         if file not in localListFilesUnex:
                             shutil.copy(Config.yaFilesUnex + formatPath + '\\' + file,
                                         Config.localFilesUnex + formatPath)
-                            LOG.CMSLogger('Файл добавлен: ' + Config.yaFilesUnex + formatPath + '\\' + file)
+                            LOG.CMSLogger('File added: ' + Config.yaFilesUnex + formatPath + '\\' + file)
                             refreshStatus = True
 
             if yaListFilesEx != localListFilesEx:
                 for file in yaListFilesEx:
                     if file not in localListFilesEx:
                         shutil.copy(Config.yaFilesEx + formatPath + '\\' + file, Config.localFilesEx + formatPath)
-                        LOG.CMSLogger('Файл добавлен: ' + Config.yaFilesEx + formatPath + '\\' + file)
+                        LOG.CMSLogger('File added: ' + Config.yaFilesEx + formatPath + '\\' + file)
                         refreshStatus = True
 
         return refreshStatus
@@ -264,20 +265,20 @@ class RenewContent:
             for file in yaListFilesExcept:
                 if file in localListFilesUnex:
                     os.remove(Config.localFilesUnex + formatPath + '\\' + file)
-                    LOG.CMSLogger('Файл удален по исключению: ' + Config.localFilesUnex + formatPath + '\\' + file)
+                    LOG.CMSLogger('File deleted by exception: ' + Config.localFilesUnex + formatPath + '\\' + file)
                     refreshStatus = True
 
             if yaListFilesUnex != localListFilesUnex:
                 for file in localListFilesUnex:
                     if file not in yaListFilesUnex:
                         os.remove(Config.localFilesUnex + formatPath + '\\' + file)
-                        LOG.CMSLogger('Файл удален: ' + Config.localFilesUnex + formatPath + '\\' + file)
+                        LOG.CMSLogger('File deleted: ' + Config.localFilesUnex + formatPath + '\\' + file)
                         refreshStatus = True
             if yaListFilesEx != localListFilesEx:
                 for file in localListFilesEx:
                     if file not in yaListFilesEx:
                         os.remove(Config.localFilesEx + formatPath + '\\' + file)
-                        LOG.CMSLogger('Файл удален: ' + Config.localFilesEx + formatPath + '\\' + file)
+                        LOG.CMSLogger('File deleted: ' + Config.localFilesEx + formatPath + '\\' + file)
                         refreshStatus = True
         return refreshStatus
 
@@ -293,12 +294,12 @@ class RenewContent:
 
             for file in localListFilesUnex:
                 allFilePathList.append(Config.localFilesUnex + formatPath + '\\' + file)
-                LOG.CMSLogger('Файл включен в плейлист: ' + Config.localFilesUnex + formatPath + '\\' + file)
+                LOG.CMSLogger('The file is included in the playlist: ' + Config.localFilesUnex + formatPath + '\\' + file)
                 allFileNameList.append(file)
 
             for file in localListFilesEx:
                 allFilePathList.append(Config.localFilesEx + formatPath + '\\' + file)
-                LOG.CMSLogger('Файл включен в плейлист: ' + Config.localFilesEx + formatPath + '\\' + file)
+                LOG.CMSLogger('ФThe file is included in the playlist: ' + Config.localFilesEx + formatPath + '\\' + file)
                 allFileNameList.append(file)
 
             PlayProgram = self.CreateXML(allFilePathList, allFileNameList)
@@ -306,7 +307,7 @@ class RenewContent:
             tree = ET.ElementTree(PlayProgram)
             tree.write('{}{}_playerConfig.plym'.format(Config.configTargetPath, formatPath), encoding='UTF-8',
                        xml_declaration=True)
-        LOG.CMSLogger('Плейлист сформирован: ' + '{}{}_playerConfig.plym'.format(Config.configTargetPath, formatPath))
+        LOG.CMSLogger('Playlist generated: ' + '{}{}_playerConfig.plym'.format(Config.configTargetPath, formatPath))
 
     def CreateXML(self, file_path_arr, file_name_arr):
 

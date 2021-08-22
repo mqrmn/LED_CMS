@@ -1,21 +1,13 @@
 # 1.1.1
 import sys
-import os
-from inspect import currentframe, getframeinfo
-
 from peewee import *
-from App.Config import Config
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
-from App import Resource, Log
-
-logging = Log.Log_Manager()
-logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
+from App import Resource as R
 
 dbhandle = SqliteDatabase(Config.DBPath)
-
 
 
 class BaseModel(Model):
@@ -51,11 +43,10 @@ class DBFoo(Tables):
         while True:
             data = Q_in.get()
             if data['table'] == 'SystemInit':
-                print('WriteController', 'SystemInit', data)
+                pass
             if data['table'] == 'SelfInitShutdown':
                 data = data['data']
                 self.SelfInitShutdown.create(trigger=data['trigger'], key=data['key'], datetime=data['datetime'], )
-                print('SelfInitShutdown', data)
 
     def ReadController(self):
         pass
@@ -64,16 +55,16 @@ class DBFoo(Tables):
 class Prepare:
 
     def SelfInitShutdown(self, trigger, key, datetimeData):
-        return {Resource.r[1]: Resource.H[3],
-                Resource.r[2]: Resource.K[8],
-                Resource.r[3]: {Resource.DBWriteData[0]: 'SelfInitShutdown',
-                                Resource.r[3]: {'trigger': trigger,
+        return {R.r[1]: R.H[3],
+                R.r[2]: R.K[8],
+                R.r[3]: {R.DBWriteData[0]: 'SelfInitShutdown',
+                                R.r[3]: {'trigger': trigger,
                                                       'key': key,
                                                       'datetime': datetimeData}, }, }
 
     def SystemInit(self, datetimeData):
-        return {Resource.r[1]: Resource.H[3],
-                Resource.r[2]: Resource.K[8],
-                Resource.r[3]: {Resource.DBWriteData[0]: 'SystemInit',
-                                Resource.r[3]: {'datetime': datetimeData,
+        return {R.r[1]: R.H[3],
+                R.r[2]: R.K[8],
+                R.r[3]: {R.DBWriteData[0]: 'SystemInit',
+                                R.r[3]: {'datetime': datetimeData,
                                                 }, }, }

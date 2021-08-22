@@ -10,16 +10,14 @@ import datetime
 import threading
 import queue
 import socket
-import pythoncom
-
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
-from App import Log, API, File, Comm, Resource, Act, Control, Handler, Database
+from App import Log, API, File, Comm, Act, Control, Handler, Database
+from App import Resource as R
 
-LOG = Log.Log_Manager()
-LOG.CMSLogger('CALLED')
+
 
 class AppServerSvc(win32serviceutil.ServiceFramework):
     _svc_name_ = "CMSController"
@@ -64,34 +62,39 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
     def main(self):
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
-        # Создание экзепляров классов
+        LOG = Log.Log_Manager()
+
+        LOG.CMSLogger('Controller initialized')
+
+        # Creating class instances
         C_API = API.Service()
-        C_RenewCont = File.RenewContent()
         C_CMSUpgrade = File.CMSUpdate()
         C_ActionSys = Act.System()
         C_ActionInit = Act.SysInit()
-        C_Control = Control.CMS()
         C_Network = Comm.Socket()
-        C_Handler = Handler.Queue()
 
-        # Создание очередей
+        LOG.CMSLogger('Instances of classes created')
+
+        # Queue creation
         Q_Internal = queue.Queue()
         Q_FromCore = queue.Queue()
         Q_Manage = queue.Queue()
 
-        # Инициализация потоков
+        LOG.CMSLogger('Queues created')
+
+        # Thread initialization
         T_Updater = threading.Thread(target=C_CMSUpgrade.CMSUpdater, args=(Q_Internal,))
         T_Server = threading.Thread(target=C_Network.Server,
                                     args=(Config.localhost, Config.CMSControllertPort, Q_FromCore))
-        # TQ_FromCore = threading.Thread(target=C_Handler.FromCore, args=(Q_FromCore, Q_Manage))
 
-        # Запуск потоков
+        LOG.CMSLogger('Threads are initialized')
+
+        # Launching streams
         T_Updater.start()
         T_Server.start()
-        # TQ_FromCore.start()
 
-        # Цикл
-        # --------------------------------------------------------------------
+        LOG.CMSLogger('Threads started')
+
         checkTime = datetime.datetime.now()
         table = Database.Tables()
 
@@ -102,9 +105,9 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         while True:
             if Q_Manage.empty() == False:
-                FLAG = Q_Manage.get()[Resource.r[3]]
+                FLAG = Q_Manage.get()[R.r[3]]
 
-                LOG.CMSLogger('Флаг управления перезагрузкой: {}'.format(FLAG))
+                LOG.CMSLogger('Reboot control flag: {}'.format(FLAG))
 
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as Socket:
                 try:
@@ -124,7 +127,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
                             if FLAG > 1:
                                 C_ActionSys.RebootInit()
 
-                                LOG.CMSLogger('reboot')
+                                LOG.CMSLogger('Reboot scheduled')
                                 break
                             else:
 
@@ -133,37 +136,26 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
                                 if (datetime.datetime.now() - lastReboot.datetime).seconds <= 300:
                                     C_ActionSys.RebootInit()
 
-                                    LOG.CMSLogger('reboot')
+                                    LOG.CMSLogger('Reboot scheduled')
                                     break
                                 else:
-                                    LOG.CMSLogger('rebootAccessDenied')
+                                    LOG.CMSLogger('Restart access denied')
                         else:
-                            LOG.CMSLogger('rebootAccessDenied')
+                            LOG.CMSLogger('rRestart access denied')
 
             time.sleep(10)
 
-        # Граница цикла
-        #----------------------------------------------------------------------
-
-            # Проверяем не поступила ли команда завершения работы службы
             rc = win32event.WaitForSingleObject(self.hWaitStop, self.timeout)
             if rc == win32event.WAIT_OBJECT_0:
-                # Здесь выполняем необходимые действия при остановке службы
-                LOG.CMSLogger('1 ПЕРЕД ВЫКЛЮЧЕНИЕМ')
-                stSvc = C_API.StopService('CMS')
-                LOG.CMSLogger('2 ПОСЛЕ ВЫКЛЮЧЕНИЯ')
+                C_API.StopService('CMS')
                 servicemanager.LogInfoMsg("Service finished")
                 break
-            # Здесь выполняем необходимые действия при приостановке службы
             if self._paused:
                 servicemanager.LogInfoMsg("Service paused")
-            # Приостановка работы службы
             while self._paused:
-                # Проверям не поступила ли команда возобновления работы службы
                 rc = win32event.WaitForSingleObject(self.hWaitResume, self.resumeTimeout)
                 if rc == win32event.WAIT_OBJECT_0:
                     self._paused = False
-                    # Здесь выполняем необходимые действия при возобновлении работы службы
                     servicemanager.LogInfoMsg("Service continue")
                     break
 

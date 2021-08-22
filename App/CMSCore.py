@@ -12,7 +12,8 @@ import queue
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
-from App import Log, Comm, Resource, Handler, Valid, File, Act, Database, Control
+from App import Log, Comm, Resource, Handler, File, Act, Database, Control
+from App import Resource as R
 
 LOG = Log.Log_Manager()
 LOG.CMSLogger('CALLED')
@@ -61,21 +62,21 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
     def main(self):
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
+        # Core initialization
         Q_Internal = queue.Queue()
         C_Action = Act.SysInit()
         C_Action.InitCMS(Q_Internal)
 
-        LOG.CMSLogger('Called')
+        LOG.CMSLogger('Core initialized')
 
-        # Создаю экземпляры классов
         C_Handlers = Handler.Queue()
         C_Network = Comm.Socket()
         C_RenewCont = File.RenewContent()
         C_Valid = Control.CMS()
         C_DB = Database.DBFoo()
-        LOG.CMSLogger('Экземпляры классов созданы')
 
-        # Очереди
+        LOG.CMSLogger('Instances of classes created')
+
         Q_FromUA = queue.Queue()
         Q_Action = queue.Queue()
         Q_TCPSend = queue.Queue()
@@ -88,44 +89,43 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         Q_UAValidSF = queue.Queue()
         Q_Controller = queue.Queue()
 
-        LOG.CMSLogger('Очереди созданы')
+        LOG.CMSLogger('Queues created')
 
-        # Потоки
-        # Потоки обмена
+
+        # Exchange threads
         T_Server = threading.Thread(target=C_Network.Server,
                                     args=(Config.localhost, Config.CMSCoreInternalPort, Q_FromUA))
 
         T_ClientUA = threading.Thread(target=C_Network.Client,
                                       args=(Config.localhost, Config.CMSUserAgentPort, Q_TCPSend))
-        T_ClientContr = threading.Thread(target=C_Network.Client,
-                                         args=(Config.localhost, Config.CMSControllertPort, Q_TCPSend))
+        # T_ClientContr = threading.Thread(target=C_Network.Client,
+        #                                  args=(Config.localhost, Config.CMSControllertPort, Q_TCPSend))
 
-        # Потоки обработки входящих данных
+        # Inbound processing flows
         TQ_FromUA = threading.Thread(target=C_Handlers.FromUA, args=(Q_FromUA, Q_ValidScreen, Q_ValidProc, Q_Internal))
         TQ_ValidScreen = threading.Thread(target=C_Handlers.Valid, args=(
-            Q_ValidScreen, Q_Action, True, 1, Resource.H[0], True,))
+            Q_ValidScreen, Q_Action, True, 1, R.H[0], True,))
         TQ_ValidProc = threading.Thread(target=C_Handlers.Valid,
-                                        args=(Q_ValidProc, Q_Action, False, 1, Resource.H[0], True,))
+                                        args=(Q_ValidProc, Q_Action, False, 1, R.H[0], True,))
 
-        # Потоки формирования исходящих данных
+        # Outbound shaping streams
         TQ_CreateAction = threading.Thread(target=C_Handlers.CreateAction, args=(Q_Action, Q_PrepareToSend, Q_SetFlag))
         TQ_SendController = threading.Thread(target=C_Handlers.SendController,
                                              args=(Q_PrepareToSend, Q_TCPSend, Q_SetFlag))
 
-        # Потоки обработки внутренних данных
+        # Internal processing flows
         TQ_Internal = threading.Thread(target=C_Handlers.Internal, args=(Q_Internal, Q_UAValid, Q_DBWrite, Q_SetFlag))
         TQ_SetFlag = threading.Thread(target=C_Handlers.SetFlag, args=(Q_SetFlag, Q_UAValidSF, Q_Controller))
 
-        # Обработка записи в БД
+        # Database write processing
         T_DBWriteController = (threading.Thread(target=C_DB.WriteController, args=(Q_DBWrite,)))
 
-        # Служебные потоки
+        # Service Streams
         T_CheckNewContent = threading.Thread(target=C_RenewCont.DynamicRenewCont, args=(Q_PrepareToSend,))
         TQ_UAValid = threading.Thread(target=C_Valid.UAValid, args=(Q_UAValid, Q_Internal, Q_UAValidSF))
 
-        LOG.CMSLogger( 'Потоки инициализированы')
+        LOG.CMSLogger('Threads are initialized')
 
-        # Запуск потоков
         T_Server.start()
         T_ClientUA.start()
         TQ_FromUA.start()
@@ -139,24 +139,22 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         TQ_UAValid.start()
         T_DBWriteController.start()
         TQ_SetFlag.start()
-        LOG.CMSLogger('Потоки запущены')
 
-        # Цикл
-        # --------------------------------------------------------------------
+        LOG.CMSLogger('Threads started')
+
+
         while True:
-            # Контроль потоков
             time.sleep(10)
 
-        # Граница цикла
-        #----------------------------------------------------------------------
+
 
             rc = win32event.WaitForSingleObject(self.hWaitStop, self.timeout)
             if rc == win32event.WAIT_OBJECT_0:
 
-                LOG.CMSLogger( 'Получена команда на остановку службы')
+                LOG.CMSLogger( 'Command to stop service received')
                 C_Comm = Comm.Socket()
-                C_Comm.Send(Config.localhost, Config.CMSUserAgentPort, Resource.TerminateThread[0])
-                LOG.CMSLogger('Команда на остановку UA отправлена')
+                C_Comm.Send(Config.localhost, Config.CMSUserAgentPort, R.TerminateThread[0])
+                LOG.CMSLogger('UA stop command sent')
                 servicemanager.LogInfoMsg("Service finished")
                 break
 

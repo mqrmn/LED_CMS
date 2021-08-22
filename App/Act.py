@@ -11,90 +11,87 @@ from datetime import date
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 from App.Config import Config
 from App import Resource, API, Log, Database
+from App import Resource as R
 
 LOG = Log.Log_Manager()
 
 class Init:
     def __init__(self):
-        global Nova
-        global Win
-        global Sys
-        Nova = API.Nova()
-        Win = API.Process()
-        Sys = API.System()
+        global C_Nova
+        global C_Win
+        global C_Sys
+        C_Nova = API.Nova()
+        C_Win = API.Process()
+        C_Sys = API.System()
 
 
 class Process(Init):
 
     def Start(self, data):
-        if data == Resource.ProcList[0]:
-            Nova.RunNova()
+        if data == R.ProcList[0]:
+            C_Nova.RunNova()
 
     def Terminate(self, data):
-        if data == Resource.ProcList[1]:
-            Nova.TerminateMars()
-        if data == Resource.ProcList[0]:
-            Nova.TerminateNova()
+        if data == R.ProcList[1]:
+            C_Nova.TerminateMars()
+        if data == R.ProcList[0]:
+            C_Nova.TerminateNova()
 
     def Restart(self, data):
-        if data == Resource.ProcList[0]:
-            Nova.RestartNova()
+        if data == R.ProcList[0]:
+            C_Nova.RestartNova()
 
 class System(Init):
 
     def RebootInit(self):
         time.sleep(180)
-        Sys.RestartPC()
-
-
-
-
+        C_Sys.RestartPC()
 
 
 class Files:
 
-    # Архивирует логи
+    # Archives logs
     def LogArch(self):
         listForArchiving = []
-        # Перечисляю файлы, хранящиеся в дирректории
+        # Lists files stored in a directory
         for file in os.listdir(Config.logPath):
-            # Продолжаю работать толь с файлами с расширением .log
+            # Continues to work only with files with the .log extension
             if re.search('log', file):
-                # Проверяю дату создания лог файлов
+                # Checks the creation date of log files
                 logDate = datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0], "%Y-%m-%d")
                 if logDate.date() < date.today():
                     archName = str(logDate.date())
-                    LOG.CMSLogger( 'Помечен для архивирования ' + file)
+                    LOG.CMSLogger( 'Marked for archiving ' + file)
                     listForArchiving.append(file)
-        # Проверяю существует ли папка которую собираюсь создать
+        # Checks if the folder that I'm going to create exists
         if listForArchiving and not os.path.exists(Config.logPath + str(date.today())):
             os.mkdir(Config.logPath + archName)
-            # Перемещаю журналы в папку
+            # Move logs to folder
             for file in listForArchiving:
                 shutil.move(Config.logPath + file, Config.logPath + archName + '\\' + file)
-                LOG.CMSLogger( 'Перемещен в архив ' + file)
-            # Архивирую папку
+                LOG.CMSLogger( 'Moved to archive ' + file)
+            # Archives a folder
             shutil.make_archive(base_name=Config.logPath + archName, format='zip', root_dir=Config.logPath + archName, )
             shutil.rmtree(Config.logPath + archName)
         else:
-            LOG.CMSLogger( 'Журналов для архивирования не обнаружено')
+            LOG.CMSLogger( 'No logs found to archive')
 
-    # Удаляет устаревшие логи
+    # Removes obsolete logs
     def LogDel(self):
         listForDeleting = []
 
-        # Перечисляю файлы, хранящиеся в дирректории
+        # Lists files stored in a directory
         for file in os.listdir(Config.logPath):
-            # Продолжаю работать только с файлами с расширением .zip
+            # Continues to work only with files with the .zip extension
             if re.search('zip', file):
-                # Проверяю дату создания архива
+                # Checks the date the archive was created
                 if (datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0], "%Y-%m-%d").date() - date.today()).days < -90:
                     listForDeleting.append(file)
 
-        # Удаляю устаревшие архивы
+        # Removes obsolete archives
         for file in listForDeleting:
             os.remove(Config.logPath + file)
-            LOG.CMSLogger('Файл удален ' + file)
+            LOG.CMSLogger('File deleted ' + file)
 
 
 
@@ -137,66 +134,55 @@ class SysInit(Files):
             lastReboot = table.SelfInitShutdown().select().order_by(table.SelfInitShutdown.id.desc()).get()
         except:
             lastReboot = None
-
         if lastReboot:
-
             count = table.SelfInitShutdown().select().where(
                 (table.SelfInitShutdown.datetime.year == datetime.date.today().year) &
                 (table.SelfInitShutdown.datetime.month == datetime.date.today().month) &
                 (table.SelfInitShutdown.datetime.day == datetime.date.today().day)).count()
-
             if lastReboot.datetime.date() == datetime.datetime.now().date():
                 if (datetime.datetime.now() - lastReboot.datetime).seconds <= 300:
                     if count >= 3:
-                        Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[9],
-                                        Resource.r[3]: Resource.ShutdownFlagData[0]})
-                        Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[10],
-                                        Resource.r[3]: Resource.ShutdownFlagData[0]})
-
-                        LOG.CMSLogger( 'Превышено количество '
-                                        'попыток перезапустить систему: {} '
-                                        'Последняя перезагрузка: {} '.format(count, lastReboot))
-                        LOG.CMSLogger( 'Перезагрузка запрещена ')
-
+                        Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[9],
+                                        R.r[3]: R.ShutdownFlagData[0]})
+                        Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[10],
+                                        R.r[3]: R.ShutdownFlagData[0]})
+                        LOG.CMSLogger('Exceeded quantity '
+                                        'Attempts to restart the system: {} '
+                                        'Last reboot: {} '.format(count, lastReboot))
+                        LOG.CMSLogger('Restart prohibited ')
                     else:
-                        Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[9],
-                                        Resource.r[3]: Resource.ShutdownFlagData[1]})
-                        Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[10],
-                                        Resource.r[3]: Resource.ShutdownFlagData[1]})
-
-                        LOG.CMSLogger('Превышена '
-                                        'частота попыток перезапустить систему '
-                                        'Последняя перезагрузка: {} '.format(lastReboot))
+                        Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[9],
+                                        R.r[3]: R.ShutdownFlagData[1]})
+                        Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[10],
+                                        R.r[3]: R.ShutdownFlagData[1]})
+                        LOG.CMSLogger('The frequency of attempts to restart the system has been exceeded '
+                                        'Last reboot: {} '.format(lastReboot))
                 elif count >= 5:
-                    Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[9],
-                                    Resource.r[3]: Resource.ShutdownFlagData[1]})
-                    Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[10],
-                                    Resource.r[3]: Resource.ShutdownFlagData[1]})
-
-                    LOG.CMSLogger( 'Превышена '
-                                   'частота попыток перезапустить систему '
-                                   'Последняя перезагрузка: {} '.format(lastReboot))
-                    LOG.CMSLogger( 'Перезагрузка запрещена')
+                    Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[9],
+                                    R.r[3]: R.ShutdownFlagData[1]})
+                    Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[10],
+                                    R.r[3]: R.ShutdownFlagData[1]})
+                    LOG.CMSLogger('The frequency of attempts to restart the system has been exceeded '
+                                   'Last reboot: {} '.format(lastReboot))
+                    LOG.CMSLogger('Restart prohibited')
                 else:
-                    Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[9],
-                                    Resource.r[3]: Resource.ShutdownFlagData[2]})
-                    Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[10],
-                                    Resource.r[3]: Resource.ShutdownFlagData[2]})
-
-                    LOG.CMSLogger( 'Перезагрузка разрешена')
+                    Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[9],
+                                    R.r[3]: R.ShutdownFlagData[2]})
+                    Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[10],
+                                    R.r[3]: R.ShutdownFlagData[2]})
+                    LOG.CMSLogger('Restart allowed')
             else:
-                Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[9],
-                                Resource.r[3]: Resource.ShutdownFlagData[2]})
-                Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[10],
-                                Resource.r[3]: Resource.ShutdownFlagData[2]})
-
-                LOG.CMSLogger('Перезагрузка разрешена')
+                Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[9],
+                                R.r[3]: R.ShutdownFlagData[2]})
+                Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[10],
+                                R.r[3]: R.ShutdownFlagData[2]})
+                LOG.CMSLogger('Restart allowed')
         else:
-            Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[9],
-                            Resource.r[3]: Resource.ShutdownFlagData[2]})
-            Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[10],
-                            Resource.r[3]: Resource.ShutdownFlagData[2]})
-
-            LOG.CMSLogger('Перезагрузка разрешена')
+            Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[9],
+                            R.r[3]: R.ShutdownFlagData[2]})
+            Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[10],
+                            R.r[3]: R.ShutdownFlagData[2]})
+            LOG.CMSLogger('No data on system reboots')
+            LOG.CMSLogger('Restart allowed')
 
 

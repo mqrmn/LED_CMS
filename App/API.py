@@ -71,12 +71,7 @@ class System(Win):
         LOG.CMSLogger('Called')
         self.GetWMI(privileges=["Shutdown"]).Win32_OperatingSystem()[0].RebootInit()
 
-
-
-
 class Nova(Process):
-
-
 
     def RestartNova(self):
         LOG.CMSLogger('Called')
@@ -94,7 +89,7 @@ class Nova(Process):
 
     def TerminateMars(self):
         LOG.CMSLogger('Called')
-        executable = 'C:\\Users\\rAdmin_local\\AppData\\Roaming\\Nova Star\\NovaLCT\\Bin\\NovaLCT.exe'
+        executable = 'C:\\Users\\rAdmin_local\\AppData\\Roaming\\C_Nova Star\\NovaLCT\\Bin\\NovaLCT.exe'
         self.StartProc(executable)
 
         time.sleep(15)

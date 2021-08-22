@@ -9,13 +9,9 @@ sys.path.append("C:\\MOBILE\\Local\\CMS")
 from App import Act,  Log
 from App import Resource as R
 
-LOG = Log.Log_Manager()
 
-# Обработчики очередей
+# Queue handlers
 class Queue:
-
-
-    # Подготовка данных к отправке на сокет, метод условно резервный
     def SendController(self, Q_in, Q_out, Q_SetFlag = None, ):
         termNovaCount = 0
         termMarsCount = 0
@@ -35,7 +31,7 @@ class Queue:
                     pass
             else:
                 pass
-            # Запуск NovaStudio
+            # Launching NovaStudio
             if data == R.RunNova[1]:
                 if ((datetime.datetime.now() - runNovaTime).seconds >= 30) or runNovaCount == 0:
                     self.ToSend(data, Q_out)
@@ -44,7 +40,7 @@ class Queue:
                 else:
                     pass
                 data = None
-            # Остановка NovaStudio
+            # Stop NovaStudio
             if data == R.TerminateNova:
                 if ((datetime.datetime.now() - termNovaTime).seconds >= 30) or termNovaCount == 0:
                     self.ToSend(data, Q_out)
@@ -53,7 +49,7 @@ class Queue:
                 else:
                     pass
                     data = None
-            # Остановка MarsServerProvider
+            # Stopping MarsServerProvider
             if data == R.TerminateMars[1]:
                 if ((datetime.datetime.now() - termMarsTime).seconds >= 30) or termMarsCount == 0:
                     self.ToSend(data, Q_out)
@@ -62,7 +58,7 @@ class Queue:
                 else:
                     pass
                 data = None
-            # Перезапуск NovaStudio
+            # Restarting NovaStudio
             if data == R.RestartNova[1]:
                 if ((datetime.datetime.now() - resNovaTime).seconds >= 30) or resNovaCount == 0:
                     self.ToSend(data, Q_out)
@@ -74,7 +70,7 @@ class Queue:
             if data != None:
                 self.ToSend(data, Q_out)
 
-    # Обработчик очереди данных, приходящих от CMSUserAgent
+    # Handler for the queue of data coming from CMSUserAgent
     def FromUA(self, Q_in, Q_screenValidation, Q_procValidation, Q_Internal):
         while True:
             data = Q_in.get()
@@ -91,15 +87,14 @@ class Queue:
                             R.r[3]: lastReceive, })
 
 
-    # Подготавливает команты, отправляеемые на UA
+    # Prepares commands to be sent to the UA
     def CreateAction(self, Q_in, Q_out, Q_SetFlag):
         DictNova = {}
         DictMars = {}
         command = None
         while True:
             data = Q_in.get()
-            if (data[R.r[2]] == R.K[0]) \
-                or (data[R.r[2]] == R.K[1] and data[R.r[3]][0] == R.ProcList[0]):
+            if (data[R.r[2]] == R.K[0]) or (data[R.r[2]] == R.K[1] and data[R.r[3]][0] == R.ProcList[0]):
                 DictNova[data[R.r[2]]] = data[R.r[3]]
 
                 if DictNova == R.RunNova[0]:
@@ -123,7 +118,7 @@ class Queue:
                     command = None
                     DictMars = {}
 
-    # Обработчик данных, приходящих на UA
+    # Processor of data coming to UA
     def FromCore(self, Q_in, Q_out, ):
         while True:
             data = Q_in.get()
@@ -133,13 +128,11 @@ class Queue:
                 if data[R.r[1]] == R.H[4]:
                     Q_out.put(data[R.r[3]])
 
-    # Проверяет ключи в данных приходящих на UA, в соответсвии с ними запускает действия
+    # Checks the keys in the data coming to the UA, in accordance with them, launches actions
     def UAAction(self, Q_in, Q_out,):
         Exec = Act.Process()
         while True:
-
             data = Q_in.get()
-            
             if data[R.r[2]] == R.K[2]:
                 Exec.Start(data[R.r[3]])
             if data[R.r[2]] == R.K[3]:
@@ -149,10 +142,9 @@ class Queue:
             if data[R.r[2]] == R.K[5]:
                 pass
             if data[R.r[2]] == R.K[6]:
-
                 Q_out.put(data)
 
-    # Проверяет поток приходящих данных на заданное соответсвие
+    # Checks the flow of incoming data for a given match
     def Valid(self, Q_in, Q_out, checkValue, maxCount, head, sendAllCircles, ):
         checkCount, catchCount = 0, 0
         Dict = {}
@@ -187,7 +179,7 @@ class Queue:
                 else:
                     pass
 
-    # Проверка списка процессов на соответсвие статусу активности
+    # Checking the list of processes for compliance with the activity status
     def CheckProcList(self, Q_in, Q_out):
         while True:
             if Q_in.empty() == False:
@@ -200,12 +192,12 @@ class Queue:
             else:
                 time.sleep(1)
 
-    # Обработка очереди на отправку 
+    # Send queue processing
     def ToSend(self, data, Q_out):
         data[R.r[0]] = R.M[0]
         Q_out.put(data)
 
-    # Обработка внутренней очереди
+    # Internal queue processing
     def Internal(self, Q_in, Q_UAValid, Q_DBWrite, Q_SetFlag):
         while True:
             data = Q_in.get()

@@ -18,12 +18,12 @@ class Socket:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((host, port))
             s.listen(2)
-            # Цикл прослушивания сокета
+            # Socket listening loop
             while True:
                 conn, addr = s.accept()
-                # Действие при соединении с сервером
+                # Action when connecting to a server
                 with conn:
-                    # Прием данных соединения
+                    # Receiving connection data
                     while True:
                         data = conn.recv(1024)
                         if not data:
@@ -44,6 +44,6 @@ class Socket:
                     Socket.connect((host, port))
                     Socket.sendall(pickle.dumps(data))
                 except:
-                    LOG.CMSLogger('ОШИБКА СОЕДИНЕНИЯ')
+                    LOG.CMSLogger('CONNECTION ERROR')
 
 
