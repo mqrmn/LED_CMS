@@ -13,9 +13,9 @@ LOG = Log.Log_Manager()
 # Обработчики очередей
 class Queue:
 
+
     # Подготовка данных к отправке на сокет, метод условно резервный
     def SendController(self, Q_in, Q_out, Q_SetFlag = None, ):
-        LOG.CMSLogger('Called')
         termNovaCount = 0
         termMarsCount = 0
         resNovaCount = 0
@@ -27,7 +27,6 @@ class Queue:
 
         while True:
             data = Q_in.get()
-
             if Q_SetFlag != None:
                 if Q_SetFlag.empty() == False:
                     flag = Q_SetFlag.get()
@@ -35,32 +34,26 @@ class Queue:
                     pass
             else:
                 pass
-
             # Запуск NovaStudio
             if data == Resource.RunNova[1]:
                 if ((datetime.datetime.now() - runNovaTime).seconds >= 30) or runNovaCount == 0:
-
                     self.ToSend(data, Q_out)
                     runNovaTime = datetime.datetime.now()
                     runNovaCount += 1
                 else:
                     pass
                 data = None
-
             # Остановка NovaStudio
             if data == Resource.TerminateNova:
                 if ((datetime.datetime.now() - termNovaTime).seconds >= 30) or termNovaCount == 0:
-                    print((datetime.datetime.now() - termNovaTime).seconds)
                     self.ToSend(data, Q_out)
                     termNovaTime = datetime.datetime.now()
                     termNovaCount += 1
                 else:
                     pass
                     data = None
-
             # Остановка MarsServerProvider
             if data == Resource.TerminateMars[1]:
-
                 if ((datetime.datetime.now() - termMarsTime).seconds >= 30) or termMarsCount == 0:
                     self.ToSend(data, Q_out)
                     termMarsTime = datetime.datetime.now()
@@ -68,7 +61,6 @@ class Queue:
                 else:
                     pass
                 data = None
-
             # Перезапуск NovaStudio
             if data == Resource.RestartNova[1]:
                 if ((datetime.datetime.now() - resNovaTime).seconds >= 30) or resNovaCount == 0:
@@ -78,22 +70,19 @@ class Queue:
                 else:
                     pass
                 data = None
-
             if data != None:
                 self.ToSend(data, Q_out)
 
-
     # Обработчик очереди данных, приходящих от CMSUserAgent
     def FromUA(self, Q_in, Q_screenValidation, Q_procValidation, Q_Internal):
-        LOG.CMSLogger('Called')
         while True:
             data = Q_in.get()
             lastReceive = datetime.datetime.now()
-            if data['method'] == Resource.ComDict['method'][0]:
-                if data['head'] == Resource.ComDict['head'][0]:
-                    if data['key'] == Resource.ComDict['key'][0]:
+            if data['method'] == Resource.Method[0]:
+                if data['head'] == Resource.Head[0]:
+                    if data['key'] == Resource.Key[0]:
                         Q_screenValidation.put({'key': data['key'], 'data': data['data'], })
-                    if data['key'] == Resource.ComDict['key'][1]:
+                    if data['key'] == Resource.Key[1]:
                         Q_procValidation.put({'key': data['key'], 'data': data['data'], })
 
             Q_Internal.put({Resource.root[1]: Resource.Head[2],
@@ -103,16 +92,13 @@ class Queue:
 
     # Подготавливает команты, отправляеемые на UA
     def CreateAction(self, Q_in, Q_out, Q_SetFlag):
-        LOG.CMSLogger('Called')
         DictNova = {}
         DictMars = {}
         command = None
-
         while True:
             data = Q_in.get()
-
-            if (data['key'] == Resource.ComDict['key'][0]) \
-                or (data['key'] == Resource.ComDict['key'][1] and data['data'][0] == Resource.ProcList[0]):
+            if (data['key'] == Resource.Key[0]) \
+                or (data['key'] == Resource.Key[1] and data['data'][0] == Resource.ProcList[0]):
                 DictNova[data['key']] = data['data']
 
                 if DictNova == Resource.RunNova[0]:
@@ -126,7 +112,7 @@ class Queue:
                     command = None
                     DictNova = {}
 
-            if data['key'] == Resource.ComDict['key'][1] and data['data'][0] == Resource.ProcList[1]:
+            if data['key'] == Resource.Key[1] and data['data'][0] == Resource.ProcList[1]:
                 DictMars[data['key']] = data['data']
                 if DictMars == Resource.TerminateMars[0]:
                     command = Resource.TerminateMars[1]
@@ -138,41 +124,35 @@ class Queue:
 
     # Обработчик данных, приходящих на UA
     def FromCore(self, Q_in, Q_out, ):
-        LOG.CMSLogger( 'Called')
         while True:
             data = Q_in.get()
-
-            print('FromCore', data)
-
-            if data['method'] == Resource.ComDict['method'][0]:
-                if data['head'] == Resource.ComDict['head'][1]:
+            if data['method'] == Resource.Method[0]:
+                if data['head'] == Resource.Head[1]:
                     Q_out.put(data)
                 if data[Resource.root[1]] == Resource.Head[4]:
                     Q_out.put(data[Resource.root[3]])
 
     # Проверяет ключи в данных приходящих на UA, в соответсвии с ними запускает действия
     def UAAction(self, Q_in, Q_out,):
-        LOG.CMSLogger( 'Called')
-        _Execute_ = Act.Process()
+        Exec = Act.Process()
         while True:
 
             data = Q_in.get()
             
-            if data['key'] == Resource.ComDict['key'][2]:
-                _Execute_.Start(data['data'])
-            if data['key'] == Resource.ComDict['key'][3]:
-                _Execute_.Terminate(data['data'])
-            if data['key'] == Resource.ComDict['key'][4]:
-                _Execute_.Restart(data['data'])
-            if data['key'] == Resource.ComDict['key'][5]:
+            if data['key'] == Resource.Key[2]:
+                Exec.Start(data['data'])
+            if data['key'] == Resource.Key[3]:
+                Exec.Terminate(data['data'])
+            if data['key'] == Resource.Key[4]:
+                Exec.Restart(data['data'])
+            if data['key'] == Resource.Key[5]:
                 pass
-            if data['key'] == Resource.ComDict['key'][6]:
+            if data['key'] == Resource.Key[6]:
 
                 Q_out.put(data)
 
     # Проверяет поток приходящих данных на заданное соответсвие
     def Valid(self, Q_in, Q_out, checkValue, maxCount, head, sendAllCircles, ):
-        LOG.CMSLogger( 'Called')
         checkCount, catchCount = 0, 0
         Dict = {}
 
@@ -208,28 +188,25 @@ class Queue:
 
     # Проверка списка процессов на соответсвие статусу активности
     def CheckProcList(self, Q_in, Q_out):
-        LOG.CMSLogger( 'Called')
         while True:
-            if Q_in.empty() == True:
-                time.sleep(1)
-            else:
+            if Q_in.empty() == False:
                 data = Q_in.get()
                 if data[1] == Resource.ProcDict[data[0]]:
                     state = True
                 else:
                     state = False
                 Q_out.put({'key': Resource.Key[1], 'data': [data[0], state]})
+            else:
+                time.sleep(1)
 
     # Обработка очереди на отправку 
     def ToSend(self, data, Q_out):
-        data['method'] = Resource.ComDict['method'][0]
+        data['method'] = Resource.Method[0]
         Q_out.put(data)
 
     # Обработка внутренней очереди
     def Internal(self, Q_in, Q_UAValid, Q_DBWrite, Q_SetFlag):
-        LOG.CMSLogger('Called')
         while True:
-
             data = Q_in.get()
             # Проверка агента
             if data[Resource.root[1]] == Resource.Head[2]:
@@ -243,8 +220,6 @@ class Queue:
             if data[Resource.root[1]] == Resource.Head[4]:
                 Q_SetFlag.put({Resource.root[2]: data[Resource.root[2]],
                                Resource.root[3]: data[Resource.root[3]], }, )
-
-
 
     def SetFlag(self, Q_SetFlag, Q_UAValidSF, Q_Cont_TCPSend):
         while True:

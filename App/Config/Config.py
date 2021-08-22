@@ -16,11 +16,9 @@ regiondict = ConfigEx.regiondict
 upgradePolitic = 1
 
 # Настройка корневых директорий
-#workpath = '{}\\temp\\'.format(os.path.abspath(os.path.dirname(__file__)))
 workPath = 'C:\\MOBILE\\YandexDisk\\MACHINES\\{}\\{}\\'.format(objType, objCode)
 logPath = '{}Log\\'.format(workPath)
 tempPath = '{}Temp\\'.format(workPath)
-#targetPath = '{}\\Content\\'.format(workPath)
 cmsConfigPath = '{}Config\\'.format(workPath)
 
 # Настройка локальных директорий
@@ -47,6 +45,7 @@ DBPath = DBFolder + DBFile
 
 timeoutSCheck = [10, 30]
 timeoutPCheck = 30
+
 # Настройка сокетов для внутренних коммуникаций
 localhost = 'localhost'
 CMSCoreInternalPort = 2203

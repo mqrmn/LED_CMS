@@ -11,10 +11,6 @@ Key = ['ScreenState', 'ProcState', 'RunProc', 'TerminateProc', 'RestartProc',
 DBWriteData = ['table', ]
 ShutdownFlagData = [0, 1, 2, ]
 
-
-
-
-
 # PROCESS
 ProcList = ['NovaStudio.exe', 'MarsServerProvider.exe', 'NovaSoftwareDog.exe', 'NovaLCT.exe', ]
 ProcState = [True, False]
@@ -32,16 +28,7 @@ NovaFileKey = {'Backup', 'Restore', }
 stateKey = [['ScreenState', ['ScreenIsStatic', ], ], ['ProcessState', ['NovaStudio.exe', 'MarsServerProvider.exe', ], ], ]
 System = ['Reboot', 'Shutdown', ]
 
-# SUMMARY
-ComDict = {root[0]: Method,
-             root[1]: Head,
-             root[2]: Key,
-             root[3]: {Key[0]: ScreenState,
-                      Key[1]: ProcState,
-                      Key[2]: ProcList,
-                      Key[3]: ProcList,
-                      Key[4]: ProcList,
-                      Key[5]: System, }, }
+
 
 
 ### DEPENDENCY
