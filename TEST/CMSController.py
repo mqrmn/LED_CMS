@@ -13,10 +13,10 @@ import threading
 import queue
 
 from App.Config import Config
-from App import LogManager, API, File, Resource, Action, Controller
+from App import Log, API, File, Resource, Act, Control
 
 import socket
-from App import LogManager, Database, Comm, Handler
+from App import Log, Database, Comm, Handler
 
 
 
@@ -24,9 +24,9 @@ def TEST():
     # Создание экзепляров классов
     C_API = API.Service()
     C_FileMan = File.Manager()
-    C_ActionSys = Action.System()
-    C_ActionInit = Action.SysInit()
-    C_Control = Controller.CMS()
+    C_ActionSys = Act.System()
+    C_ActionInit = Act.SysInit()
+    C_Control = Control.CMS()
     C_Network = Comm.Socket()
     C_Handler = Handler.Queue()
     # Создание очередей
@@ -52,7 +52,7 @@ def TEST():
 
     FLAG = C_ActionInit.CheckLastShutdown(Q_Manage)
 
-    LOG = LogManager.Log_Manager()
+    LOG = Log.Log_Manager()
     LOG.CMSLogger('CALLED')
 
     while True:

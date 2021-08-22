@@ -6,9 +6,9 @@ import sys
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 
-from App import LogManager
+from App import Log
 
-LOG = LogManager.Log_Manager()
+LOG = Log.Log_Manager()
 
 class System:
 

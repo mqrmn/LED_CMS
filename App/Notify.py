@@ -10,9 +10,9 @@ from email.mime.text import MIMEText
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
-from App import LogManager
+from App import Log
 
-LOG = LogManager.Log_Manager()
+LOG = Log.Log_Manager()
 LOG.CMSLogger('CALLED')
 
 def sendmail(messagetext):

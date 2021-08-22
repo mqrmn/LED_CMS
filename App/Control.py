@@ -14,9 +14,9 @@ from inspect import currentframe, getframeinfo
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
-from App import Validation, Resource, File, API, Action, LogManager, Database
+from App import Valid, Resource, File, API, Act, Log, Database
 
-LOG = LogManager.Log_Manager()
+LOG = Log.Log_Manager()
 
 
 class CMS:
@@ -26,7 +26,7 @@ class CMS:
                 Q_data = Q_in.get()
                 if Q_data == Resource.TerminateThread[0]:
                     break
-            C_Valid = Validation.System()
+            C_Valid = Valid.System()
             Th_States = C_Valid.Threads(data)
             if False in Th_States:
                 pass
@@ -34,7 +34,7 @@ class CMS:
 
     def UAValid(self, Q_in, Q_Internal, Q_UAValidSF):
 
-        C_Action = Action.System()
+        C_Action = Act.System()
         C_Prepare = Database.Prepare()
         data = datetime.datetime.now()
         table = Database.Tables()

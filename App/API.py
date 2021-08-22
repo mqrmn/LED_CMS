@@ -8,9 +8,9 @@ import psutil
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
-from App import Resource, LogManager
+from App import Resource, Log
 
-LOG = LogManager.Log_Manager()
+LOG = Log.Log_Manager()
 
 
 class Win:

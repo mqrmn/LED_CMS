@@ -8,20 +8,19 @@ import shutil
 import pythoncom
 import datetime
 import re
-from datetime import date
-from inspect import currentframe, getframeinfo, getmodulename
+from inspect import currentframe, getframeinfo
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
-from App import Resource, LogManager, API, Action, Database
+from App import Resource, Log, API, Act, Database
 
-LOG = LogManager.Log_Manager()
+LOG = Log.Log_Manager()
 
 class CMSUpdate:
 
     def CMSUpdater(self, Q_out):
         C_API = API.Service()
-        C_Action = Action.System()
+        C_Action = Act.System()
         pythoncom.CoInitialize()
         while True:
             if self.CMSUpgrade(False) == True:
@@ -40,8 +39,7 @@ class CMSUpdate:
 
                     C_Action.RebootInit()
                 else:
-                    LOG.CMSLogger(
-                                      'Не удается остановить CMS, код: {}'.format(stSvc), )
+                    LOG.CMSLogger('Не удается остановить CMS, код: {}'.format(stSvc), )
             else:
                 time.sleep(1800)
 
@@ -422,48 +420,3 @@ class NovaBin:
 
     def CopyNovaBin(self):
         shutil.copy(Resource.novaBinFileBak,  Resource.novaBinFile)
-
-class Log:
-
-    # Архивирует логи
-    def LogArch(self):
-        listForArchiving = []
-        # Перечисляю файлы, хранящиеся в дирректории
-        for file in os.listdir(Config.logPath):
-            # Продолжаю работать толь с файлами с расширением .log
-            if re.search('log', file):
-                # Проверяю дату создания лог файлов
-                logDate = datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0], "%Y-%m-%d")
-                if logDate.date() < date.today():
-                    archName = str(logDate.date())
-                    LOG.CMSLogger( 'Помечен для архивирования ' + file)
-                    listForArchiving.append(file)
-        # Проверяю существует ли папка которую собираюсь создать
-        if listForArchiving and not os.path.exists(Config.logPath + str(date.today())):
-            os.mkdir(Config.logPath + archName)
-            # Перемещаю журналы в папку
-            for file in listForArchiving:
-                shutil.move(Config.logPath + file, Config.logPath + archName + '\\' + file)
-                LOG.CMSLogger( 'Перемещен в архив ' + file)
-            # Архивирую папку
-            shutil.make_archive(base_name=Config.logPath + archName, format='zip', root_dir=Config.logPath + archName, )
-            shutil.rmtree(Config.logPath + archName)
-        else:
-            LOG.CMSLogger( 'Журналов для архивирования не обнаружено')
-
-    # Удаляет устаревшие логи
-    def LogDel(self):
-        listForDeleting = []
-
-        # Перечисляю файлы, хранящиеся в дирректории
-        for file in os.listdir(Config.logPath):
-            # Продолжаю работать только с файлами с расширением .zip
-            if re.search('zip', file):
-                # Проверяю дату создания архива
-                if (datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0], "%Y-%m-%d").date() - date.today()).days < -90:
-                    listForDeleting.append(file)
-
-        # Удаляю устаревшие архивы
-        for file in listForDeleting:
-            os.remove(Config.logPath + file)
-            LOG.CMSLogger('Файл удален ' + file)

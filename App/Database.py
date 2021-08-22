@@ -9,9 +9,9 @@ from App.Config import Config
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
-from App import Resource, LogManager
+from App import Resource, Log
 
-logging = LogManager.Log_Manager()
+logging = Log.Log_Manager()
 logHandler = logging.InitModule(os.path.splitext(os.path.basename(__file__))[0])
 
 dbhandle = SqliteDatabase(Config.DBPath)

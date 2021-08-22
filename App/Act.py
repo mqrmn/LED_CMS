@@ -10,9 +10,9 @@ from datetime import date
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 from App.Config import Config
-from App import Resource, API, LogManager, Database
+from App import Resource, API, Log, Database
 
-LOG = LogManager.Log_Manager()
+LOG = Log.Log_Manager()
 
 class Init:
     def __init__(self):

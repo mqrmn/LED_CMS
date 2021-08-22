@@ -14,9 +14,9 @@ from inspect import currentframe, getframeinfo
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
-from App import LogManager, Comm, Resource, Handler, Validation, File, Action, Database
+from App import Log, Comm, Resource, Handler, Valid, File, Act, Database
 
-LOG = LogManager.Log_Manager()
+LOG = Log.Log_Manager()
 
 LOG.CMSLogger('CALLED')
 
@@ -25,7 +25,7 @@ module = 'TEST'
 def TEST():
 
         Q_Internal = queue.Queue()
-        C_Action = Action.SysInit()
+        C_Action = Act.SysInit()
         C_Action.InitCMS(Q_Internal)
 
         LOG.CMSLogger('Called')
@@ -34,7 +34,7 @@ def TEST():
         C_Handlers = Handler.Queue()
         C_Network = Comm.Socket()
         C_File = File.Manager()
-        C_Valid = Validation.System()
+        C_Valid = Valid.System()
         C_DB = Database.DBFoo()
         LOG.CMSLogger('Экземпляры классов созданы')
 

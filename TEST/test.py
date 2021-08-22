@@ -1,5 +1,5 @@
 
-from App import LogManager
+from App import Log
 
 def TEST():
 

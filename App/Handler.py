@@ -6,9 +6,9 @@ import datetime
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
-from App import Action, Resource, LogManager
+from App import Act, Resource, Log
 
-LOG = LogManager.Log_Manager()
+LOG = Log.Log_Manager()
 
 # Обработчики очередей
 class Queue:
@@ -153,7 +153,7 @@ class Queue:
     # Проверяет ключи в данных приходящих на UA, в соответсвии с ними запускает действия
     def UAAction(self, Q_in, Q_out,):
         LOG.CMSLogger( 'Called')
-        _Execute_ = Action.Process()
+        _Execute_ = Act.Process()
         while True:
 
             data = Q_in.get()

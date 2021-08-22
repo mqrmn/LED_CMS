@@ -8,11 +8,11 @@ import queue
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
-from App import Validation
+from App import Valid
 from App.Config import Config
-from App import Resource, Comm, Handler, Controller, LogManager
+from App import Resource, Comm, Handler, Control, Log
 
-LOG = LogManager.Log_Manager()
+LOG = Log.Log_Manager()
 LOG.CMSLogger('CALLED')
 
 def main(Q_External):
@@ -28,12 +28,12 @@ def main(Q_External):
     Q_Control = queue.Queue()
 
     # Экземпляры классов
-    C_Valid = Validation.System()
+    C_Valid = Valid.System()
     C_Handlers = Handler.Queue()
     C_Network = Comm.Socket()
     C_Handler = Handler.Queue()
-    C_Validation = Validation.System()
-    C_Control = Controller.CMS()
+    C_Validation = Valid.System()
+    C_Control = Control.CMS()
 
     # Потоки
     T_Server = threading.Thread(target=C_Network.Server, args=(Config.localhost, Config.CMSUserAgentPort, Q_FromCore,))

@@ -12,9 +12,9 @@ import queue
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
-from App import LogManager, Comm, Resource, Handler, Validation, File, Action, Database, Controller
+from App import Log, Comm, Resource, Handler, Valid, File, Act, Database, Control
 
-LOG = LogManager.Log_Manager()
+LOG = Log.Log_Manager()
 LOG.CMSLogger('CALLED')
 
 class AppServerSvc(win32serviceutil.ServiceFramework):
@@ -62,7 +62,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
         Q_Internal = queue.Queue()
-        C_Action = Action.SysInit()
+        C_Action = Act.SysInit()
         C_Action.InitCMS(Q_Internal)
 
         LOG.CMSLogger('Called')
@@ -71,7 +71,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         C_Handlers = Handler.Queue()
         C_Network = Comm.Socket()
         C_RenewCont = File.RenewContent()
-        C_Valid = Controller.CMS()
+        C_Valid = Control.CMS()
         C_DB = Database.DBFoo()
         LOG.CMSLogger('Экземпляры классов созданы')
 
