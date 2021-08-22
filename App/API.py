@@ -14,9 +14,9 @@ LOG = LogManager.Log_Manager()
 
 class Win:
     def __init__(self):
+        pythoncom.CoInitialize()
         global handle
         handle = wmi.WMI()
-        pythoncom.CoInitialize()
 
     def CoinInit(self):
         pythoncom.CoInitialize()
