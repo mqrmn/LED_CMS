@@ -148,10 +148,10 @@ class SysInit(Files):
             if lastReboot.datetime.date() == datetime.datetime.now().date():
                 if (datetime.datetime.now() - lastReboot.datetime).seconds <= 300:
                     if count >= 3:
-                        Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[9],
-                                        Resource.root[3]: Resource.ShutdownFlagData[0]})
-                        Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[10],
-                                        Resource.root[3]: Resource.ShutdownFlagData[0]})
+                        Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[9],
+                                        Resource.r[3]: Resource.ShutdownFlagData[0]})
+                        Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[10],
+                                        Resource.r[3]: Resource.ShutdownFlagData[0]})
 
                         LOG.CMSLogger( 'Превышено количество '
                                         'попыток перезапустить систему: {} '
@@ -159,43 +159,43 @@ class SysInit(Files):
                         LOG.CMSLogger( 'Перезагрузка запрещена ')
 
                     else:
-                        Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[9],
-                                        Resource.root[3]: Resource.ShutdownFlagData[1]})
-                        Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[10],
-                                        Resource.root[3]: Resource.ShutdownFlagData[1]})
+                        Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[9],
+                                        Resource.r[3]: Resource.ShutdownFlagData[1]})
+                        Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[10],
+                                        Resource.r[3]: Resource.ShutdownFlagData[1]})
 
                         LOG.CMSLogger('Превышена '
                                         'частота попыток перезапустить систему '
                                         'Последняя перезагрузка: {} '.format(lastReboot))
                 elif count >= 5:
-                    Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[9],
-                                    Resource.root[3]: Resource.ShutdownFlagData[1]})
-                    Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[10],
-                                    Resource.root[3]: Resource.ShutdownFlagData[1]})
+                    Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[9],
+                                    Resource.r[3]: Resource.ShutdownFlagData[1]})
+                    Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[10],
+                                    Resource.r[3]: Resource.ShutdownFlagData[1]})
 
                     LOG.CMSLogger( 'Превышена '
                                    'частота попыток перезапустить систему '
                                    'Последняя перезагрузка: {} '.format(lastReboot))
                     LOG.CMSLogger( 'Перезагрузка запрещена')
                 else:
-                    Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[9],
-                                    Resource.root[3]: Resource.ShutdownFlagData[2]})
-                    Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[10],
-                                    Resource.root[3]: Resource.ShutdownFlagData[2]})
+                    Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[9],
+                                    Resource.r[3]: Resource.ShutdownFlagData[2]})
+                    Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[10],
+                                    Resource.r[3]: Resource.ShutdownFlagData[2]})
 
                     LOG.CMSLogger( 'Перезагрузка разрешена')
             else:
-                Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[9],
-                                Resource.root[3]: Resource.ShutdownFlagData[2]})
-                Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[10],
-                                Resource.root[3]: Resource.ShutdownFlagData[2]})
+                Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[9],
+                                Resource.r[3]: Resource.ShutdownFlagData[2]})
+                Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[10],
+                                Resource.r[3]: Resource.ShutdownFlagData[2]})
 
                 LOG.CMSLogger('Перезагрузка разрешена')
         else:
-            Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[9],
-                            Resource.root[3]: Resource.ShutdownFlagData[2]})
-            Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[10],
-                            Resource.root[3]: Resource.ShutdownFlagData[2]})
+            Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[9],
+                            Resource.r[3]: Resource.ShutdownFlagData[2]})
+            Q_Internal.put({Resource.r[1]: Resource.H[4], Resource.r[2]: Resource.K[10],
+                            Resource.r[3]: Resource.ShutdownFlagData[2]})
 
             LOG.CMSLogger('Перезагрузка разрешена')
 

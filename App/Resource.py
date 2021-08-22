@@ -1,10 +1,14 @@
 # 1.1.1
 
 # ROOT
-root = ['method', 'head', 'key', 'data']
-Method = ['put', 'get', ]
-Head = ['State', 'Action', 'Report', 'DB', 'Flag']
-Key = ['ScreenState', 'ProcState', 'RunProc', 'TerminateProc', 'RestartProc',
+# root
+r = ['method', 'head', 'key', 'data']
+# Method
+M = ['put', 'get', ]
+# Head
+H = ['State', 'Action', 'Report', 'DB', 'Flag']
+# Key
+K = ['ScreenState', 'ProcState', 'RunProc', 'TerminateProc', 'RestartProc',
        'Process', 'TerminateThread', 'UALastAction', 'DBWrite', 'UAValid',
        'CMSController', ]
 
@@ -30,17 +34,17 @@ ProcDict = {ProcList[0]: True, ProcList[1]: False, }
 
 
 # ACTIONS WITH DEPENDENCY
-RunNova = [{Key[1]: [ProcList[0], False], Key[0]: [ScreenState[0], True]},
-                {root[1]: Head[1], root[2]: Key[2], root[3]: ProcList[0], }, ]
+RunNova = [{K[1]: [ProcList[0], False], K[0]: [ScreenState[0], True]},
+           {r[1]: H[1], r[2]: K[2], r[3]: ProcList[0], }, ]
 
-RestartNova = [{Key[1]: [ProcList[0], True], Key[0]: [ScreenState[0], True]},
-                {root[1]: Head[1], root[2]: Key[4], root[3]: ProcList[0], }, ]
+RestartNova = [{K[1]: [ProcList[0], True], K[0]: [ScreenState[0], True]},
+               {r[1]: H[1], r[2]: K[4], r[3]: ProcList[0], }, ]
 
-TerminateMars = [{Key[1]: [ProcList[1], False], },
-                 {root[1]: Head[1], root[2]: Key[3], root[3]: ProcList[1], }, ]
+TerminateMars = [{K[1]: [ProcList[1], False], },
+                 {r[1]: H[1], r[2]: K[3], r[3]: ProcList[1], }, ]
 
-TerminateNova = [{root[1]: Head[1], root[2]: Key[3], root[3]: ProcList[0], }, ]
+TerminateNova = [{r[1]: H[1], r[2]: K[3], r[3]: ProcList[0], }, ]
 
-TerminateNovaSD = [{root[1]: Head[1], root[2]: Key[3], root[3]: ProcList[2], }, ]
+TerminateNovaSD = [{r[1]: H[1], r[2]: K[3], r[3]: ProcList[2], }, ]
 
-TerminateThread = [{root[0]:Method[0], root[1]: Head[1],  root[2]: Key[6], root[3]: 'UA_All', }, ]
+TerminateThread = [{r[0]:M[0], r[1]: H[1], r[2]: K[6], r[3]: 'UA_All', }, ]

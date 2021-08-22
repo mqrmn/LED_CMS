@@ -6,7 +6,8 @@ import datetime
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
-from App import Act, Resource, Log
+from App import Act,  Log
+from App import Resource as R
 
 LOG = Log.Log_Manager()
 
@@ -35,7 +36,7 @@ class Queue:
             else:
                 pass
             # Запуск NovaStudio
-            if data == Resource.RunNova[1]:
+            if data == R.RunNova[1]:
                 if ((datetime.datetime.now() - runNovaTime).seconds >= 30) or runNovaCount == 0:
                     self.ToSend(data, Q_out)
                     runNovaTime = datetime.datetime.now()
@@ -44,7 +45,7 @@ class Queue:
                     pass
                 data = None
             # Остановка NovaStudio
-            if data == Resource.TerminateNova:
+            if data == R.TerminateNova:
                 if ((datetime.datetime.now() - termNovaTime).seconds >= 30) or termNovaCount == 0:
                     self.ToSend(data, Q_out)
                     termNovaTime = datetime.datetime.now()
@@ -53,7 +54,7 @@ class Queue:
                     pass
                     data = None
             # Остановка MarsServerProvider
-            if data == Resource.TerminateMars[1]:
+            if data == R.TerminateMars[1]:
                 if ((datetime.datetime.now() - termMarsTime).seconds >= 30) or termMarsCount == 0:
                     self.ToSend(data, Q_out)
                     termMarsTime = datetime.datetime.now()
@@ -62,7 +63,7 @@ class Queue:
                     pass
                 data = None
             # Перезапуск NovaStudio
-            if data == Resource.RestartNova[1]:
+            if data == R.RestartNova[1]:
                 if ((datetime.datetime.now() - resNovaTime).seconds >= 30) or resNovaCount == 0:
                     self.ToSend(data, Q_out)
                     resNovaTime = datetime.datetime.now()
@@ -78,16 +79,16 @@ class Queue:
         while True:
             data = Q_in.get()
             lastReceive = datetime.datetime.now()
-            if data['method'] == Resource.Method[0]:
-                if data['head'] == Resource.Head[0]:
-                    if data['key'] == Resource.Key[0]:
-                        Q_screenValidation.put({'key': data['key'], 'data': data['data'], })
-                    if data['key'] == Resource.Key[1]:
-                        Q_procValidation.put({'key': data['key'], 'data': data['data'], })
+            if data[R.r[0]] == R.M[0]:
+                if data[R.r[1]] == R.H[0]:
+                    if data[R.r[2]] == R.K[0]:
+                        Q_screenValidation.put({R.r[2]: data[R.r[2]], R.r[3]: data[R.r[3]], })
+                    if data[R.r[2]] == R.K[1]:
+                        Q_procValidation.put({R.r[2]: data[R.r[2]], R.r[3]: data[R.r[3]], })
 
-            Q_Internal.put({Resource.root[1]: Resource.Head[2],
-                            Resource.root[2]: Resource.Key[7],
-                            Resource.root[3]: lastReceive, })
+            Q_Internal.put({R.r[1]: R.H[2],
+                            R.r[2]: R.K[7],
+                            R.r[3]: lastReceive, })
 
 
     # Подготавливает команты, отправляеемые на UA
@@ -97,25 +98,25 @@ class Queue:
         command = None
         while True:
             data = Q_in.get()
-            if (data['key'] == Resource.Key[0]) \
-                or (data['key'] == Resource.Key[1] and data['data'][0] == Resource.ProcList[0]):
-                DictNova[data['key']] = data['data']
+            if (data[R.r[2]] == R.K[0]) \
+                or (data[R.r[2]] == R.K[1] and data[R.r[3]][0] == R.ProcList[0]):
+                DictNova[data[R.r[2]]] = data[R.r[3]]
 
-                if DictNova == Resource.RunNova[0]:
-                    command = Resource.RunNova[1]
+                if DictNova == R.RunNova[0]:
+                    command = R.RunNova[1]
                     DictNova = {}
-                if DictNova == Resource.RestartNova[0]:
-                    command = Resource.RestartNova[1]
+                if DictNova == R.RestartNova[0]:
+                    command = R.RestartNova[1]
                     DictNova = {}
                 if command:
                     Q_out.put(command)
                     command = None
                     DictNova = {}
 
-            if data['key'] == Resource.Key[1] and data['data'][0] == Resource.ProcList[1]:
-                DictMars[data['key']] = data['data']
-                if DictMars == Resource.TerminateMars[0]:
-                    command = Resource.TerminateMars[1]
+            if data[R.r[2]] == R.K[1] and data[R.r[3]][0] == R.ProcList[1]:
+                DictMars[data[R.r[2]]] = data[R.r[3]]
+                if DictMars == R.TerminateMars[0]:
+                    command = R.TerminateMars[1]
                     DictMars = {}
                 if command:
                     Q_out.put(command)
@@ -126,11 +127,11 @@ class Queue:
     def FromCore(self, Q_in, Q_out, ):
         while True:
             data = Q_in.get()
-            if data['method'] == Resource.Method[0]:
-                if data['head'] == Resource.Head[1]:
+            if data[R.r[0]] == R.M[0]:
+                if data[R.r[1]] == R.H[1]:
                     Q_out.put(data)
-                if data[Resource.root[1]] == Resource.Head[4]:
-                    Q_out.put(data[Resource.root[3]])
+                if data[R.r[1]] == R.H[4]:
+                    Q_out.put(data[R.r[3]])
 
     # Проверяет ключи в данных приходящих на UA, в соответсвии с ними запускает действия
     def UAAction(self, Q_in, Q_out,):
@@ -139,15 +140,15 @@ class Queue:
 
             data = Q_in.get()
             
-            if data['key'] == Resource.Key[2]:
-                Exec.Start(data['data'])
-            if data['key'] == Resource.Key[3]:
-                Exec.Terminate(data['data'])
-            if data['key'] == Resource.Key[4]:
-                Exec.Restart(data['data'])
-            if data['key'] == Resource.Key[5]:
+            if data[R.r[2]] == R.K[2]:
+                Exec.Start(data[R.r[3]])
+            if data[R.r[2]] == R.K[3]:
+                Exec.Terminate(data[R.r[3]])
+            if data[R.r[2]] == R.K[4]:
+                Exec.Restart(data[R.r[3]])
+            if data[R.r[2]] == R.K[5]:
                 pass
-            if data['key'] == Resource.Key[6]:
+            if data[R.r[2]] == R.K[6]:
 
                 Q_out.put(data)
 
@@ -159,13 +160,13 @@ class Queue:
         while True:
             data = Q_in.get()
             if type(data) == dict:
-                if data['data'][0] not in Dict:
-                    Dict[data['data'][0]] = 0
+                if data[R.r[3]][0] not in Dict:
+                    Dict[data[R.r[3]][0]] = 0
                 else:
                     pass
                 checkCount += 1
-                if data['data'][1] == checkValue:
-                    Dict[data['data'][0]] += 1
+                if data[R.r[3]][1] == checkValue:
+                    Dict[data[R.r[3]][0]] += 1
                 else:
                     pass
                 if Dict.__len__() > 1:
@@ -175,10 +176,10 @@ class Queue:
                 if checkCount >= maxCountH:
                     for i in Dict:
                         if Dict[i] == maxCount:
-                            Q_out.put({'head': head, 'key': data['key'], 'data': [i, checkValue]})
+                            Q_out.put({R.r[1]: head, R.r[2]: data[R.r[2]], R.r[3]: [i, checkValue]})
                         else:
                             if sendAllCircles == True:
-                                Q_out.put({'head': head, 'key': data['key'], 'data': [i, not checkValue]})
+                                Q_out.put({R.r[1]: head, R.r[2]: data[R.r[2]], R.r[3]: [i, not checkValue]})
                             else:
                                 pass
                     Dict = {}
@@ -191,17 +192,17 @@ class Queue:
         while True:
             if Q_in.empty() == False:
                 data = Q_in.get()
-                if data[1] == Resource.ProcDict[data[0]]:
+                if data[1] == R.ProcDict[data[0]]:
                     state = True
                 else:
                     state = False
-                Q_out.put({'key': Resource.Key[1], 'data': [data[0], state]})
+                Q_out.put({R.r[2]: R.K[1], R.r[3]: [data[0], state]})
             else:
                 time.sleep(1)
 
     # Обработка очереди на отправку 
     def ToSend(self, data, Q_out):
-        data['method'] = Resource.Method[0]
+        data[R.r[0]] = R.M[0]
         Q_out.put(data)
 
     # Обработка внутренней очереди
@@ -209,25 +210,25 @@ class Queue:
         while True:
             data = Q_in.get()
             # Проверка агента
-            if data[Resource.root[1]] == Resource.Head[2]:
-                if data[Resource.root[2]] == Resource.Key[7]:
-                    Q_UAValid.put(data[Resource.root[3]])
+            if data[R.r[1]] == R.H[2]:
+                if data[R.r[2]] == R.K[7]:
+                    Q_UAValid.put(data[R.r[3]])
             # Запись в БД
-            if data[Resource.root[1]] == Resource.Head[3]:
-                if data[Resource.root[2]] == Resource.Key[8]:
-                    Q_DBWrite.put(data[Resource.root[3]])
+            if data[R.r[1]] == R.H[3]:
+                if data[R.r[2]] == R.K[8]:
+                    Q_DBWrite.put(data[R.r[3]])
             # Установка флагов
-            if data[Resource.root[1]] == Resource.Head[4]:
-                Q_SetFlag.put({Resource.root[2]: data[Resource.root[2]],
-                               Resource.root[3]: data[Resource.root[3]], }, )
+            if data[R.r[1]] == R.H[4]:
+                Q_SetFlag.put({R.r[2]: data[R.r[2]],
+                               R.r[3]: data[R.r[3]], }, )
 
     def SetFlag(self, Q_SetFlag, Q_UAValidSF, Q_Cont_TCPSend):
         while True:
             data = Q_SetFlag.get()
-            if data[Resource.root[2]] == Resource.Key[9]:
-                Q_UAValidSF.put(data[Resource.root[3]])
-            if data[Resource.root[2]] == Resource.Key[10]:
-                Q_Cont_TCPSend.put({Resource.root[0]: Resource.Method[0], Resource.root[1]: Resource.Head[4],
-                                    Resource.root[2]: Resource.Key[10], Resource.root[3]: data[Resource.root[3]]})
+            if data[R.r[2]] == R.K[9]:
+                Q_UAValidSF.put(data[R.r[3]])
+            if data[R.r[2]] == R.K[10]:
+                Q_Cont_TCPSend.put({R.r[0]: R.M[0], R.r[1]: R.H[4],
+                                    R.r[2]: R.K[10], R.r[3]: data[R.r[3]]})
 
 

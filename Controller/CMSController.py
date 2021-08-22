@@ -102,7 +102,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         while True:
             if Q_Manage.empty() == False:
-                FLAG = Q_Manage.get()[Resource.root[3]]
+                FLAG = Q_Manage.get()[Resource.r[3]]
 
                 LOG.CMSLogger('Флаг управления перезагрузкой: {}'.format(FLAG))
 

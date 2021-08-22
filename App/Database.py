@@ -64,16 +64,16 @@ class DBFoo(Tables):
 class Prepare:
 
     def SelfInitShutdown(self, trigger, key, datetimeData):
-        return {Resource.root[1]: Resource.Head[3],
-                Resource.root[2]: Resource.Key[8],
-                Resource.root[3]: {Resource.DBWriteData[0]: 'SelfInitShutdown',
-                                   Resource.root[3]: {'trigger': trigger,
+        return {Resource.r[1]: Resource.H[3],
+                Resource.r[2]: Resource.K[8],
+                Resource.r[3]: {Resource.DBWriteData[0]: 'SelfInitShutdown',
+                                Resource.r[3]: {'trigger': trigger,
                                                       'key': key,
                                                       'datetime': datetimeData}, }, }
 
     def SystemInit(self, datetimeData):
-        return {Resource.root[1]: Resource.Head[3],
-                Resource.root[2]: Resource.Key[8],
-                Resource.root[3]: {Resource.DBWriteData[0]: 'SystemInit',
-                                   Resource.root[3]: {'datetime': datetimeData,
-                                                      }, }, }
+        return {Resource.r[1]: Resource.H[3],
+                Resource.r[2]: Resource.K[8],
+                Resource.r[3]: {Resource.DBWriteData[0]: 'SystemInit',
+                                Resource.r[3]: {'datetime': datetimeData,
+                                                }, }, }

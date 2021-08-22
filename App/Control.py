@@ -94,10 +94,10 @@ class CMS:
                 # Проверка значений, передача результата в очередь
                 if len(chanelSumArr) == 2:
                     if (chanelSumArr[0] == chanelSumArr[1]):  # Экран статичен
-                        screenStateQueue.put({'key': Resource.Key[0],
+                        screenStateQueue.put({'key': Resource.K[0],
                                               'data': [Resource.ScreenState[0], True], })
                     else:
-                        screenStateQueue.put({'key': Resource.Key[0],
+                        screenStateQueue.put({'key': Resource.K[0],
                                               'data': [Resource.ScreenState[0],  False], })
                     del chanelSumArr[0]  # Удаляю из словаря запись с индексом 0
                 time.sleep(random.randint(Config.timeoutSCheck[0], Config.timeoutSCheck[1]))

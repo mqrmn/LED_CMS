@@ -103,9 +103,9 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         # Потоки обработки входящих данных
         TQ_FromUA = threading.Thread(target=C_Handlers.FromUA, args=(Q_FromUA, Q_ValidScreen, Q_ValidProc, Q_Internal))
         TQ_ValidScreen = threading.Thread(target=C_Handlers.Valid, args=(
-            Q_ValidScreen, Q_Action, True, 1, Resource.Head[0], True,))
+            Q_ValidScreen, Q_Action, True, 1, Resource.H[0], True,))
         TQ_ValidProc = threading.Thread(target=C_Handlers.Valid,
-                                        args=(Q_ValidProc, Q_Action, False, 1, Resource.Head[0], True,))
+                                        args=(Q_ValidProc, Q_Action, False, 1, Resource.H[0], True,))
 
         # Потоки формирования исходящих данных
         TQ_CreateAction = threading.Thread(target=C_Handlers.CreateAction, args=(Q_Action, Q_PrepareToSend, Q_SetFlag))
