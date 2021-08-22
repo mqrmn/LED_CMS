@@ -41,18 +41,6 @@ class Process:
             Nova.RestartNova()
 
 
-
-    def RestartNova(self):
-        LOG.CMSLogger('Called')
-        self.TerminateNova()
-        self.RunNova()
-
-    def RunNova(self):
-        LOG.CMSLogger( 'Called')
-        pythoncom.CoInitialize()
-        handle = wmi.WMI()
-        handle.Win32_Process.Create(CommandLine='C:\\Program Files (x86)\\NovaStudio\\Bin\\NovaStudio.exe', )
-
     def TerminateNova(self):
         LOG.CMSLogger( 'Called')
         pythoncom.CoInitialize()
@@ -103,10 +91,9 @@ class System:
 
 class Files:
     def RestoreNovaBin(self):
-        C_API = API.Win()
         if self.CheckNovaFile() == True:
-            if C_API.GetProcState(Resource.ProcList[0]) == True:
-                Process.TerminateNova()
+            if Nova.GetProcState(Resource.ProcList[0]) == True:
+                Nova.TerminateNova()
                 self.CopyNovaBin()
 
 
