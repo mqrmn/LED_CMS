@@ -26,31 +26,3 @@ class CMS:
                 pass
             time.sleep(10)
 
-    def CMSUpdater(self, Q_out):
-        C_API = API.Service()
-        C_FileMan = File.Manager()
-        C_Action = Action.System()
-        pythoncom.CoInitialize()
-        while True:
-            if C_FileMan.CMSUpgrade(False) == True:
-                LOG.CMSLogger('Обнаружено обновление')
-                time.sleep(180)
-                stSvc = C_API.StopService('CMS')
-                if stSvc[0] == 0:
-                    Q_out.put(True)
-                    LOG.CMSLogger( 'CMS остановлена')
-                    time.sleep(30)
-                    C_FileMan.CMSUpgrade(True)
-                    table = Database.Tables()
-                    table.SelfInitShutdown.create(trigger=getframeinfo(currentframe())[2],
-                                                  key='reboot',
-                                                  datetime=datetime.datetime.now(), )
-
-                    C_Action.RebootInit()
-                else:
-                    LOG.CMSLogger(
-                                      'Не удается остановить CMS, код: {}'.format(stSvc), )
-            else:
-                time.sleep(1800)
-
-

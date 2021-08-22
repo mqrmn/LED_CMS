@@ -70,7 +70,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         # Создаю экземпляры классов
         C_Handlers = Handler.Queue()
         C_Network = Comm.Socket()
-        C_File = File.Manager()
+        C_RenewCont = File.RenewContent()
         C_Valid = Validation.System()
         C_DB = Database.DBFoo()
         LOG.CMSLogger('Экземпляры классов созданы')
@@ -120,7 +120,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         T_DBWriteController = (threading.Thread(target=C_DB.WriteController, args=(Q_DBWrite,)))
 
         # Служебные потоки
-        T_CheckNewContent = threading.Thread(target=C_File.DynamicRenewCont, args=(Q_PrepareToSend,))
+        T_CheckNewContent = threading.Thread(target=C_RenewCont.DynamicRenewCont, args=(Q_PrepareToSend,))
         TQ_UAValid = threading.Thread(target=C_Valid.UAValid, args=(Q_UAValid, Q_Internal, Q_UAValidSF))
 
         LOG.CMSLogger( 'Потоки инициализированы')
