@@ -13,20 +13,20 @@ from App import Resource, LogManager
 LOG = LogManager.Log_Manager()
 
 class Win:
-
-    handle = wmi.WMI()
+    def __init__(self):
+        global handle
+        handle = wmi.WMI()
+        pythoncom.CoInitialize()
 
     def CoinInit(self):
         pythoncom.CoInitialize()
 
-    def GetWMI(self):
-        self.CoinInit()
-        handle = wmi.WMI()
+    def GetWMI(self, privileges=None):
+        handle = wmi.WMI(privileges)
         return handle
 
     def GetProcState(self, i):
-        proc = self.GetWMI().Win32_Process(Name=i)
-        return proc
+        return handle.Win32_Process(Name=i)
 
     def GetProcessState(self, Q_out):
         for i in Resource.ProcDict:
@@ -36,18 +36,19 @@ class Win:
                 procState = False
             Q_out.put([i, procState])
 
-
     def StartProc(self, executable):
-        self.GetWMI().Win32_Process.Create(CommandLine=executable, )
+        handle.Win32_Process.Create(CommandLine=executable, )
 
     def TerminateProc(self, name):
-
-        for proc in self.GetWMI().Win32_Process(Name=name):
+        for proc in handle.Win32_Process(Name=name):
             proc.Terminate(Reason=1)
+
+
+
+
 
     def GetService(self, name):
         LOG.CMSLogger('Called')
-        handle = wmi.WMI()
         if name:
             return handle.Win32_Service(name=name)[0]
 
@@ -63,13 +64,17 @@ class Win:
         LOG.CMSLogger( 'Called')
         return self.GetService(name).State
 
-    def RestartService(self):
-        pass
+
+
 
     def RestartPC(self):
         LOG.CMSLogger('Called')
-        handle = wmi.WMI(privileges=["Shutdown"])
-        handle.Win32_OperatingSystem()[0].RebootInit()
+        self.GetWMI(privileges=["Shutdown"]).Win32_OperatingSystem()[0].RebootInit()
+
+
+class Service:
+    pass
+
 
 
 class Nova(Win):

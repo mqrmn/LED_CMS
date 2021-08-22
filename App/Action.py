@@ -25,30 +25,24 @@ class Process:
         Win = API.Win()
 
     def Start(self, data):
-        LOG.CMSLogger( 'Called')
         if data == Resource.ProcList[0]:
             Nova.RunNova()
 
     def Terminate(self, data):
-        LOG.CMSLogger('Called')
         if data == Resource.ProcList[1]:
             Nova.TerminateMars()
         if data == Resource.ProcList[0]:
             Nova.TerminateNova()
 
     def Restart(self, data):
-        LOG.CMSLogger('Called')
         if data == Resource.ProcList[0]:
             Nova.RestartNova()
 
 class System:
 
     def RebootInit(self):
-        LOG.CMSLogger('Called')
         time.sleep(180)
         Win.RestartPC()
-
-
 
 class Files:
     def RestoreNovaBin(self):
