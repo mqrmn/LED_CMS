@@ -18,23 +18,29 @@ from App import Resource, API, LogManager, Database
 LOG = LogManager.Log_Manager()
 
 class Process:
+    def __init__(self):
+        global Nova
+        Nova = API.Nova()
 
     def Start(self, data):
         LOG.CMSLogger( 'Called')
         if data == Resource.ProcList[0]:
-            self.RunNova()
+            Nova.RunNova()
 
     def Terminate(self, data):
         LOG.CMSLogger('Called')
         if data == Resource.ProcList[1]:
             self.TerminateMars()
         if data == Resource.ProcList[0]:
-            self.TerminateNova()
+            Nova.TerminateNova()
+
 
     def Restart(self, data):
         LOG.CMSLogger('Called')
         if data == Resource.ProcList[0]:
-            self.RestartNova()
+            Nova.RestartNova()
+
+
 
     def RestartNova(self):
         LOG.CMSLogger('Called')
