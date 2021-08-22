@@ -52,22 +52,6 @@ class System(Init):
 
 
 class Files:
-    def RestoreNovaBin(self):
-        if self.CheckNovaFile() == True:
-            if Nova.GetProcState(Resource.ProcList[0]) == True:
-                Nova.TerminateNova()
-                self.CopyNovaBin()
-
-
-    def CheckNovaFile(self):
-        file = open(Resource.novaBinFile, 'rb')
-        string = file.read()
-        return re.search('zh-CN', str(string))
-
-    def CopyNovaBin(self):
-        shutil.copy(Resource.novaBinFileBak,  Resource.novaBinFile)
-
-
 
     # Архивирует логи
     def LogArch(self):

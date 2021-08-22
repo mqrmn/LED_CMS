@@ -7,6 +7,8 @@ import time
 import shutil
 import pythoncom
 import datetime
+import re
+from datetime import date
 from inspect import currentframe, getframeinfo, getmodulename
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
@@ -403,3 +405,65 @@ class RenewContent:
             else:
                 element.tail = '\n' + ident * (level - 1)
             queue[0:0] = children
+
+class NovaBin:
+
+    def RestoreNovaBin(self):
+        C_Nova = API.Nova()
+        if self.CheckNovaFile() == True:
+            if C_Nova.GetProcState(Resource.ProcList[0]) == True:
+                C_Nova.TerminateNova()
+                self.CopyNovaBin()
+
+    def CheckNovaFile(self):
+        file = open(Resource.novaBinFile, 'rb')
+        string = file.read()
+        return re.search('zh-CN', str(string))
+
+    def CopyNovaBin(self):
+        shutil.copy(Resource.novaBinFileBak,  Resource.novaBinFile)
+
+class Log:
+
+    # Архивирует логи
+    def LogArch(self):
+        listForArchiving = []
+        # Перечисляю файлы, хранящиеся в дирректории
+        for file in os.listdir(Config.logPath):
+            # Продолжаю работать толь с файлами с расширением .log
+            if re.search('log', file):
+                # Проверяю дату создания лог файлов
+                logDate = datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0], "%Y-%m-%d")
+                if logDate.date() < date.today():
+                    archName = str(logDate.date())
+                    LOG.CMSLogger( 'Помечен для архивирования ' + file)
+                    listForArchiving.append(file)
+        # Проверяю существует ли папка которую собираюсь создать
+        if listForArchiving and not os.path.exists(Config.logPath + str(date.today())):
+            os.mkdir(Config.logPath + archName)
+            # Перемещаю журналы в папку
+            for file in listForArchiving:
+                shutil.move(Config.logPath + file, Config.logPath + archName + '\\' + file)
+                LOG.CMSLogger( 'Перемещен в архив ' + file)
+            # Архивирую папку
+            shutil.make_archive(base_name=Config.logPath + archName, format='zip', root_dir=Config.logPath + archName, )
+            shutil.rmtree(Config.logPath + archName)
+        else:
+            LOG.CMSLogger( 'Журналов для архивирования не обнаружено')
+
+    # Удаляет устаревшие логи
+    def LogDel(self):
+        listForDeleting = []
+
+        # Перечисляю файлы, хранящиеся в дирректории
+        for file in os.listdir(Config.logPath):
+            # Продолжаю работать только с файлами с расширением .zip
+            if re.search('zip', file):
+                # Проверяю дату создания архива
+                if (datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0], "%Y-%m-%d").date() - date.today()).days < -90:
+                    listForDeleting.append(file)
+
+        # Удаляю устаревшие архивы
+        for file in listForDeleting:
+            os.remove(Config.logPath + file)
+            LOG.CMSLogger('Файл удален ' + file)
