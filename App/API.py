@@ -73,9 +73,6 @@ class Service(Win):
         self.GetWMI(privileges=["Shutdown"]).Win32_OperatingSystem()[0].RebootInit()
 
 
-class Service:
-    pass
-
 
 
 class Nova(Process):

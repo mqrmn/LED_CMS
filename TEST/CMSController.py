@@ -22,7 +22,7 @@ from App import LogManager, Database, Comm, Handler
 
 def TEST():
     # Создание экзепляров классов
-    C_Win = API.Process()
+    C_API = API.Service()
     C_FileMan = File.Manager()
     C_ActionSys = Action.System()
     C_ActionInit = Action.Init()
@@ -36,15 +36,14 @@ def TEST():
 
     # Инициализация потоков
     T_Updater = threading.Thread(target=C_Control.CMSUpdater, args=(Q_Internal,))
-    T_Server = threading.Thread(target=C_Network.Server, args=(Config.localhost, Config.CMSControllertPort, Q_FromCore))
+    T_Server = threading.Thread(target=C_Network.Server,
+                                args=(Config.localhost, Config.CMSControllertPort, Q_FromCore))
     # TQ_FromCore = threading.Thread(target=C_Handler.FromCore, args=(Q_FromCore, Q_Manage))
 
     # Запуск потоков
     T_Updater.start()
     T_Server.start()
     # TQ_FromCore.start()
-
-
 
     # Цикл
     # --------------------------------------------------------------------
@@ -96,11 +95,10 @@ def TEST():
                     else:
                         LOG.CMSLogger('rebootAccessDenied')
 
-
         time.sleep(10)
 
 
-        # Граница цикла
+# Граница цикла
         #----------------------------------------------------------------------
 
 if __name__ == '__main__':

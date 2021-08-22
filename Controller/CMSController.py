@@ -147,8 +147,9 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
             rc = win32event.WaitForSingleObject(self.hWaitStop, self.timeout)
             if rc == win32event.WAIT_OBJECT_0:
                 # Здесь выполняем необходимые действия при остановке службы
-                pythoncom.CoInitialize()
-                C_API.StopService('CMS')
+                LOG.CMSLogger('1 ПЕРЕД ВЫКЛЮЧЕНИЕМ')
+                stSvc = C_API.StopService('CMS')
+                LOG.CMSLogger('2 ПОСЛЕ ВЫКЛЮЧЕНИЯ')
                 servicemanager.LogInfoMsg("Service finished")
                 break
             # Здесь выполняем необходимые действия при приостановке службы
