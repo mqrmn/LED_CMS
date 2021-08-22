@@ -10,7 +10,7 @@ from datetime import date
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 from App.Config import Config
-from App import Resource, API, Log, Database
+from App import API, Log, Database
 from App import Resource as R
 
 LOG = Log.Log_Manager()

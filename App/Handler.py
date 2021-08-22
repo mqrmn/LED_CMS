@@ -6,7 +6,7 @@ import datetime
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
-from App import Act,  Log
+from App import Act
 from App import Resource as R
 
 
@@ -201,15 +201,15 @@ class Queue:
     def Internal(self, Q_in, Q_UAValid, Q_DBWrite, Q_SetFlag):
         while True:
             data = Q_in.get()
-            # Проверка агента
+            # Agent check
             if data[R.r[1]] == R.H[2]:
                 if data[R.r[2]] == R.K[7]:
                     Q_UAValid.put(data[R.r[3]])
-            # Запись в БД
+            # Writing to the database
             if data[R.r[1]] == R.H[3]:
                 if data[R.r[2]] == R.K[8]:
                     Q_DBWrite.put(data[R.r[3]])
-            # Установка флагов
+            # Setting flags
             if data[R.r[1]] == R.H[4]:
                 Q_SetFlag.put({R.r[2]: data[R.r[2]],
                                R.r[3]: data[R.r[3]], }, )

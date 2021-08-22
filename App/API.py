@@ -8,8 +8,8 @@ import psutil
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
-from App import Resource, Log
-
+from App import Log
+from App import Resource as R
 LOG = Log.Log_Manager()
 
 
@@ -30,7 +30,7 @@ class Process(Win):
         return self.GetWMI().Win32_Process(Name=i)
 
     def GetProcessState(self, Q_out):
-        for i in Resource.ProcDict:
+        for i in R.ProcDict:
             if self.GetProcState(i):
                 procState = True
             else:
@@ -61,7 +61,7 @@ class Service(Win):
         return self.GetService(name).StartService()
 
     def GetServiceState(self, name):
-        LOG.CMSLogger( 'Called')
+        LOG.CMSLogger('Called')
         return self.GetService(name).State
 
 
@@ -84,7 +84,7 @@ class Nova(Process):
 
     def TerminateNova(self):
         LOG.CMSLogger('Called')
-        self.TerminateProc(Resource.ProcList[0])
+        self.TerminateProc(R.ProcList[0])
 
 
     def TerminateMars(self):
