@@ -5,7 +5,7 @@ root = ['method', 'head', 'key', 'data']
 Method = ['put', 'get', ]
 Head = ['State', 'Action', 'Report', 'DB', 'Flag']
 Key = ['ScreenState', 'ProcState', 'RunProc', 'TerminateProc', 'RestartProc',
-       'Win', 'TerminateThread', 'UALastAction', 'DBWrite', 'UAValid',
+       'Process', 'TerminateThread', 'UALastAction', 'DBWrite', 'UAValid',
        'CMSController', ]
 
 DBWriteData = ['table', ]

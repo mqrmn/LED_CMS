@@ -65,7 +65,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
         # Создание экзепляров классов
-        C_Win = API.Win()
+        C_API = API.Service()
         C_FileMan = File.Manager()
         C_ActionSys = Action.System()
         C_ActionInit = Action.Init()
@@ -148,7 +148,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
             if rc == win32event.WAIT_OBJECT_0:
                 # Здесь выполняем необходимые действия при остановке службы
                 pythoncom.CoInitialize()
-                stSvc = C_Win.StopService('CMS')
+                C_API.StopService('CMS')
                 servicemanager.LogInfoMsg("Service finished")
                 break
             # Здесь выполняем необходимые действия при приостановке службы

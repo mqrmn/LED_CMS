@@ -22,7 +22,7 @@ class Process:
         global Nova
         global Win
         Nova = API.Nova()
-        Win = API.Win()
+        Win = API.Process()
 
     def Start(self, data):
         if data == Resource.ProcList[0]:

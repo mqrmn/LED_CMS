@@ -12,9 +12,8 @@ from App import Resource, LogManager
 
 LOG = LogManager.Log_Manager()
 
+
 class Win:
-    def __init__(self):
-        pythoncom.CoInitialize()
 
     def CoinInit(self):
         pythoncom.CoInitialize()
@@ -23,6 +22,9 @@ class Win:
         self.CoinInit()
         handle = wmi.WMI(privileges)
         return handle
+
+
+class Process(Win):
 
     def GetProcState(self, i):
         return self.GetWMI().Win32_Process(Name=i)
@@ -44,7 +46,7 @@ class Win:
 
 
 
-
+class Service(Win):
 
     def GetService(self, name):
         LOG.CMSLogger('Called')
@@ -76,7 +78,7 @@ class Service:
 
 
 
-class Nova(Win):
+class Nova(Process):
 
     def RestartNova(self):
         LOG.CMSLogger('Called')

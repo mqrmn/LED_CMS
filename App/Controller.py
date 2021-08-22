@@ -27,7 +27,7 @@ class CMS:
             time.sleep(10)
 
     def CMSUpdater(self, Q_out):
-        C_Win = API.Win()
+        C_API = API.Service()
         C_FileMan = File.Manager()
         C_Action = Action.System()
         pythoncom.CoInitialize()
@@ -35,7 +35,7 @@ class CMS:
             if C_FileMan.CMSUpgrade(False) == True:
                 LOG.CMSLogger('Обнаружено обновление')
                 time.sleep(180)
-                stSvc = C_Win.StopService('CMS')
+                stSvc = C_API.StopService('CMS')
                 if stSvc[0] == 0:
                     Q_out.put(True)
                     LOG.CMSLogger( 'CMS остановлена')

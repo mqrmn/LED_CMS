@@ -22,7 +22,7 @@ from App import LogManager, Database, Comm, Handler
 
 def TEST():
     # Создание экзепляров классов
-    C_Win = API.Win()
+    C_Win = API.Process()
     C_FileMan = File.Manager()
     C_ActionSys = Action.System()
     C_ActionInit = Action.Init()
