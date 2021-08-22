@@ -15,5 +15,3 @@ screen_num = 1
 # Размеры экранов
 # regiondict = {0:[отступ x, отступ y, ширина x, ширина y]}
 regiondict = {0:[0, 0, 320, 120], 1:[0, 120, 480, 120]}
-
-DBFolder = 'C:\\MOBILE\\Local\\CMS\\Database\\'

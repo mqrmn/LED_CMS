@@ -18,12 +18,9 @@ upgradePolitic = 1
 # Настройка корневых директорий
 workPath = 'C:\\MOBILE\\YandexDisk\\MACHINES\\{}\\{}\\'.format(objType, objCode)
 logPath = '{}Log\\'.format(workPath)
-tempPath = '{}Temp\\'.format(workPath)
-cmsConfigPath = '{}Config\\'.format(workPath)
 
 # Настройка локальных директорий
 configTargetPath = 'C:\\MOBILE\\Local\\Config\\'
-cmsLocalPath = 'C:\\MOBILE\\Local\\CMS\\'
 CMSArchPath = 'C:\\MOBILE\\Local\\Arch\\'
 
 # Настройка директорий обновления контента
@@ -38,13 +35,12 @@ globalCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\CMS_DEV\\'
 groupCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\{}\\CMS_DEV\\'.format(objType)
 localCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\{}\\{}\\CMS\\'.format(objType, objCode)
 
-DBFolder = ConfigEx.DBFolder
+DBFolder = 'C:\\MOBILE\\Local\\CMS\\Database\\'
 DBFile = 'CMS.db'
 DBPath = DBFolder + DBFile
 
 
 timeoutSCheck = [10, 30]
-timeoutPCheck = 30
 
 # Настройка сокетов для внутренних коммуникаций
 localhost = 'localhost'
