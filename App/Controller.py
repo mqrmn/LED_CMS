@@ -46,7 +46,7 @@ class CMS:
                                                   key='reboot',
                                                   datetime=datetime.datetime.now(), )
 
-                    C_Action.Reboot()
+                    C_Action.RebootInit()
                 else:
                     LOG.CMSLogger(
                                       'Не удается остановить CMS, код: {}'.format(stSvc), )

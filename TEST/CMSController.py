@@ -78,7 +78,7 @@ def TEST():
                     LOG.CMSLogger('CMS Stopped', )
                     if FLAG > 0:
                         if FLAG > 1:
-                            C_ActionSys.Reboot()
+                            C_ActionSys.RebootInit()
 
                             LOG.CMSLogger('reboot')
                             break
@@ -87,7 +87,7 @@ def TEST():
                             lastReboot = table.SelfInitShutdown().select().order_by(
                                 table.SelfInitShutdown.id.desc()).get()
                             if (datetime.datetime.now() - lastReboot.datetime).seconds <= 300:
-                                C_ActionSys.Reboot()
+                                C_ActionSys.RebootInit()
 
                                 LOG.CMSLogger('reboot')
                                 break

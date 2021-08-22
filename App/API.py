@@ -69,7 +69,7 @@ class Win:
     def RestartPC(self):
         LOG.CMSLogger('Called')
         handle = wmi.WMI(privileges=["Shutdown"])
-        handle.Win32_OperatingSystem()[0].Reboot()
+        handle.Win32_OperatingSystem()[0].RebootInit()
 
 
 class Nova(Win):
@@ -90,10 +90,9 @@ class Nova(Win):
 
     def TerminateMars(self):
         LOG.CMSLogger('Called')
-        pythoncom.CoInitialize()
-        handle = wmi.WMI()
-        handle.Win32_Process.Create(
-            CommandLine='C:\\Users\\rAdmin_local\\AppData\\Roaming\\Nova Star\\NovaLCT\\Bin\\NovaLCT.exe', )
+        executable = 'C:\\Users\\rAdmin_local\\AppData\\Roaming\\Nova Star\\NovaLCT\\Bin\\NovaLCT.exe'
+        self.StartProc(executable)
+
         time.sleep(15)
         for proc in psutil.process_iter():
             processName = proc.as_dict(attrs=['name'])

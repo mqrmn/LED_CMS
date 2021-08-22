@@ -141,14 +141,14 @@ class System:
 
                     if FLAG > 0:
                         if FLAG > 1:
-                            C_Action.Reboot()
+                            C_Action.RebootInit()
                             Q_Internal.put(C_Prepare.SelfInitShutdown(getframeinfo(currentframe())[2], 'reboot', datetime.datetime.now()))
                             LOG.CMSLogger('reboot')
                             break
                         else:
                             lastReboot = table.SelfInitShutdown().select().order_by(table.SelfInitShutdown.id.desc()).get()
                             if (datetime.datetime.now() - lastReboot.datetime).seconds <= 300:
-                                C_Action.Reboot()
+                                C_Action.RebootInit()
                                 Q_Internal.put(C_Prepare.SelfInitShutdown(getframeinfo(currentframe())[2], 'reboot', datetime.datetime.now()))
                                 LOG.CMSLogger('reboot')
                                 break

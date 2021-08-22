@@ -20,7 +20,9 @@ LOG = LogManager.Log_Manager()
 class Process:
     def __init__(self):
         global Nova
+        global Win
         Nova = API.Nova()
+        Win = API.Win()
 
     def Start(self, data):
         LOG.CMSLogger( 'Called')
@@ -41,53 +43,19 @@ class Process:
             Nova.RestartNova()
 
 
-    def TerminateNova(self):
-        LOG.CMSLogger( 'Called')
-        pythoncom.CoInitialize()
-        handle = wmi.WMI()
-        for proc in handle.Win32_Process(Name=Resource.ProcList[0]):
-            proc.Terminate(Reason=1)
-
     def TerminateMars(self):
         LOG.CMSLogger('Called')
-        pythoncom.CoInitialize()
-        handle = wmi.WMI()
-        handle.Win32_Process.Create(
-            CommandLine='C:\\Users\\rAdmin_local\\AppData\\Roaming\\Nova Star\\NovaLCT\\Bin\\NovaLCT.exe', )
-        time.sleep(15)
-        for proc in psutil.process_iter():
-            processName = proc.as_dict(attrs=['name'])
-            processPid = proc.as_dict(attrs=['pid'])
-            if processName['name'] == 'NovaLCT.exe':
 
-                novaProcess = psutil.Process(processPid['pid'])
-                for child in novaProcess.children(recursive=True):
-                    child.kill()
-
-                novaProcess.kill()
-
-            else:
-                pass
-
-
-class Service:
-
-    def Start(self):
-        pass
-
-    def Stop(self):
-        pass
-
-    def Restart(self):
-        pass
+        Nova.TerminateMars()
 
 class System:
 
-    def Reboot(self):
+    def RebootInit(self):
         LOG.CMSLogger('Called')
-        handle = API.Win()
         time.sleep(180)
-        handle.RestartPC()
+        Win.RestartPC()
+
+
 
 class Files:
     def RestoreNovaBin(self):
@@ -107,7 +75,6 @@ class Files:
 
     # Архивирует логи
     def LogArch(self):
-        LOG.CMSLogger( 'Called')
         listForArchiving = []
         # Перечисляю файлы, хранящиеся в дирректории
         for file in os.listdir(Config.logPath):
@@ -131,11 +98,9 @@ class Files:
             shutil.rmtree(Config.logPath + archName)
         else:
             LOG.CMSLogger( 'Журналов для архивирования не обнаружено')
-        LOG.CMSLogger('Closed')
 
     # Удаляет устаревшие логи
     def LogDel(self):
-        LOG.CMSLogger('Called')
         listForDeleting = []
 
         # Перечисляю файлы, хранящиеся в дирректории
@@ -150,11 +115,9 @@ class Files:
         for file in listForDeleting:
             os.remove(Config.logPath + file)
             LOG.CMSLogger('Файл удален ' + file)
-        LOG.CMSLogger( 'Closed')
 
 class Init(Files):
     def InitCMS(self, Q_Internal):
-        LOG.CMSLogger( 'Called')
         self.LogArch()
         self.LogDel()
         data = self.CheckSelf()
@@ -165,26 +128,24 @@ class Init(Files):
 
 
     def CheckDB(self):
-        LOG.CMSLogger( 'Called')
         data = True
         if os.path.exists(Config.DBFolder):
             if os.path.exists(Config.DBPath):
-                LOG.CMSLogger( 'Database file exist')
+                LOG.CMSLogger('Database file exist')
             else:
                 handle = Database.DBFoo()
                 handle.CreateTables()
                 data = False
-                LOG.CMSLogger( 'Database file created')
+                LOG.CMSLogger('Database file created')
         else:
             os.mkdir(Config.DBFolder)
             handle = Database.DBFoo()
             handle.CreateTables()
             data = False
-            LOG.CMSLogger( 'Database file created')
+            LOG.CMSLogger('Database file created')
         return data
 
     def CheckSelf(self):
-        LOG.CMSLogger( 'Called')
         data = self.CheckDB()
         return data
 
@@ -213,7 +174,7 @@ class Init(Files):
                         LOG.CMSLogger( 'Превышено количество '
                                                                                        'попыток перезапустить систему: {} '
                                                                                        'Последняя перезагрузка: {} '.format(count, lastReboot))
-                        LOG.CMSLogger( 'Перезагрузка запрещена')
+                        LOG.CMSLogger( 'Перезагрузка запрещена ')
 
                     else:
                         Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[9],
