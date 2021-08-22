@@ -32,21 +32,14 @@ class Process:
     def Terminate(self, data):
         LOG.CMSLogger('Called')
         if data == Resource.ProcList[1]:
-            self.TerminateMars()
+            Nova.TerminateMars()
         if data == Resource.ProcList[0]:
             Nova.TerminateNova()
-
 
     def Restart(self, data):
         LOG.CMSLogger('Called')
         if data == Resource.ProcList[0]:
             Nova.RestartNova()
-
-
-    def TerminateMars(self):
-        LOG.CMSLogger('Called')
-
-        Nova.TerminateMars()
 
 class System:
 
