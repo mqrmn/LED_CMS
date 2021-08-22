@@ -25,7 +25,7 @@ def TEST():
     C_API = API.Service()
     C_FileMan = File.Manager()
     C_ActionSys = Action.System()
-    C_ActionInit = Action.Init()
+    C_ActionInit = Action.SysInit()
     C_Control = Controller.CMS()
     C_Network = Comm.Socket()
     C_Handler = Handler.Queue()

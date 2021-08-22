@@ -45,7 +45,6 @@ class Process(Win):
             proc.Terminate(Reason=1)
 
 
-
 class Service(Win):
 
     def GetService(self, name):
@@ -66,7 +65,7 @@ class Service(Win):
         return self.GetService(name).State
 
 
-
+class System(Win):
 
     def RestartPC(self):
         LOG.CMSLogger('Called')

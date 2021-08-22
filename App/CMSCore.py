@@ -62,7 +62,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
         Q_Internal = queue.Queue()
-        C_Action = Action.Init()
+        C_Action = Action.SysInit()
         C_Action.InitCMS(Q_Internal)
 
         LOG.CMSLogger('Called')

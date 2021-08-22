@@ -25,7 +25,7 @@ module = 'TEST'
 def TEST():
 
         Q_Internal = queue.Queue()
-        C_Action = Action.Init()
+        C_Action = Action.SysInit()
         C_Action.InitCMS(Q_Internal)
 
         LOG.CMSLogger('Called')

@@ -1,10 +1,7 @@
 # 1.1.1
 
 import sys
-import psutil
 import time
-import wmi
-import pythoncom
 import os
 import shutil
 import re
@@ -17,12 +14,17 @@ from App import Resource, API, LogManager, Database
 
 LOG = LogManager.Log_Manager()
 
-class Process:
+class Init:
     def __init__(self):
         global Nova
         global Win
+        global Sys
         Nova = API.Nova()
         Win = API.Process()
+        Sys = API.System()
+
+
+class Process(Init):
 
     def Start(self, data):
         if data == Resource.ProcList[0]:
@@ -38,11 +40,11 @@ class Process:
         if data == Resource.ProcList[0]:
             Nova.RestartNova()
 
-class System:
+class System(Init):
 
     def RebootInit(self):
         time.sleep(180)
-        Win.RestartPC()
+        Sys.RestartPC()
 
 class Files:
     def RestoreNovaBin(self):
@@ -103,7 +105,7 @@ class Files:
             os.remove(Config.logPath + file)
             LOG.CMSLogger('Файл удален ' + file)
 
-class Init(Files):
+class SysInit(Files):
     def InitCMS(self, Q_Internal):
         self.LogArch()
         self.LogDel()
@@ -159,8 +161,8 @@ class Init(Files):
                                         Resource.root[3]: Resource.ShutdownFlagData[0]})
 
                         LOG.CMSLogger( 'Превышено количество '
-                                                                                       'попыток перезапустить систему: {} '
-                                                                                       'Последняя перезагрузка: {} '.format(count, lastReboot))
+                                        'попыток перезапустить систему: {} '
+                                        'Последняя перезагрузка: {} '.format(count, lastReboot))
                         LOG.CMSLogger( 'Перезагрузка запрещена ')
 
                     else:
@@ -169,9 +171,9 @@ class Init(Files):
                         Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[10],
                                         Resource.root[3]: Resource.ShutdownFlagData[1]})
 
-                        LOG.CMSLogger('Превышена'
-                                                                                      'частота попыток перезапустить систему '
-                                                                                      'Последняя перезагрузка: {} '.format(lastReboot))
+                        LOG.CMSLogger('Превышена '
+                                        'частота попыток перезапустить систему '
+                                        'Последняя перезагрузка: {} '.format(lastReboot))
                 elif count >= 5:
                     Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[9],
                                     Resource.root[3]: Resource.ShutdownFlagData[1]})
@@ -179,8 +181,8 @@ class Init(Files):
                                     Resource.root[3]: Resource.ShutdownFlagData[1]})
 
                     LOG.CMSLogger( 'Превышена '
-                                                                                   'частота попыток перезапустить систему '
-                                                                                   'Последняя перезагрузка: {}'.format(lastReboot))
+                                   'частота попыток перезапустить систему '
+                                   'Последняя перезагрузка: {} '.format(lastReboot))
                     LOG.CMSLogger( 'Перезагрузка запрещена')
                 else:
                     Q_Internal.put({Resource.root[1]: Resource.Head[4], Resource.root[2]: Resource.Key[9],

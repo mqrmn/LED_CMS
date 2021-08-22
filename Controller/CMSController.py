@@ -66,19 +66,21 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         # Создание экзепляров классов
         C_API = API.Service()
-        C_FileMan = File.Manager()
+        C_RenewCont = File.RenewContent()
+        C_CMSUpgrade = File.CMSUpdate()
         C_ActionSys = Action.System()
-        C_ActionInit = Action.Init()
+        C_ActionInit = Action.SysInit()
         C_Control = Controller.CMS()
         C_Network = Comm.Socket()
         C_Handler = Handler.Queue()
+
         # Создание очередей
         Q_Internal = queue.Queue()
         Q_FromCore = queue.Queue()
         Q_Manage = queue.Queue()
 
         # Инициализация потоков
-        T_Updater = threading.Thread(target=C_Control.CMSUpdater, args=(Q_Internal,))
+        T_Updater = threading.Thread(target=C_CMSUpgrade.CMSUpdater, args=(Q_Internal,))
         T_Server = threading.Thread(target=C_Network.Server,
                                     args=(Config.localhost, Config.CMSControllertPort, Q_FromCore))
         # TQ_FromCore = threading.Thread(target=C_Handler.FromCore, args=(Q_FromCore, Q_Manage))
