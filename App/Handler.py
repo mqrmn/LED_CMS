@@ -241,7 +241,6 @@ class Queue:
                     Q_DBWrite.put(data[Resource.root[3]])
             # Установка флагов
             if data[Resource.root[1]] == Resource.Head[4]:
-                print('Internal', data)
                 Q_SetFlag.put({Resource.root[2]: data[Resource.root[2]],
                                Resource.root[3]: data[Resource.root[3]], }, )
 

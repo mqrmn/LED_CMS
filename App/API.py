@@ -76,6 +76,8 @@ class System(Win):
 
 class Nova(Process):
 
+
+
     def RestartNova(self):
         LOG.CMSLogger('Called')
         self.TerminateNova()

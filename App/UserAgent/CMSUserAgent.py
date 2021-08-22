@@ -40,9 +40,9 @@ def main(Q_External):
     T_Client = threading.Thread(target=C_Network.Client, args=(Config.localhost, Config.CMSCoreInternalPort, Q_ToSend))
 
     T_ActionRun = threading.Thread(target=C_Handlers.UAAction, args=(Q_Action, Q_Control))
-    T_GetScreen = threading.Thread(target=C_Valid.GetScreenStatic, args=(Q_ValidScreenRAW,))
+    T_GetScreen = threading.Thread(target=C_Control.GetScreenStatic, args=(Q_ValidScreenRAW,))
     T_CheckScreen = threading.Thread(target=C_Handlers.Valid, args=(Q_ValidScreenRAW, Q_PrepareToSend, True, 2, Resource.ComDict['head'][0], True, ))
-    T_GetProcState = threading.Thread(target=C_Validation.GetProcessState, args=(Q_ProcStateRAW,))
+    T_GetProcState = threading.Thread(target=C_Control.GetProcessState, args=(Q_ProcStateRAW,))
 
     TQ_CheckProc = threading.Thread(target=C_Handler.CheckProcList, args=(Q_ProcStateRAW, Q_ProcState))
     TQ_ValidProc = threading.Thread(target=C_Handler.Valid, args=(Q_ProcState, Q_PrepareToSend, False, 1, Resource.ComDict['head'][0], True, ))

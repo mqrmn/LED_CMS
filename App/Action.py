@@ -46,6 +46,11 @@ class System(Init):
         time.sleep(180)
         Sys.RestartPC()
 
+
+
+
+
+
 class Files:
     def RestoreNovaBin(self):
         if self.CheckNovaFile() == True:
@@ -61,6 +66,8 @@ class Files:
 
     def CopyNovaBin(self):
         shutil.copy(Resource.novaBinFileBak,  Resource.novaBinFile)
+
+
 
     # Архивирует логи
     def LogArch(self):
@@ -104,6 +111,8 @@ class Files:
         for file in listForDeleting:
             os.remove(Config.logPath + file)
             LOG.CMSLogger('Файл удален ' + file)
+
+
 
 class SysInit(Files):
     def InitCMS(self, Q_Internal):
