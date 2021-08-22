@@ -41,7 +41,7 @@ DBPath = DBFolder + DBFile
 
 
 timeoutSCheck = [10, 30]
-
+timeoutPCheck = 30
 # Настройка сокетов для внутренних коммуникаций
 localhost = 'localhost'
 CMSCoreInternalPort = 2203
