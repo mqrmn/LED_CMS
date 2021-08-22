@@ -15,18 +15,17 @@ LOG = LogManager.Log_Manager()
 class Win:
     def __init__(self):
         pythoncom.CoInitialize()
-        global handle
-        handle = wmi.WMI()
 
     def CoinInit(self):
         pythoncom.CoInitialize()
 
     def GetWMI(self, privileges=None):
+        self.CoinInit()
         handle = wmi.WMI(privileges)
         return handle
 
     def GetProcState(self, i):
-        return handle.Win32_Process(Name=i)
+        return self.GetWMI().Win32_Process(Name=i)
 
     def GetProcessState(self, Q_out):
         for i in Resource.ProcDict:
@@ -37,10 +36,10 @@ class Win:
             Q_out.put([i, procState])
 
     def StartProc(self, executable):
-        handle.Win32_Process.Create(CommandLine=executable, )
+        self.GetWMI().Win32_Process.Create(CommandLine=executable, )
 
     def TerminateProc(self, name):
-        for proc in handle.Win32_Process(Name=name):
+        for proc in self.GetWMI().Win32_Process(Name=name):
             proc.Terminate(Reason=1)
 
 
@@ -50,7 +49,7 @@ class Win:
     def GetService(self, name):
         LOG.CMSLogger('Called')
         if name:
-            return handle.Win32_Service(name=name)[0]
+            return self.GetWMI().Win32_Service(name=name)[0]
 
     def StopService(self, name):
         LOG.CMSLogger('Called')
