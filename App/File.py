@@ -405,23 +405,35 @@ class RenewContent:
 class NovaBin:
 
     def BackupHandle(self):
-        if self.CheckNovaFile() == False:
+        if self.CheckNovaFile() == True:
             self.BackupNovaBin()
+        else:
+            LOG.CMSLogger('NovaBin backup canceled')
 
     def RestoreHandle(self):
         C_Nova = API.Nova()
-        if self.CheckNovaFile() == True:
+        if self.CheckNovaFile() != True:
             if C_Nova.GetProcState(Resource.ProcList[0]) == True:
                 C_Nova.TerminateNova()
-                self.RestorekNovaBin()
+            self.RestoreNovaBin()
+        else:
+            LOG.CMSLogger('NovaBin restore canceled')
 
     def CheckNovaFile(self):
-        file = open(Config.novaBinFile, 'rb')
-        string = file.read()
-        return re.search('zh-CN', str(string))
+        if os.path.exists(Config.novaBinFile):
+            file = open(Config.novaBinFile, 'rb')
+            string = file.read()
+            if re.search('zh-CN', str(string)):
+                return False
+            else:
+                return True
+        else:
+            return None
 
-    def RestorekNovaBin(self):
+    def RestoreNovaBin(self):
         shutil.copy(Config.novaBinFileBak,  Config.novaBinFile)
+        LOG.CMSLogger('NovaBin recovery completed')
 
     def BackupNovaBin(self):
         shutil.copy(Config.novaBinFile, Config.novaBinFileBak)
+        LOG.CMSLogger('NovaBin has been backed up')
