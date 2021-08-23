@@ -20,7 +20,7 @@ class Win:
 
     def GetWMI(self, privileges=None):
         self.CoinInit()
-        handle = wmi.WMI(privileges)
+        handle = wmi.WMI(privileges=privileges)
         return handle
 
 
@@ -69,7 +69,7 @@ class System(Win):
 
     def RestartPC(self):
         LOG.CMSLogger('Called')
-        self.GetWMI(privileges=["Shutdown"]).Win32_OperatingSystem()[0].RebootInit()
+        self.GetWMI(["Shutdown"]).Win32_OperatingSystem()[0].Reboot()
 
 class Nova(Process):
 
