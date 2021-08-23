@@ -126,6 +126,7 @@ class Queue:
                     DictMars = {}
             if restartNovaCount >= 3 and ((datetime.datetime.now() - lastNovaRestart).seconds <= 300):
                 Q_out.put(R.RestoreNovaBin[0])
+                restartNovaCount = 0
 
     # Processor of data coming to UA
     def FromCore(self, Q_in, Q_out, ):
