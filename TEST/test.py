@@ -44,6 +44,10 @@ def TEST():
     hand = win32evtlog.OpenEventLog(computer, logtype)
     print(logtype, ' events found in the last 8 hours since:', begin_time)
 
+    list = ['Netwtw08', 'DCOM', 'Microsoft-Windows-DNS-Client', 'Microsoft-Windows-WindowsUpdateClient',
+            'Microsoft-Windows-Kernel-General', 'Microsoft-Windows-NDIS', 'Microsoft-Windows-Power-Troubleshooter',
+            'Microsoft-Windows-Time-Service', 'BTHUSB', ]
+
     try:
         events = 1
         while events:
@@ -57,27 +61,28 @@ def TEST():
                 the_time = ev_obj.TimeGenerated
 
 
-                if (datetime.datetime.now() - the_time).days <= 3:
+                if (datetime.datetime.now() - the_time).days <= 1:
+                    if str(ev_obj.SourceName) not in list:
 
-                    # data is recent enough, so print it out
+                        # data is recent enough, so print it out
 
-                    print(ev_obj)
+                        print()
 
-                    computer = str(ev_obj.ComputerName)
+                        computer = str(ev_obj.ComputerName)
 
-                    cat = str(ev_obj.EventCategory)
+                        cat = str(ev_obj.EventCategory)
 
-                    src = str(ev_obj.SourceName)
+                        src = str(ev_obj.SourceName)
 
-                    record = str(ev_obj.RecordNumber)
+                        record = str(ev_obj.RecordNumber)
 
-                    evt_id = str(winerror.HRESULT_CODE(ev_obj.EventID))
+                        evt_id = str(winerror.HRESULT_CODE(ev_obj.EventID))
 
-                    evt_type = str(evt_dict[ev_obj.EventType])
+                        evt_type = str(evt_dict[ev_obj.EventType])
 
-                    msg = str(win32evtlogutil.SafeFormatMessage(ev_obj, logtype))
+                        msg = str(win32evtlogutil.SafeFormatMessage(ev_obj, logtype))
 
-                    print((the_time.Format(), computer, src, cat, record, evt_id, evt_type, msg), ':' )
+                        print((the_time.Format(), ':',  src, cat, evt_type, msg))
 
 
         win32evtlog.CloseEventLog(hand)
