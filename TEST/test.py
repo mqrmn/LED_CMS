@@ -35,7 +35,8 @@ def TEST():
                 win32con.EVENTLOG_ERROR_TYPE: 'EVENTLOG_ERROR_TYPE'}
 
     computer = None
-    logtype = 'System'
+    # logtype = 'System'
+    logtype = 'Application'
     begin_sec = time.time()
     begin_time = time.strftime('%H:%M:%S  ', time.localtime(begin_sec))
 
@@ -44,13 +45,25 @@ def TEST():
     hand = win32evtlog.OpenEventLog(computer, logtype)
     print(logtype, ' events found in the last 8 hours since:', begin_time)
 
-    list = ['Netwtw08', 'DCOM', 'Microsoft-Windows-DNS-Client', 'Microsoft-Windows-WindowsUpdateClient',
+    list_ex_1 = ['Netwtw08', 'DCOM', 'Microsoft-Windows-DNS-Client', 'Microsoft-Windows-WindowsUpdateClient',
             'Microsoft-Windows-Kernel-General', 'Microsoft-Windows-NDIS', 'Microsoft-Windows-Power-Troubleshooter',
-            'Microsoft-Windows-Time-Service', 'BTHUSB', ]
+            'Microsoft-Windows-Time-Service', 'BTHUSB', 'Service Control Manager', 'EventLog', 'Microsoft-Windows-DHCPv6-Client',
+            'Microsoft-Windows-Dhcp-Client', 'Microsoft-Windows-Kernel-Processor-Power', 'Microsoft-Windows-FilterManager',
+            'Microsoft-Windows-Ntfs', ]
 
-    try:
-        events = 1
-        while events:
+    list_ex_2 = ['Software Protection Platform Service', 'SecurityCenter', 'Microsoft-Windows-Perflib', 'ESENT', 'igfxCUIService2.0.0.0',
+                 'gupdate', 'Wlclntfy', 'igccservice', 'Windows Search Service', 'Microsoft-Windows-PerfNet', 'Microsoft-Windows-PerfProc',
+                 'RtkAudioUniversalService', 'Microsoft-Windows-WMI', 'CMSController', 'CMS', 'VSS', 'System Restore' ]
+
+    list_1 = ['Microsoft-Windows-User Profiles Service', 'Microsoft-Windows-RestartManager', ]
+
+    list_2 = ['User32', 'Microsoft-Windows-Winlogon', 'Microsoft-Windows-Kernel-Power', 'Microsoft-Windows-Kernel-Boot',
+              ]
+
+
+    events = 1
+    while events:
+        try:
             events = win32evtlog.ReadEventLog(hand, flags, 0)
             for ev_obj in events:
 
@@ -62,7 +75,7 @@ def TEST():
 
 
                 if (datetime.datetime.now() - the_time).days <= 1:
-                    if str(ev_obj.SourceName) not in list:
+                    if str(ev_obj.SourceName) not in list_ex_2:
 
                         # data is recent enough, so print it out
 
@@ -84,11 +97,11 @@ def TEST():
 
                         print((the_time.Format(), ':',  src, cat, evt_type, msg))
 
+        except:
+            print('EXC')
+    win32evtlog.CloseEventLog(hand)
 
-        win32evtlog.CloseEventLog(hand)
 
-    except:
-        print(traceback.print_exc(sys.exc_info()))
 
 if __name__ == '__main__':
     TEST()
