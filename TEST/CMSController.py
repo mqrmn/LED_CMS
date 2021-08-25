@@ -23,10 +23,7 @@ def TEST():
     LOG.CMSLogger('Controller initialized')
 
     # Creating class instances
-    C_API = API.Service()
     C_CMSUpgrade = File.CMSUpdate()
-    C_ActionSys = Act.System()
-    C_ActionInit = Act.SysInit()
     C_Network = Comm.Socket()
     C_Control = Control.CMS()
 
@@ -54,17 +51,7 @@ def TEST():
 
     LOG.CMSLogger('Threads started')
 
-    checkTime = datetime.datetime.now()
-    table = Database.Tables()
-
-    FLAG = C_ActionInit.CheckLastShutdown(Q_Manage)
-
-    LOG = Log.Log_Manager()
-    LOG.CMSLogger('CALLED')
-
-
     while True:
-
         time.sleep(10)
 
 

@@ -125,7 +125,6 @@ class CMS:
         C_ActionSys = Act.System()
         C_ActionInit = Act.SysInit()
         table = Database.Tables()
-
         FLAG = C_ActionInit.CheckLastShutdown(Q_Manage)
 
         while True:

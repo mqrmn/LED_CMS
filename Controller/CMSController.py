@@ -14,7 +14,7 @@ import socket
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
-from App import Log, API, File, Comm, Act, Database
+from App import Log, API, File, Comm, Act, Database, Control
 from App import Resource as R
 
 
@@ -69,11 +69,10 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         LOG.CMSLogger('Controller initialized')
 
         # Creating class instances
-        C_API = API.Service()
         C_CMSUpgrade = File.CMSUpdate()
-        C_ActionSys = Act.System()
-        C_ActionInit = Act.SysInit()
         C_Network = Comm.Socket()
+        C_Control = Control.CMS()
+        C_API = API.Service()
 
         LOG.CMSLogger('Instances of classes created')
 
@@ -88,63 +87,18 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         T_Updater = threading.Thread(target=C_CMSUpgrade.CMSUpdater, args=(Q_Internal,))
         T_Server = threading.Thread(target=C_Network.Server,
                                     args=(Config.localhost, Config.CMSControllertPort, Q_FromCore))
+        T_CMSServiceCont = threading.Thread(target=C_Control.CMSService, args=(Q_Manage, Q_Internal,))
 
         LOG.CMSLogger('Threads are initialized')
 
         # Launching streams
         T_Updater.start()
         T_Server.start()
+        T_CMSServiceCont.start()
 
         LOG.CMSLogger('Threads started')
 
-        checkTime = datetime.datetime.now()
-        table = Database.Tables()
-
-        FLAG = C_ActionInit.CheckLastShutdown(Q_Manage)
-
-        LOG = Log.Log_Manager()
-        LOG.CMSLogger('CALLED')
-
         while True:
-            if Q_Manage.empty() == False:
-                FLAG = Q_Manage.get()[R.r[3]]
-
-                LOG.CMSLogger('Reboot control flag: {}'.format(FLAG))
-
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as Socket:
-                try:
-                    Socket.connect((Config.localhost, Config.CMSCoreInternalPort))
-                    checkTime = datetime.datetime.now()
-                    LOG.CMSLogger('CMS Runned', )
-                except:
-                    if Q_Internal.empty() == False:
-                        if Q_Internal.get() == True:
-                            LOG.CMSLogger('CMS Stopped for upgrade', )
-                            break
-                        else:
-                            pass
-                    else:
-                        LOG.CMSLogger('CMS Stopped', )
-                        if FLAG > 0:
-                            if FLAG > 1:
-                                C_ActionSys.RebootInit()
-
-                                LOG.CMSLogger('Reboot scheduled')
-                                break
-                            else:
-
-                                lastReboot = table.SelfInitShutdown().select().order_by(
-                                    table.SelfInitShutdown.id.desc()).get()
-                                if (datetime.datetime.now() - lastReboot.datetime).seconds <= 300:
-                                    C_ActionSys.RebootInit()
-
-                                    LOG.CMSLogger('Reboot scheduled')
-                                    break
-                                else:
-                                    LOG.CMSLogger('Restart access denied')
-                        else:
-                            LOG.CMSLogger('rRestart access denied')
-
             time.sleep(10)
 
             rc = win32event.WaitForSingleObject(self.hWaitStop, self.timeout)
