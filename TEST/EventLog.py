@@ -35,8 +35,8 @@ def TEST():
                 win32con.EVENTLOG_ERROR_TYPE: 'EVENTLOG_ERROR_TYPE'}
 
     computer = None
-    # logtype = 'System'
-    logtype = 'Application'
+    logtype = 'Microsoft-Windows-Kernel-Boot'
+    # logtype = 'Application'
     begin_sec = time.time()
     begin_time = time.strftime('%H:%M:%S  ', time.localtime(begin_sec))
 
@@ -47,9 +47,9 @@ def TEST():
 
     list_ex_1 = ['Netwtw08', 'DCOM', 'Microsoft-Windows-DNS-Client', 'Microsoft-Windows-WindowsUpdateClient',
             'Microsoft-Windows-Kernel-General', 'Microsoft-Windows-NDIS', 'Microsoft-Windows-Power-Troubleshooter',
-            'Microsoft-Windows-Time-Service', 'BTHUSB', 'Service Control Manager', 'EventLog', 'Microsoft-Windows-DHCPv6-Client',
+            'Microsoft-Windows-Time-Service', 'BTHUSB', 'Service Control Manager', 'Microsoft-Windows-DHCPv6-Client',
             'Microsoft-Windows-Dhcp-Client', 'Microsoft-Windows-Kernel-Processor-Power', 'Microsoft-Windows-FilterManager',
-            'Microsoft-Windows-Ntfs', ]
+            'Microsoft-Windows-Ntfs', 'Microsoft-Windows-Directory-Services-SAM', ]
 
     list_ex_2 = ['Software Protection Platform Service', 'SecurityCenter', 'Microsoft-Windows-Perflib', 'ESENT', 'igfxCUIService2.0.0.0',
                  'gupdate', 'Wlclntfy', 'igccservice', 'Windows Search Service', 'Microsoft-Windows-PerfNet', 'Microsoft-Windows-PerfProc',
@@ -58,8 +58,7 @@ def TEST():
     list_1 = ['Microsoft-Windows-User Profiles Service', 'Microsoft-Windows-RestartManager', ]
 
     list_2 = ['User32', 'Microsoft-Windows-Winlogon', 'Microsoft-Windows-Kernel-Power', 'Microsoft-Windows-Kernel-Boot',
-              ]
-
+              'EventLog', 'Kernel-Boot']
 
     events = 1
     while events:
@@ -74,28 +73,21 @@ def TEST():
                 the_time = ev_obj.TimeGenerated
 
 
-                if (datetime.datetime.now() - the_time).days <= 1:
-                    if str(ev_obj.SourceName) not in list_ex_2:
+                if (datetime.datetime.now() - the_time).days <= 3:
+                    # if str(ev_obj.SourceName) in list_2[3]:
+                    if str(ev_obj.SourceName):
 
-                        # data is recent enough, so print it out
 
                         print()
 
-                        computer = str(ev_obj.ComputerName)
-
                         cat = str(ev_obj.EventCategory)
-
                         src = str(ev_obj.SourceName)
-
-                        record = str(ev_obj.RecordNumber)
-
-                        evt_id = str(winerror.HRESULT_CODE(ev_obj.EventID))
-
                         evt_type = str(evt_dict[ev_obj.EventType])
-
                         msg = str(win32evtlogutil.SafeFormatMessage(ev_obj, logtype))
+                        evt_id = str(winerror.HRESULT_CODE(ev_obj.EventID))
+                        print((the_time.Format(), ':',  src, cat, evt_id, evt_type, msg))
 
-                        print((the_time.Format(), ':',  src, cat, evt_type, msg))
+                        # re.findall(r'\d{4}-\d{2}-\d{2}', msg)
 
         except:
             print('EXC')
