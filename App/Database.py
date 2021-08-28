@@ -46,7 +46,7 @@ class DBFoo(Tables):
                 data = data['data']
                 self.SystemInit.create(datetime=data['datetime'], )
 
-            if data['table'] == 'SystemIRun':
+            if data['table'] == 'SystemRun':
                 data = data['data']
                 self.SystemRun.create(datetime=data['datetime'], )
 
