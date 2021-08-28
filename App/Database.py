@@ -43,7 +43,10 @@ class DBFoo(Tables):
         while True:
             data = Q_in.get()
             if data['table'] == 'SystemInit':
-                pass
+                data = data['data']
+                self.SystemInit.create(datetime=data['datetime'], )
+
+
             if data['table'] == 'SelfInitShutdown':
                 data = data['data']
                 self.SelfInitShutdown.create(trigger=data['trigger'], key=data['key'], datetime=data['datetime'], )

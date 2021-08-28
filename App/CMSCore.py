@@ -102,51 +102,49 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         #                                  args=(Config.localhost, Config.CMSControllertPort, Q_TCPSend))
 
         # Inbound processing flows
-        TQ_FromUA = threading.Thread(target=C_Handlers.FromUA, args=(Q_FromUA, Q_ValidScreen, Q_ValidProc, Q_Internal))
-        TQ_ValidScreen = threading.Thread(target=C_Handlers.Valid, args=(
+        T_ReceiveDataFromUA = threading.Thread(target=C_Handlers.FromUA, args=(Q_FromUA, Q_ValidScreen, Q_ValidProc, Q_Internal))
+        T_ValidDataScreen = threading.Thread(target=C_Handlers.Valid, args=(
             Q_ValidScreen, Q_Action, True, 1, R.H[0], True,))
-        TQ_ValidProc = threading.Thread(target=C_Handlers.Valid,
+        T_ValidDataProc = threading.Thread(target=C_Handlers.Valid,
                                         args=(Q_ValidProc, Q_Action, False, 1, R.H[0], True,))
 
         # Outbound shaping streams
-        TQ_CreateAction = threading.Thread(target=C_Handlers.CreateAction, args=(Q_Action, Q_PrepareToSend, Q_SetFlag))
-        TQ_SendController = threading.Thread(target=C_Handlers.SendController,
+        T_CreateAction = threading.Thread(target=C_Handlers.CreateAction, args=(Q_Action, Q_PrepareToSend, Q_SetFlag))
+        T_SendController = threading.Thread(target=C_Handlers.SendController,
                                              args=(Q_PrepareToSend, Q_TCPSend, Q_SetFlag))
 
         # Internal processing flows
-        TQ_Internal = threading.Thread(target=C_Handlers.Internal, args=(Q_Internal, Q_UAValid, Q_DBWrite, Q_SetFlag))
-        TQ_SetFlag = threading.Thread(target=C_Handlers.SetFlag, args=(Q_SetFlag, Q_UAValidSF, Q_Controller))
+        T_Internal = threading.Thread(target=C_Handlers.Internal, args=(Q_Internal, Q_UAValid, Q_DBWrite, Q_SetFlag))
+        T_SetFlag = threading.Thread(target=C_Handlers.SetFlag, args=(Q_SetFlag, Q_UAValidSF, Q_Controller))
 
         # Database write processing
         T_DBWriteController = (threading.Thread(target=C_DB.WriteController, args=(Q_DBWrite,)))
 
         # Service Streams
         T_CheckNewContent = threading.Thread(target=C_RenewCont.DynamicRenewCont, args=(Q_PrepareToSend,))
-        TQ_UAValid = threading.Thread(target=C_Valid.UAValid, args=(Q_UAValid, Q_Internal, Q_UAValidSF))
+        T_UAValid = threading.Thread(target=C_Valid.UAValid, args=(Q_UAValid, Q_Internal, Q_UAValidSF))
 
         LOG.CMSLogger('Threads are initialized')
 
         T_Server.start()
         T_ClientUA.start()
-        TQ_FromUA.start()
-        TQ_CreateAction.start()
-        TQ_SendController.start()
-        TQ_ValidScreen.start()
-        TQ_ValidProc.start()
+        T_ReceiveDataFromUA.start()
+        T_CreateAction.start()
+        T_SendController.start()
+        T_ValidDataScreen.start()
+        T_ValidDataProc.start()
         T_CheckNewContent.start()
 
-        TQ_Internal.start()
-        TQ_UAValid.start()
+        T_Internal.start()
+        T_UAValid.start()
         T_DBWriteController.start()
-        TQ_SetFlag.start()
+        T_SetFlag.start()
 
         LOG.CMSLogger('Threads started')
 
 
         while True:
             time.sleep(10)
-
-
 
             rc = win32event.WaitForSingleObject(self.hWaitStop, self.timeout)
             if rc == win32event.WAIT_OBJECT_0:

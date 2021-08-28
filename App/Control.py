@@ -84,7 +84,7 @@ class CMS:
                         Q_Internal.put(C_Prepare.SelfInitShutdown(getframeinfo(currentframe())[2], 'rebootAccessDenied', datetime.datetime.now()))
                         LOG.CMSLogger('Restart access denied')
 
-            time.sleep(3)
+                time.sleep(3)
     # Checking the screen for static
     def GetScreenStatic(self, screenStateQueue):
         chanelSumArr = []

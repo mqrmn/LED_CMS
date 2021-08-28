@@ -222,7 +222,7 @@ class Queue:
             if data[R.r[1]] == R.H[3]:
                 if data[R.r[2]] == R.K[8]:
                     Q_DBWrite.put(data[R.r[3]])
-            # Setting flags
+            # Set flags
             if data[R.r[1]] == R.H[4]:
                 Q_SetFlag.put({R.r[2]: data[R.r[2]],
                                R.r[3]: data[R.r[3]], }, )
