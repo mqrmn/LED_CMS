@@ -29,9 +29,15 @@ class Tables:
     class SystemInit(BaseModel):
         id = IntegerField()
         datetime = DateTimeField()
+        class Meta:
+            db_table = "SystemInit"
+            order_by = ('-id',)
 
     class SystemRun(BaseModel):
         datetime = DateTimeField()
+        class Meta:
+            db_table = "SystemRun"
+            order_by = ('-id',)
 
 
 
@@ -51,16 +57,16 @@ class DBFoo(Tables):
         while True:
             data = Q_in.get()
             if data['table'] == 'SystemInit':
-                data = data['data']
-                self.SystemInit.create(datetime=data['datetime'], )
+                wrData = data['data']
+                self.SystemInit.create(id=wrData['id'], datetime=wrData['datetime'], )
 
             if data['table'] == 'SystemRun':
-                data = data['data']
-                self.SystemRun.create(datetime=data['datetime'], )
+                wrData = data['data']
+                self.SystemRun.create(datetime=wrData['datetime'], )
 
             if data['table'] == 'SelfInitShutdown':
-                data = data['data']
-                self.SelfInitShutdown.create(trigger=data['trigger'], key=data['key'], datetime=data['datetime'], )
+                wrData = data['data']
+                self.SelfInitShutdown.create(id=wrData['id'], trigger=wrData['trigger'], key=wrData['key'], datetime=wrData['datetime'], )
 
     def ReadController(self):
         pass
