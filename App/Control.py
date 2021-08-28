@@ -55,7 +55,7 @@ class CMS:
             if Q_in.empty() == False:
                 data = Q_in.get()
                 if count == 0:
-                    Q_Internal.put(C_Prepare.SystemInit(datetime.datetime.now()))
+                    Q_Internal.put(C_Prepare.SystemInitPrep(datetime.datetime.now()))
                     count += 1
             else:
 
@@ -67,21 +67,21 @@ class CMS:
                     if FLAG > 0:
                         if FLAG > 1:
                             C_Action.RebootInit()
-                            Q_Internal.put(C_Prepare.SelfInitShutdown(getframeinfo(currentframe())[2], 'reboot', datetime.datetime.now()))
+                            Q_Internal.put(C_Prepare.SelfInitShutdownPrep(getframeinfo(currentframe())[2], 'reboot', datetime.datetime.now()))
                             LOG.CMSLogger('Reboot scheduled')
                             break
                         else:
                             lastReboot = table.SelfInitShutdown().select().order_by(table.SelfInitShutdown.id.desc()).get()
                             if (datetime.datetime.now() - lastReboot.datetime).seconds <= 300:
                                 C_Action.RebootInit()
-                                Q_Internal.put(C_Prepare.SelfInitShutdown(getframeinfo(currentframe())[2], 'reboot', datetime.datetime.now()))
+                                Q_Internal.put(C_Prepare.SelfInitShutdownPrep(getframeinfo(currentframe())[2], 'reboot', datetime.datetime.now()))
                                 LOG.CMSLogger('Reboot scheduled')
                                 break
                             else:
-                                Q_Internal.put(C_Prepare.SelfInitShutdown(getframeinfo(currentframe())[2], 'rebootAccessDenied', datetime.datetime.now()))
+                                Q_Internal.put(C_Prepare.SelfInitShutdownPrep(getframeinfo(currentframe())[2], 'rebootAccessDenied', datetime.datetime.now()))
                                 LOG.CMSLogger('Restart access denied')
                     else:
-                        Q_Internal.put(C_Prepare.SelfInitShutdown(getframeinfo(currentframe())[2], 'rebootAccessDenied', datetime.datetime.now()))
+                        Q_Internal.put(C_Prepare.SelfInitShutdownPrep(getframeinfo(currentframe())[2], 'rebootAccessDenied', datetime.datetime.now()))
                         LOG.CMSLogger('Restart access denied')
 
                 time.sleep(3)

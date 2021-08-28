@@ -136,7 +136,7 @@ class SysInit(Files):
 
     def PutSysRun(self, Q_out):
         O_DBPrep = Database.Prepare()
-        Q_out.put(O_DBPrep.SystemRun(datetime.datetime.now()))
+        Q_out.put(O_DBPrep.SystemRunPrep(datetime.datetime.now()))
 
 
     def CheckLastShutdown(self, Q_Internal):

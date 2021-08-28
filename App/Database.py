@@ -68,7 +68,7 @@ class DBFoo(Tables):
 
 class Prepare(DBFoo):
 
-    def SelfInitShutdown(self, trigger, key, datetimeData):
+    def SelfInitShutdownPrep(self, trigger, key, datetimeData):
         return {R.r[1]: R.H[3],
                 R.r[2]: R.K[8],
                 R.r[3]: {R.DBWriteData[0]: 'SelfInitShutdown',
@@ -78,7 +78,7 @@ class Prepare(DBFoo):
                                             'datetime': datetimeData},
                                                 }, }
 
-    def SystemInit(self, datetimeData):
+    def SystemInitPrep(self, datetimeData):
         return {R.r[1]: R.H[3],
                 R.r[2]: R.K[8],
                 R.r[3]: {R.DBWriteData[0]: 'SystemInit',
@@ -86,7 +86,7 @@ class Prepare(DBFoo):
                                             'datetime': datetimeData,
                                                 }, }, }
 
-    def SystemRun(self, datetimeData):
+    def SystemRunPrep(self, datetimeData):
         return {R.r[1]: R.H[3],
                 R.r[2]: R.K[8],
                 R.r[3]: {R.DBWriteData[0]: 'SystemRun',
