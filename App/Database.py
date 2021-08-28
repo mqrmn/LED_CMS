@@ -18,6 +18,7 @@ class BaseModel(Model):
 class Tables:
 
     class SelfInitShutdown(BaseModel):
+        id = IntegerField()
         trigger = TextField()
         key = TextField()
         datetime = DateTimeField()
@@ -25,11 +26,14 @@ class Tables:
             db_table = "SelfInitShutdown"
             order_by = ('-id',)
 
+    class SystemInit(BaseModel):
+        id = IntegerField()
+        datetime = DateTimeField()
+
     class SystemRun(BaseModel):
         datetime = DateTimeField()
 
-    class SystemInit(BaseModel):
-        datetime = DateTimeField()
+
 
 class DBFoo(Tables):
 
@@ -38,6 +42,10 @@ class DBFoo(Tables):
             dbhandle.create_tables([self.SelfInitShutdown, ])
             dbhandle.create_tables([self.SystemRun, ])
             dbhandle.create_tables([self.SystemInit, ])
+    def GetCount(self):
+
+        count = self.SystemRun().select().count()
+        return count
 
     def WriteController(self, Q_in):
         while True:
@@ -58,21 +66,24 @@ class DBFoo(Tables):
         pass
 
 
-class Prepare:
+class Prepare(DBFoo):
 
     def SelfInitShutdown(self, trigger, key, datetimeData):
         return {R.r[1]: R.H[3],
                 R.r[2]: R.K[8],
                 R.r[3]: {R.DBWriteData[0]: 'SelfInitShutdown',
-                                R.r[3]: {'trigger': trigger,
-                                                      'key': key,
-                                                      'datetime': datetimeData}, }, }
+                                R.r[3]: {'id': self.GetCount(),
+                                            'trigger': trigger,
+                                            'key': key,
+                                            'datetime': datetimeData},
+                                                }, }
 
     def SystemInit(self, datetimeData):
         return {R.r[1]: R.H[3],
                 R.r[2]: R.K[8],
                 R.r[3]: {R.DBWriteData[0]: 'SystemInit',
-                                R.r[3]: {'datetime': datetimeData,
+                                R.r[3]: {'id':self.GetCount(),
+                                            'datetime': datetimeData,
                                                 }, }, }
 
     def SystemRun(self, datetimeData):
