@@ -22,7 +22,7 @@ def TEST():
     begin_time = time.strftime('%H:%M:%S  ', time.localtime(begin_sec))
 
     hand = win32evtlog.OpenEventLog(computer, logtype)
-    print(logtype, ' events found in the last 8 hours since:', begin_time)
+    # print(logtype, ' events found in the last 8 hours since:', begin_time)
 
     list_ex_1 = ['Netwtw08', 'DCOM', 'Microsoft-Windows-DNS-Client', 'Microsoft-Windows-WindowsUpdateClient',
             'Microsoft-Windows-Kernel-General', 'Microsoft-Windows-NDIS', 'Microsoft-Windows-Power-Troubleshooter',
@@ -40,29 +40,54 @@ def TEST():
               'EventLog', 'Kernel-Boot']
 
     events = 1
-    while events:
-        try:
-            events = win32evtlog.ReadEventLog(hand, flags, 0)
-            for ev_obj in events:
+    from App import Database
 
-                the_time = ev_obj.TimeGenerated
-                if (datetime.datetime.now() - the_time).days <= 3:
-                    # if str(ev_obj.SourceName) in list_2[3]:
-                    if str(ev_obj.SourceName):
-                        print()
+    table = Database.Tables()
 
-                        cat = str(ev_obj.EventCategory)
-                        src = str(ev_obj.SourceName)
-                        evt_type = str(evt_dict[ev_obj.EventType])
-                        msg = str(win32evtlogutil.SafeFormatMessage(ev_obj, logtype))
-                        evt_id = str(winerror.HRESULT_CODE(ev_obj.EventID))
-                        print((the_time.Format(), ':',  src, cat, evt_id, evt_type, msg))
+    currentRun = table.SystemRun().select().order_by(table.SystemRun.id.desc()).get()
+    lastInit = table.SystemInit().select().order_by(table.SystemInit.id.desc()).get()
+    lastReboot = table.SelfInitShutdown().select().order_by(table.SelfInitShutdown.id.desc()).get()
 
-                        # re.findall(r'\d{4}-\d{2}-\d{2}', msg)
+    PREcurrentRun = table.SystemRun().select().where(table.SystemRun.id == currentRun.id - 1).get()
 
-        except:
-            print('EXC')
-    win32evtlog.CloseEventLog(hand)
+    # print('currentRun:', currentRun.id, currentRun.datetime)
+    # print('lastInit:', lastInit.id, lastInit.datetime)
+    # print('lastReboot:', lastReboot.id, lastReboot.datetime)
+    #
+    # print()
+    # print('PREcurrentRun', PREcurrentRun.id, PREcurrentRun.datetime)
+
+    timeLine = (datetime.datetime.now() - PREcurrentRun.datetime).seconds
+
+    # print(timeLine)
+
+    if lastReboot.id != PREcurrentRun.id:
+        print('ПРЕДЫДУЩЕЕ ОТКЛЮЧЕНИЕ НЕ БЫЛО ИНИЦИИРОВАНО CMS')
+        while events:
+            try:
+                events = win32evtlog.ReadEventLog(hand, flags, 0)
+                for ev_obj in events:
+
+                    the_time = ev_obj.TimeGenerated
+                    if (datetime.datetime.now() - the_time).seconds <= timeLine:
+
+                        if str(ev_obj.SourceName) in list_2:
+                            cat = str(ev_obj.EventCategory)
+                            src = str(ev_obj.SourceName)
+                            evt_type = str(evt_dict[ev_obj.EventType])
+                            msg = str(win32evtlogutil.SafeFormatMessage(ev_obj, logtype))
+                            evt_id = str(winerror.HRESULT_CODE(ev_obj.EventID))
+                            # print((the_time.Format(), ':', src, cat, evt_id, evt_type, msg))
+
+                            if src == 'User32' and evt_id == '1074':
+                                print((the_time.Format(), ':', src, evt_id, msg))
+                                print('ВОЗМОЖНО СИСТЕМА БЫЛА ПЕРЕЗАГРУЖЕНА ПОЛЬЗОВАТЕЛЕМ, '
+                                      'ВРЕМЯ СОБЫТИЯ: {}'.format(the_time.Format()))
+                            # re.findall(r'\d{4}-\d{2}-\d{2}', msg)
+
+            except:
+                print('EXC')
+        win32evtlog.CloseEventLog(hand)
 
 if __name__ == '__main__':
     TEST()
