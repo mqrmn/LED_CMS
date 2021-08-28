@@ -109,6 +109,7 @@ class SysInit(Files):
             self.CheckLastShutdown(Q_Internal)
         else:
             pass
+        self.PutSysRun(Q_Internal)
 
 
     def CheckDB(self):
@@ -132,6 +133,11 @@ class SysInit(Files):
     def CheckSelf(self):
         data = self.CheckDB()
         return data
+
+    def PutSysRun(self, Q_out):
+        O_DBPrep = Database.Prepare()
+        Q_out.put(O_DBPrep.SystemRun(datetime.datetime.now()))
+
 
     def CheckLastShutdown(self, Q_Internal):
         table = Database.Tables()

@@ -46,6 +46,9 @@ class DBFoo(Tables):
                 data = data['data']
                 self.SystemInit.create(datetime=data['datetime'], )
 
+            if data['table'] == 'SystemIRun':
+                data = data['data']
+                self.SystemRun.create(datetime=data['datetime'], )
 
             if data['table'] == 'SelfInitShutdown':
                 data = data['data']
@@ -69,5 +72,12 @@ class Prepare:
         return {R.r[1]: R.H[3],
                 R.r[2]: R.K[8],
                 R.r[3]: {R.DBWriteData[0]: 'SystemInit',
+                                R.r[3]: {'datetime': datetimeData,
+                                                }, }, }
+
+    def SystemRun(self, datetimeData):
+        return {R.r[1]: R.H[3],
+                R.r[2]: R.K[8],
+                R.r[3]: {R.DBWriteData[0]: 'SystemRun',
                                 R.r[3]: {'datetime': datetimeData,
                                                 }, }, }
