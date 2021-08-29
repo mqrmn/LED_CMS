@@ -225,7 +225,7 @@ class SysInit(Files):
                   'Microsoft-Windows-Kernel-Boot',
                   'EventLog', 'Kernel-Boot']
 
-        event = True
+        event = 1
 
         table = Database.Tables()
 
