@@ -225,7 +225,7 @@ class SysInit(Files):
                   'Microsoft-Windows-Kernel-Boot',
                   'EventLog', 'Kernel-Boot']
 
-        event = 1
+        event = True
 
         table = Database.Tables()
 
@@ -264,6 +264,7 @@ class SysInit(Files):
                                                         'Источник: {}, \n' \
                                                         'Код события: {}, \n' \
                                                         'Описание: {} '.format(the_time.Format(), evt_type, src, evt_id, msg)
+                                            break
 
 
                                         elif re.findall(r'Выключение питания', msg):
@@ -274,7 +275,8 @@ class SysInit(Files):
                                                       'Код события: {}, \n' \
                                                       'Описание: {} '.format(the_time.Format(), evt_type, src, evt_id,
                                                                              msg)
-                                        break
+                                            break
+
 
 
 
