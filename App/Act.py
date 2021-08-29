@@ -273,6 +273,8 @@ class SysInit(Files):
                                                       'Код события: {}, \n' \
                                                       'Описание: {} '.format(the_time.Format(), evt_type, src, evt_id,
                                                                              msg)
+                                    break
+
 
 
                 except:
