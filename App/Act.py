@@ -6,7 +6,12 @@ import os
 import shutil
 import re
 import datetime
+import win32evtlog
+import win32evtlogutil
+import win32con
+import winerror
 from datetime import date
+
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 from App.Config import Config
@@ -106,10 +111,12 @@ class SysInit(Files):
         self.LogDel()
         data = self.CheckSelf()
         if data == True:
-            self.CheckLastShutdown(Q_Internal)
+            self.CheckLastSelfInitStd(Q_Internal)
         else:
             pass
         self.PutSysRun(Q_Internal)
+        self.CheckLastStd(Q_Internal)
+
 
 
     def CheckDB(self):
@@ -139,19 +146,19 @@ class SysInit(Files):
         Q_out.put(O_DBPrep.SystemRunPrep(datetime.datetime.now()))
 
 
-    def CheckLastShutdown(self, Q_Internal):
+    def CheckLastSelfInitStd(self, Q_Internal):
         table = Database.Tables()
         try:
-            lastReboot = table.SelfInitShutdown().select().order_by(table.SelfInitShutdown.id.desc()).get()
+            lastStd = table.SelfInitShutdown().select().order_by(table.SelfInitShutdown.id.desc()).get()
         except:
-            lastReboot = None
-        if lastReboot:
+            lastStd = None
+        if lastStd:
             count = table.SelfInitShutdown().select().where(
                 (table.SelfInitShutdown.datetime.year == datetime.date.today().year) &
                 (table.SelfInitShutdown.datetime.month == datetime.date.today().month) &
                 (table.SelfInitShutdown.datetime.day == datetime.date.today().day)).count()
-            if lastReboot.datetime.date() == datetime.datetime.now().date():
-                if (datetime.datetime.now() - lastReboot.datetime).seconds <= 300:
+            if lastStd.datetime.date() == datetime.datetime.now().date():
+                if (datetime.datetime.now() - lastStd.datetime).seconds <= 300:
                     if count >= 3:
                         Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[9],
                                         R.r[3]: R.ShutdownFlagData[0]})
@@ -159,7 +166,7 @@ class SysInit(Files):
                                         R.r[3]: R.ShutdownFlagData[0]})
                         LOG.CMSLogger('Exceeded quantity '
                                         'Attempts to restart the system: {} '
-                                        'Last reboot: {} '.format(count, lastReboot))
+                                        'Last reboot: {} '.format(count, lastStd))
                         LOG.CMSLogger('Restart prohibited ')
                     else:
                         Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[9],
@@ -167,14 +174,14 @@ class SysInit(Files):
                         Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[10],
                                         R.r[3]: R.ShutdownFlagData[1]})
                         LOG.CMSLogger('The frequency of attempts to restart the system has been exceeded '
-                                        'Last reboot: {} '.format(lastReboot))
+                                        'Last reboot: {} '.format(lastStd))
                 elif count >= 5:
                     Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[9],
                                     R.r[3]: R.ShutdownFlagData[1]})
                     Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[10],
                                     R.r[3]: R.ShutdownFlagData[1]})
                     LOG.CMSLogger('The frequency of attempts to restart the system has been exceeded '
-                                   'Last reboot: {} '.format(lastReboot))
+                                   'Last reboot: {} '.format(lastStd))
                     LOG.CMSLogger('Restart prohibited')
                 else:
                     Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[9],
@@ -197,3 +204,81 @@ class SysInit(Files):
             LOG.CMSLogger('Restart allowed')
 
 
+    def CheckLastStd(self, Q_Internal):
+        flags = win32evtlog.EVENTLOG_BACKWARDS_READ | win32evtlog.EVENTLOG_SEQUENTIAL_READ
+        evt_dict = {win32con.EVENTLOG_INFORMATION_TYPE: 'EVENTLOG_INFORMATION_TYPE',
+                    win32con.EVENTLOG_WARNING_TYPE: 'EVENTLOG_WARNING_TYPE',
+                    win32con.EVENTLOG_ERROR_TYPE: 'EVENTLOG_ERROR_TYPE'}
+
+        computer = None
+        logtype = 'System'
+        hand = win32evtlog.OpenEventLog(computer, logtype)
+        list_2 = ['User32', 'Microsoft-Windows-Winlogon', 'Microsoft-Windows-Kernel-Power',
+                  'Microsoft-Windows-Kernel-Boot',
+                  'EventLog', 'Kernel-Boot']
+
+        events = 1
+
+        table = Database.Tables()
+
+        currentRun = table.SystemRun().select().order_by(table.SystemRun.id.desc()).get()
+        lastInit = table.SystemInit().select().order_by(table.SystemInit.id.desc()).get()
+        lastStd = table.SelfInitShutdown().select().where(
+            table.SelfInitShutdown.key == ('reboot' or 'shutdown')).order_by(table.SelfInitShutdown.id.desc()).get()
+
+        PREcurrentRun = table.SystemRun().select().where(table.SystemRun.id == currentRun.id - 1).get()
+
+        # print('currentRun:', currentRun.id, currentRun.datetime)
+        # print('lastInit:', lastInit.id, lastInit.datetime)
+        # print('lastStd:', lastStd.id, lastStd.datetime)
+        # print()
+        # print('PREcurrentRun', PREcurrentRun.id, PREcurrentRun.datetime)
+
+        timeLine = (datetime.datetime.now() - PREcurrentRun.datetime).seconds
+
+        # print(timeLine)
+
+        if lastStd.id != PREcurrentRun.id:
+            msgTxt = 'ПРЕДЫДУЩЕЕ ОТКЛЮЧЕНИЕ НЕ БЫЛО ИНИЦИИРОВАНО CMS. '
+            while events:
+                try:
+                    events = win32evtlog.ReadEventLog(hand, flags, 0)
+                    for ev_obj in events:
+
+                        the_time = ev_obj.TimeGenerated
+                        if (datetime.datetime.now() - the_time).seconds <= timeLine:
+
+                            if str(ev_obj.SourceName) in list_2:
+                                cat = str(ev_obj.EventCategory)
+                                src = str(ev_obj.SourceName)
+                                evt_type = str(evt_dict[ev_obj.EventType])
+                                msg = str(win32evtlogutil.SafeFormatMessage(ev_obj, logtype))
+                                evt_id = str(winerror.HRESULT_CODE(ev_obj.EventID))
+
+                                if src == 'User32' and evt_id == '1074':
+
+                                    if re.findall(r'RuntimeBroker.exe', msg):
+                                        if re.findall(r'Перезапустить', msg):
+                                            msgTxt += 'ВОЗМОЖНО СИСТЕМА БЫЛА ПЕРЕЗАГРУЖЕНА ПОЛЬЗОВАТЕЛЕМ, ' \
+                                                        'ВРЕМЯ: {}, ' \
+                                                        'Тип: {}, ' \
+                                                        'Источник: {}, ' \
+                                                        'Код события: {}, ' \
+                                                        'Описание: {} '.format(the_time.Format(), evt_type, src, evt_id, msg)
+
+                                        if re.findall(r'Выключение питания', msg):
+                                            msgTxt += 'ВОЗМОЖНО СИСТЕМА БЫЛА ПЕРЕЗАГРУЖЕНА ПОЛЬЗОВАТЕЛЕМ, ' \
+                                                      'ВРЕМЯ: {}, ' \
+                                                      'Тип: {}, ' \
+                                                      'Источник: {}, ' \
+                                                      'Код события: {}, ' \
+                                                      'Описание: {} '.format(the_time.Format(), evt_type, src, evt_id,
+                                                                             msg)
+
+
+                except:
+                    print('EXC')
+            if msgTxt:
+                LOG.CMSLogger(msgTxt)
+                Q_Internal.put()
+            win32evtlog.CloseEventLog(hand)

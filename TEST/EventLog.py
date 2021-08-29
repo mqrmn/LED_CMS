@@ -90,7 +90,6 @@ def TEST():
                                         print((the_time.Format(), ':', src, evt_id, msg))
                                         print('ВОЗМОЖНО СИСТЕМА БЫЛА ВЫКЛЮЧЕНА ПОЛЬЗОВАТЕЛЕМ, '
                                               'ВРЕМЯ СОБЫТИЯ: {}'.format(the_time.Format()))
-                            # re.findall(r'\d{4}-\d{2}-\d{2}', msg)
 
             except:
                 print('EXC')

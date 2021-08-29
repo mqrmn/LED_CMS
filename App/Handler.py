@@ -211,7 +211,7 @@ class Queue:
         Q_out.put(data)
 
     # Internal queue processing
-    def Internal(self, Q_in, Q_UAValid, Q_DBWrite, Q_SetFlag):
+    def Internal(self, Q_in, Q_UAValid, Q_DBWrite, Q_SetFlag, Q_SendMail):
         while True:
             data = Q_in.get()
             # Agent check
@@ -226,6 +226,8 @@ class Queue:
             if data[R.r[1]] == R.H[4]:
                 Q_SetFlag.put({R.r[2]: data[R.r[2]],
                                R.r[3]: data[R.r[3]], }, )
+            if data[R.r[1]] == R.H[5]:
+                Q_SendMail.put(data[R.r[3]])
 
     def SetFlag(self, Q_SetFlag, Q_UAValidSF, Q_Cont_TCPSend):
         while True:

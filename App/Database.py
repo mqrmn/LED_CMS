@@ -88,7 +88,7 @@ class Prepare(DBFoo):
         return {R.r[1]: R.H[3],
                 R.r[2]: R.K[8],
                 R.r[3]: {R.DBWriteData[0]: 'SystemInit',
-                                R.r[3]: {'id':self.GetCount(),
+                                R.r[3]: {'id': self.GetCount(),
                                             'datetime': datetimeData,
                                                 }, }, }
 

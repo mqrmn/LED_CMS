@@ -6,11 +6,11 @@ r = ['method', 'head', 'key', 'data']
 # Method
 M = ['put', 'get', ]
 # Head
-H = ['State', 'Action', 'Report', 'DB', 'Flag']
+H = ['State', 'Action', 'Report', 'DB', 'Flag', 'Mail']
 # Key
 K = ['ScreenState', 'ProcState', 'RunProc', 'TerminateProc', 'RestartProc',
        'Process', 'TerminateThread', 'UALastAction', 'DBWrite', 'UAValid',
-       'CMSController', 'RestoreNovaBin', ]
+       'CMSController', 'RestoreNovaBin', 'SendMail']
 
 # DB
 DBWriteData = ['table', ]
@@ -50,3 +50,8 @@ TerminateNovaSD = [{r[1]: H[1], r[2]: K[3], r[3]: ProcList[2], }, ]
 TerminateThread = [{r[0]:M[0], r[1]: H[1], r[2]: K[6], r[3]: 'UA_All', }, ]
 
 RestoreNovaBin = [{r[1]: H[1], r[2]: K[11], r[3]: True}]
+
+class CreateMessage:
+
+    def SendMail(self, msgTxt):
+        return {r[1]: H[5], r[2]: K[12], r[3]: msgTxt, }
