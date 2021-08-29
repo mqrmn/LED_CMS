@@ -265,7 +265,8 @@ class SysInit(Files):
                                                         'Код события: {}, \n' \
                                                         'Описание: {} '.format(the_time.Format(), evt_type, src, evt_id, msg)
 
-                                        if re.findall(r'Выключение питания', msg):
+
+                                        elif re.findall(r'Выключение питания', msg):
                                             msgTxt += 'Система была выключена пользователем, ' \
                                                       'Время: {}, \n' \
                                                       'Тип: {}, \n' \
