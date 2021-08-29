@@ -128,7 +128,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
                                                 args=(Q_DBWrite, )))
         # Service Streams
         T_CheckNewContent = threading.Thread(target=C_RenewCont.DynamicRenewCont,
-                                             args=(Q_PrepareToSend, ))
+                                             args=(Q_PrepareToSend, Q_Internal))
         T_UAValid = threading.Thread(target=C_Valid.UAValid,
                                      args=(Q_UAValid, Q_Internal, Q_UAValidSF))
         T_SendMailCont = threading.Thread(target=O_SendMailCont.SendMailController,

@@ -84,8 +84,6 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         LOG.CMSLogger('Queues created')
 
-
-
         # Thread initialization
         T_Updater = threading.Thread(target=C_CMSUpgrade.CMSUpdater,
                                      args=(Q_FromUpdater, q_internal,))
@@ -103,8 +101,6 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         T_SendMailCont = threading.Thread(target=O_SendMailCont.SendMailController,
                                           args=(Q_SendMail,))
-
-
 
         LOG.CMSLogger('Threads are initialized')
 

@@ -21,7 +21,6 @@ class CMSUpdate:
     def CMSUpdater(self, Q_FromUpdater, q_internal):
 
         o_createMessage = Resource.CreateMessage()
-        q_internal.put(o_createMessage.SendMail('Тест отправки уведомлений из контроллера'))
         C_API = API.Service()
         C_Action = Act.System()
         pythoncom.CoInitialize()
@@ -148,6 +147,39 @@ class CMSUpdate:
         LOG.CMSLogger('Update completed')
 
 class RenewContent:
+
+    def DynamicRenewCont(self, Q_PrepareToSend, Q_Internal):
+        crMsg = Resource.CreateMessage()
+        list = None
+        fix = False
+        countPass = 0
+        while True:
+            x = self.CheckNewContent()
+            if x != list:
+                list = x
+                fix = True
+                countPass = 0
+
+            if fix == True:
+                countPass += 1
+            if countPass >= 5:
+                self.ContentRenewHandle(Q_PrepareToSend, )
+                Q_Internal.put(crMsg.SendMail('Выполнено обновление контента'))
+                list = None
+                fix = False
+                countPass = 0
+            time.sleep(10)
+
+    def ContentRenewHandle(self, Q_PrepareToSend, ):
+
+        appendStatus = self.AppendContent()
+        Q_PrepareToSend.put(Resource.TerminateNova[0])
+        time.sleep(5)
+        removeStatus = self.RemoveContent()
+        if (appendStatus == True) or (removeStatus == True):
+            self.Generate()
+        Q_PrepareToSend.put(Resource.RunNova[1])
+
     def CheckNewContent(self):
         x = 0
         for formatPath in Config.screenFormat:
@@ -193,37 +225,6 @@ class RenewContent:
                 return [yaListFilesExcept, yaListFilesUnex, yaListFilesEx, ]
             else:
                 return None
-
-    def DynamicRenewCont(self, Q_out):
-
-        list = None
-        fix = False
-        countPass = 0
-        while True:
-            x = self.CheckNewContent()
-            if x != list:
-                list = x
-                fix = True
-                countPass = 0
-
-            if fix == True:
-                countPass += 1
-            if countPass >= 5:
-                self.ContentRenewHandle(Q_out, )
-                list = None
-                fix = False
-                countPass = 0
-            time.sleep(10)
-
-    def ContentRenewHandle(self, Q_out, ):
-
-        appendStatus = self.AppendContent()
-        Q_out.put(Resource.TerminateNova[0])
-        time.sleep(5)
-        removeStatus = self.RemoveContent()
-        if (appendStatus == True) or (removeStatus == True):
-            self.Generate()
-        Q_out.put(Resource.RunNova[1])
 
     def AppendContent(self):
 

@@ -119,6 +119,7 @@ class SysInit(Files):
 
 
 
+
     def CheckDB(self):
         data = True
         if os.path.exists(Config.DBFolder):
@@ -148,6 +149,7 @@ class SysInit(Files):
 
     def CheckLastSelfInitStd(self, Q_Internal):
         table = Database.Tables()
+        crMsg = R.CreateMessage()
         try:
             lastStd = table.SelfInitShutdown().select().order_by(table.SelfInitShutdown.id.desc()).get()
         except:
@@ -160,46 +162,51 @@ class SysInit(Files):
             if lastStd.datetime.date() == datetime.datetime.now().date():
                 if (datetime.datetime.now() - lastStd.datetime).seconds <= 300:
                     if count >= 3:
-                        Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[9],
-                                        R.r[3]: R.ShutdownFlagData[0]})
-                        Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[10],
-                                        R.r[3]: R.ShutdownFlagData[0]})
-                        LOG.CMSLogger('Exceeded quantity '
-                                        'Attempts to restart the system: {} '
-                                        'Last reboot: {} '.format(count, lastStd))
+                        Q_Internal.put(crMsg.SetFlagUAV_0())
+                        Q_Internal.put(crMsg.SetFlagCont_0())
+
+                        msg = 'Exceeded quantity ' \
+                                'Attempts to restart the system: {} ' \
+                                'Last reboot: {} '.format(count, lastStd.datetime)
+
+                        Q_Internal.put(crMsg.SendMail(msg))
+                        LOG.CMSLogger(msg)
                         LOG.CMSLogger('Restart prohibited ')
                     else:
-                        Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[9],
-                                        R.r[3]: R.ShutdownFlagData[1]})
-                        Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[10],
-                                        R.r[3]: R.ShutdownFlagData[1]})
-                        LOG.CMSLogger('The frequency of attempts to restart the system has been exceeded '
-                                        'Last reboot: {} '.format(lastStd))
+                        Q_Internal.put(crMsg.SetFlagUAV_1())
+                        Q_Internal.put(crMsg.SetFlagCont_1())
+
+                        msg = 'The frequency of attempts to ' \
+                              'restart the system has been exceeded ' \
+                                        'Last reboot: {} '.format(lastStd.datetime)
+
+                        LOG.CMSLogger(msg)
                 elif count >= 5:
-                    Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[9],
-                                    R.r[3]: R.ShutdownFlagData[1]})
-                    Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[10],
-                                    R.r[3]: R.ShutdownFlagData[1]})
-                    LOG.CMSLogger('The frequency of attempts to restart the system has been exceeded '
-                                   'Last reboot: {} '.format(lastStd))
+                    Q_Internal.put(crMsg.SetFlagUAV_1())
+                    Q_Internal.put(crMsg.SetFlagCont_1())
+
+                    msg = 'The frequency of attempts to ' \
+                          'restart the system has been exceeded ' \
+                          'Last reboot: {} '.format(lastStd.datetime)
+
+                    Q_Internal.put(crMsg.SendMail(msg))
+                    LOG.CMSLogger(msg)
+
                     LOG.CMSLogger('Restart prohibited')
                 else:
-                    Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[9],
-                                    R.r[3]: R.ShutdownFlagData[2]})
-                    Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[10],
-                                    R.r[3]: R.ShutdownFlagData[2]})
+                    Q_Internal.put(crMsg.SetFlagUAV_2())
+                    Q_Internal.put(crMsg.SetFlagCont_2())
+
                     LOG.CMSLogger('Restart allowed')
             else:
-                Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[9],
-                                R.r[3]: R.ShutdownFlagData[2]})
-                Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[10],
-                                R.r[3]: R.ShutdownFlagData[2]})
+                Q_Internal.put(crMsg.SetFlagUAV_2())
+                Q_Internal.put(crMsg.SetFlagCont_2())
+
                 LOG.CMSLogger('Restart allowed')
         else:
-            Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[9],
-                            R.r[3]: R.ShutdownFlagData[2]})
-            Q_Internal.put({R.r[1]: R.H[4], R.r[2]: R.K[10],
-                            R.r[3]: R.ShutdownFlagData[2]})
+            Q_Internal.put(crMsg.SetFlagUAV_2())
+            Q_Internal.put(crMsg.SetFlagCont_2())
+
             LOG.CMSLogger('No data on system reboots')
             LOG.CMSLogger('Restart allowed')
 
@@ -274,3 +281,4 @@ class SysInit(Files):
                 LOG.CMSLogger(msgTxt)
                 Q_Internal.put(CreateMess.SendMail(msgTxt))
             win32evtlog.CloseEventLog(handle)
+

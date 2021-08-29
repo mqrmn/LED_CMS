@@ -51,7 +51,27 @@ TerminateThread = [{r[0]:M[0], r[1]: H[1], r[2]: K[6], r[3]: 'UA_All', }, ]
 
 RestoreNovaBin = [{r[1]: H[1], r[2]: K[11], r[3]: True}]
 
+
+
 class CreateMessage:
 
     def SendMail(self, msgTxt):
         return {r[1]: H[5], r[2]: K[12], r[3]: msgTxt, }
+
+    def SetFlagUAV_0(self):
+        return  {r[1]: H[4], r[2]: K[9], r[3]: ShutdownFlagData[0]}
+
+    def SetFlagCont_0(self):
+        return  {r[1]: H[4], r[2]: K[10], r[3]: ShutdownFlagData[0]}
+
+    def SetFlagUAV_1(self):
+        return {r[1]: H[4], r[2]: K[9], r[3]: ShutdownFlagData[1]}
+
+    def SetFlagCont_1(self):
+        return {r[1]: H[4], r[2]: K[10], r[3]: ShutdownFlagData[1]}
+
+    def SetFlagUAV_2(self):
+        return {r[1]: H[4], r[2]: K[9], r[3]: ShutdownFlagData[2]}
+
+    def SetFlagCont_2(self):
+        return {r[1]: H[4], r[2]: K[10], r[3]: ShutdownFlagData[2]}
