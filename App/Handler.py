@@ -218,7 +218,7 @@ class Queue:
         Q_out.put(data)
 
     # Internal queue processing
-    def Internal(self, q_internal, Q_UAValid, Q_DBWrite, Q_SetFlag, Q_SendMail, Q_):
+    def Internal(self, q_internal, Q_UAValid, Q_DBWrite, Q_SetFlag, Q_SendMail,):
         while True:
             data = q_internal.get()
             # Agent check

@@ -121,7 +121,7 @@ class CMS:
             T_GetProcessState.join()
             time.sleep(Config.timeoutPCheck)
 
-    def CMSService(self, Q_Manage, Q_FromUpdater, ):
+    def CMSService(self, Q_Manage, Q_FromUpdater, q_internal):
         C_ActionSys = Act.System()
         C_ActionInit = Act.SysInit()
         table = Database.Tables()
@@ -151,6 +151,7 @@ class CMS:
                                 C_ActionSys.RebootInit()
 
                                 LOG.CMSLogger('Reboot scheduled')
+
                                 break
                             else:
 
