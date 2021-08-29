@@ -19,17 +19,13 @@ class Mail:
     def __init__(self):
 
         global addr_from
-        addr_from = 'salon.notification@znp74.ru'
-        global password
-        password = '6M3QP8LKKsesZg'
-        global addr_to
-        addr_to = 'alex.s@znp74.ru'
+        addr_from = Config.smtpSender
 
     def InitMsg(self, messagetext):
 
         msg = MIMEMultipart()
         msg['From'] = addr_from
-        msg['To'] = addr_to
+        msg['To'] = Config.smtpReceiver
         msg['Subject'] = Config.objType + ' ' + Config.objCode
         body = ('''
                 {}
@@ -43,9 +39,9 @@ class Mail:
         return msg
 
     def InitServer(self):
-        server = smtplib.SMTP('smtp.yandex.ru', 587)
+        server = smtplib.SMTP(Config.smtpServer, Config.smtpPort)
         server.starttls()
-        server.login(addr_from, password)
+        server.login(addr_from, Config.smtpPass)
 
         return server
 

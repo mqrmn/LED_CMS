@@ -55,3 +55,10 @@ CMSCoreInternalPort = 2203
 CMSUserAgentPort = 2303
 CMSControllertPort = 2403
 
+# Mail Config
+
+smtpSender = 'salon.notification@znp74.ru'
+smtpPass = '6M3QP8LKKsesZg'
+smtpReceiver = 'alex.s@znp74.ru'
+smtpServer = 'smtp.yandex.ru'
+smtpPort = 587

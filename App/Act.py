@@ -240,7 +240,7 @@ class SysInit(Files):
         # print(timeLine)
 
         if lastStd.id != PREcurrentRun.id:
-            msgTxt = 'ПРЕДЫДУЩЕЕ ОТКЛЮЧЕНИЕ НЕ БЫЛО ИНИЦИИРОВАНО CMS. '
+            msgTxt = 'Предыдущее отключение не было инициировано CMS, либо произошел сбой записи в БД \n'
             while events:
                 try:
                     events = win32evtlog.ReadEventLog(hand, flags, 0)
@@ -260,19 +260,19 @@ class SysInit(Files):
 
                                     if re.findall(r'RuntimeBroker.exe', msg):
                                         if re.findall(r'Перезапустить', msg):
-                                            msgTxt += 'ВОЗМОЖНО СИСТЕМА БЫЛА ПЕРЕЗАГРУЖЕНА ПОЛЬЗОВАТЕЛЕМ, ' \
-                                                        'ВРЕМЯ: {}, ' \
-                                                        'Тип: {}, ' \
-                                                        'Источник: {}, ' \
-                                                        'Код события: {}, ' \
+                                            msgTxt += 'Система была перезагружена пользователем, \n' \
+                                                        'ВРЕМЯ: {}, \n' \
+                                                        'Тип: {}, \n' \
+                                                        'Источник: {}, \n' \
+                                                        'Код события: {}, \n' \
                                                         'Описание: {} '.format(the_time.Format(), evt_type, src, evt_id, msg)
 
                                         if re.findall(r'Выключение питания', msg):
-                                            msgTxt += 'ВОЗМОЖНО СИСТЕМА БЫЛА ПЕРЕЗАГРУЖЕНА ПОЛЬЗОВАТЕЛЕМ, ' \
-                                                      'ВРЕМЯ: {}, ' \
-                                                      'Тип: {}, ' \
-                                                      'Источник: {}, ' \
-                                                      'Код события: {}, ' \
+                                            msgTxt += 'Система была выключена пользователем, ' \
+                                                      'ВРЕМЯ: {}, \n' \
+                                                      'Тип: {}, \n' \
+                                                      'Источник: {}, \n' \
+                                                      'Код события: {}, \n' \
                                                       'Описание: {} '.format(the_time.Format(), evt_type, src, evt_id,
                                                                              msg)
 
