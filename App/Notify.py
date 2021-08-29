@@ -14,29 +14,6 @@ from App import Log
 LOG = Log.Log_Manager()
 LOG.CMSLogger('CALLED')
 
-
-def sendmail(messagetext):
-    addr_from = 'notification.ktk@yandex.ru'
-    addr_to = 'alex.s@znp74.ru'
-    password = 'FMV:m53FNPT1'
-    msg = MIMEMultipart()
-    msg['From'] = addr_from
-    msg['To'] = addr_to
-    msg['Subject'] = Config.objType + ' ' + Config.objCode
-    body = ('''{}
-            
-Машина: {}
-Объкт: {}
-Номер салона: {}
-Адрес: {}'''.format(messagetext, socket.gethostname(), Config.objType, Config.objCode, Config.objAddress))
-    msg.attach(MIMEText(body, 'plain'))
-    server = smtplib.SMTP('smtp.yandex.ru', 587)
-    # server.set_debuglevel(True)
-    server.starttls()
-    server.login(addr_from, password)
-    server.send_message(msg)
-    server.quit()
-
 class Mail:
 
     def __init__(self):
@@ -81,7 +58,6 @@ class Mail:
     def SendMailController(self, Q_in):
 
         while True:
-
             messagetext = Q_in.get()
             self.SendMail(messagetext)
 
