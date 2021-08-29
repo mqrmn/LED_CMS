@@ -12,7 +12,6 @@ import win32con
 import winerror
 from datetime import date
 
-
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 from App.Config import Config
 from App import API, Log, Database, File
@@ -22,40 +21,38 @@ LOG = Log.Log_Manager()
 
 class Init:
     def __init__(self):
-        global C_Nova
-        global C_Win
-        global C_Sys
-        global C_File
-        C_Nova = API.Nova()
-        C_Win = API.Process()
-        C_Sys = API.System()
-        C_File = File.NovaBin()
+        global o_nova
+        global o_sys
+        global o_file
+        o_nova = API.Nova()
+        o_sys = API.System()
+        o_file = File.NovaBin()
 
-class Process(Init):
+class Process:
 
     def Start(self, data):
         if data == R.ProcList[0]:
-            C_Nova.RunNova()
+            o_nova.RunNova()
 
     def Terminate(self, data):
         if data == R.ProcList[1]:
-            C_Nova.TerminateMars()
+            o_nova.TerminateMars()
         if data == R.ProcList[0]:
-            C_Nova.TerminateNova()
+            o_nova.TerminateNova()
 
     def Restart(self, data):
         if data == R.ProcList[0]:
-            C_Nova.RestartNova()
+            o_nova.RestartNova()
 
-class System(Init):
+class System:
 
     def PreShutdown(self):
-        C_File.BackupHandle()
+        o_file.BackupHandle()
 
     def RebootInit(self):
         self.PreShutdown()
         time.sleep(180)
-        C_Sys.RestartPC()
+        o_sys.RestartPC()
 
 
 class Files:
@@ -84,7 +81,7 @@ class Files:
             shutil.make_archive(base_name=Config.logPath + archName, format='zip', root_dir=Config.logPath + archName, )
             shutil.rmtree(Config.logPath + archName)
         else:
-            LOG.CMSLogger( 'No logs found to archive')
+            LOG.CMSLogger('No logs found to archive')
 
     # Removes obsolete logs
     def LogDel(self):
@@ -103,8 +100,6 @@ class Files:
             os.remove(Config.logPath + file)
             LOG.CMSLogger('File deleted ' + file)
 
-
-
 class SysInit(Files):
     def InitCMS(self, Q_Internal):
         self.LogArch()
@@ -116,9 +111,6 @@ class SysInit(Files):
             pass
         self.PutSysRun(Q_Internal)
         self.CheckLastStd(Q_Internal)
-
-
-
 
     def CheckDB(self):
         data = True
@@ -145,7 +137,6 @@ class SysInit(Files):
     def PutSysRun(self, Q_out):
         O_DBPrep = Database.Prepare()
         Q_out.put(O_DBPrep.SystemRunPrep(datetime.datetime.now()))
-
 
     def CheckLastSelfInitStd(self, Q_Internal):
         table = Database.Tables()
@@ -210,53 +201,46 @@ class SysInit(Files):
             LOG.CMSLogger('No data on system reboots')
             LOG.CMSLogger('Restart allowed')
 
-
     def CheckLastStd(self, Q_Internal):
-        CreateMess = R.CreateMessage()
+        o_crMsg = R.CreateMessage()
+        o_tbl = Database.Tables()
+
+        machine = None
+        ev = True
+        br = False
+
         flags = win32evtlog.EVENTLOG_BACKWARDS_READ | win32evtlog.EVENTLOG_SEQUENTIAL_READ
         evTypes = {win32con.EVENTLOG_INFORMATION_TYPE: 'EVENTLOG_INFORMATION_TYPE',
                     win32con.EVENTLOG_WARNING_TYPE: 'EVENTLOG_WARNING_TYPE',
                     win32con.EVENTLOG_ERROR_TYPE: 'EVENTLOG_ERROR_TYPE'}
-
-        machine = None
         logType = 'System'
         handle = win32evtlog.OpenEventLog(machine, logType)
         evSource = ['User32', 'Microsoft-Windows-Winlogon', 'Microsoft-Windows-Kernel-Power',
                   'Microsoft-Windows-Kernel-Boot',
                   'EventLog', 'Kernel-Boot']
-
-        event = True
-
-        table = Database.Tables()
-
-        currentRun = table.SystemRun().select().order_by(table.SystemRun.id.desc()).get()
+        currentRun = o_tbl.SystemRun().select().order_by(o_tbl.SystemRun.id.desc()).get()
         # lastInit = table.SystemInit().select().order_by(table.SystemInit.id.desc()).get()
-        lastStd = table.SelfInitShutdown().select().where(
-            table.SelfInitShutdown.key == ('reboot' or 'shutdown')).order_by(table.SelfInitShutdown.id.desc()).get()
-        preCurrentRun = table.SystemRun().select().where(table.SystemRun.id == currentRun.id - 1).get()
+        lastStd = o_tbl.SelfInitShutdown().select().where(
+            o_tbl.SelfInitShutdown.key == ('reboot' or 'shutdown')).order_by(o_tbl.SelfInitShutdown.id.desc()).get()
+        preCurrentRun = o_tbl.SystemRun().select().where(o_tbl.SystemRun.id == currentRun.id - 1).get()
         timeLine = (datetime.datetime.now() - preCurrentRun.datetime).seconds
-
-        br = False
 
         if lastStd.id != preCurrentRun.id:
             msgTxt = 'Предыдущее отключение не было инициировано CMS, либо произошел сбой записи в БД \n'
-            while event:
+            while ev:
                 try:
-                    event = win32evtlog.ReadEventLog(handle, flags, 0)
-                    for ev_obj in event:
-
+                    ev = win32evtlog.ReadEventLog(handle, flags, 0)
+                    for ev_obj in ev:
                         the_time = ev_obj.TimeGenerated
+
                         if (datetime.datetime.now() - the_time).seconds <= timeLine:
-
                             if str(ev_obj.SourceName) in evSource:
-                                cat = str(ev_obj.EventCategory)
                                 src = str(ev_obj.SourceName)
-                                evt_type = str(evTypes[ev_obj.EventType])
+                                evType = str(evTypes[ev_obj.EventType])
                                 msg = str(win32evtlogutil.SafeFormatMessage(ev_obj, logType))
-                                evt_id = str(winerror.HRESULT_CODE(ev_obj.EventID))
+                                evId = str(winerror.HRESULT_CODE(ev_obj.EventID))
 
-                                if src == 'User32' and evt_id == '1074':
-
+                                if src == 'User32' and evId == '1074':
                                     if re.findall(r'RuntimeBroker.exe', msg):
                                         if re.findall(r'Перезапустить', msg):
                                             msgTxt += 'Система была перезагружена пользователем, \n' \
@@ -264,10 +248,8 @@ class SysInit(Files):
                                                         'Тип: {}, \n' \
                                                         'Источник: {}, \n' \
                                                         'Код события: {}, \n' \
-                                                        'Описание: {} '.format(the_time.Format(), evt_type, src, evt_id, msg)
+                                                        'Описание: {} '.format(the_time.Format(), evType, src, evId, msg)
                                             br = True
-
-
 
                                         elif re.findall(r'Выключение питания', msg):
                                             msgTxt += 'Система была выключена пользователем, ' \
@@ -275,22 +257,17 @@ class SysInit(Files):
                                                       'Тип: {}, \n' \
                                                       'Источник: {}, \n' \
                                                       'Код события: {}, \n' \
-                                                      'Описание: {} '.format(the_time.Format(), evt_type, src, evt_id,
+                                                      'Описание: {} '.format(the_time.Format(), evType, src, evId,
                                                                              msg)
                                             br = True
-
                         if br == True:
                             break
-
                     if br == True:
                         break
-
-
-
                 except:
                    pass
             if msgTxt:
                 LOG.CMSLogger(msgTxt)
-                Q_Internal.put(CreateMess.SendMail(msgTxt))
+                Q_Internal.put(o_crMsg.SendMail(msgTxt))
             win32evtlog.CloseEventLog(handle)
 
