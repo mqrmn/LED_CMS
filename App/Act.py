@@ -236,6 +236,7 @@ class SysInit(Files):
         preCurrentRun = table.SystemRun().select().where(table.SystemRun.id == currentRun.id - 1).get()
         timeLine = (datetime.datetime.now() - preCurrentRun.datetime).seconds
 
+        br = False
 
         if lastStd.id != preCurrentRun.id:
             msgTxt = 'Предыдущее отключение не было инициировано CMS, либо произошел сбой записи в БД \n'
@@ -264,6 +265,7 @@ class SysInit(Files):
                                                         'Источник: {}, \n' \
                                                         'Код события: {}, \n' \
                                                         'Описание: {} '.format(the_time.Format(), evt_type, src, evt_id, msg)
+                                            br = True
                                             break
 
 
@@ -275,8 +277,11 @@ class SysInit(Files):
                                                       'Код события: {}, \n' \
                                                       'Описание: {} '.format(the_time.Format(), evt_type, src, evt_id,
                                                                              msg)
+                                            br = True
                                             break
 
+                    if br == True:
+                        break
 
 
 
