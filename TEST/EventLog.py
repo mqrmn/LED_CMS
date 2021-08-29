@@ -46,22 +46,22 @@ def TEST():
 
     currentRun = table.SystemRun().select().order_by(table.SystemRun.id.desc()).get()
     lastInit = table.SystemInit().select().order_by(table.SystemInit.id.desc()).get()
-    lastReboot = table.SelfInitShutdown().select().order_by(table.SelfInitShutdown.id.desc()).get()
+    lastStd = table.SelfInitShutdown().select().where(table.SelfInitShutdown.key == ('reboot' or 'shutdown')).order_by(table.SelfInitShutdown.id.desc()).get()
 
     PREcurrentRun = table.SystemRun().select().where(table.SystemRun.id == currentRun.id - 1).get()
 
-    # print('currentRun:', currentRun.id, currentRun.datetime)
-    # print('lastInit:', lastInit.id, lastInit.datetime)
-    # print('lastReboot:', lastReboot.id, lastReboot.datetime)
-    #
-    # print()
-    # print('PREcurrentRun', PREcurrentRun.id, PREcurrentRun.datetime)
+    print('currentRun:', currentRun.id, currentRun.datetime)
+    print('lastInit:', lastInit.id, lastInit.datetime)
+    print('lastStd:', lastStd.id, lastStd.datetime)
+
+    print()
+    print('PREcurrentRun', PREcurrentRun.id, PREcurrentRun.datetime)
 
     timeLine = (datetime.datetime.now() - PREcurrentRun.datetime).seconds
 
     # print(timeLine)
 
-    if lastReboot.id != PREcurrentRun.id:
+    if lastStd.id != PREcurrentRun.id:
         print('ПРЕДЫДУЩЕЕ ОТКЛЮЧЕНИЕ НЕ БЫЛО ИНИЦИИРОВАНО CMS')
         while events:
             try:
