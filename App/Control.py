@@ -121,7 +121,7 @@ class CMS:
             T_GetProcessState.join()
             time.sleep(Config.timeoutPCheck)
 
-    def CMSService(self, Q_Manage, Q_Internal, ):
+    def CMSService(self, Q_Manage, Q_FromUpdater, ):
         C_ActionSys = Act.System()
         C_ActionInit = Act.SysInit()
         table = Database.Tables()
@@ -138,8 +138,8 @@ class CMS:
                     Socket.connect((Config.localhost, Config.CMSCoreInternalPort))
                     LOG.CMSLogger('CMS Runned', )
                 except:
-                    if Q_Internal.empty() == False:
-                        if Q_Internal.get() == True:
+                    if Q_FromUpdater.empty() == False:
+                        if Q_FromUpdater.get() == True:
                             LOG.CMSLogger('CMS Stopped for upgrade', )
                             break
                         else:

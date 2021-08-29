@@ -138,6 +138,13 @@ class Queue:
                 if data[R.r[1]] == R.H[4]:  # Head == Flag
                     Q_out.put(data[R.r[3]])
 
+    def FromCoreToCont(self, Q_in, Q_out, ):
+        data = Q_in.get()
+        if data[R.r[0]] == R.M[0]:  # Method == put
+            if data[R.r[1]] == R.H[4]:  # Head == Flag
+                Q_out.put(data)
+
+
     # Checks the keys in the data coming to the UA, in accordance with them, launches actions
     def UAAction(self, Q_in, Q_out,):
         C_Exec = Act.Process()
@@ -211,14 +218,14 @@ class Queue:
         Q_out.put(data)
 
     # Internal queue processing
-    def Internal(self, Q_in, Q_UAValid, Q_DBWrite, Q_SetFlag, Q_SendMail):
+    def Internal(self, q_internal, Q_UAValid, Q_DBWrite, Q_SetFlag, Q_SendMail, Q_):
         while True:
-            data = Q_in.get()
+            data = q_internal.get()
             # Agent check
             if data[R.r[1]] == R.H[2]:
                 if data[R.r[2]] == R.K[7]:
                     Q_UAValid.put(data[R.r[3]])
-            # Writing to the database
+            # Write to the database
             if data[R.r[1]] == R.H[3]:
                 if data[R.r[2]] == R.K[8]:
                     Q_DBWrite.put(data[R.r[3]])
@@ -226,6 +233,7 @@ class Queue:
             if data[R.r[1]] == R.H[4]:
                 Q_SetFlag.put({R.r[2]: data[R.r[2]],
                                R.r[3]: data[R.r[3]], }, )
+            # Send Mail
             if data[R.r[1]] == R.H[5]:
                 Q_SendMail.put(data[R.r[3]])
 

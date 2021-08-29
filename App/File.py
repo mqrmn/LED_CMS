@@ -18,7 +18,10 @@ LOG = Log.Log_Manager()
 
 class CMSUpdate:
 
-    def CMSUpdater(self, Q_out):
+    def CMSUpdater(self, Q_FromUpdater, q_internal):
+
+        o_createMessage = Resource.CreateMessage()
+        q_internal.put(o_createMessage.SendMail('Тест отправки уведомлений из контроллера'))
         C_API = API.Service()
         C_Action = Act.System()
         pythoncom.CoInitialize()
@@ -28,7 +31,7 @@ class CMSUpdate:
                 time.sleep(180)
                 stSvc = C_API.StopService('CMS')
                 if stSvc[0] == 0:
-                    Q_out.put(True)
+                    Q_FromUpdater.put(True)
                     LOG.CMSLogger( 'CMS stopped')
                     time.sleep(30)
                     self.CMSUpgrade(True)
@@ -38,6 +41,9 @@ class CMSUpdate:
                                                   datetime=datetime.datetime.now(), )
 
                     C_Action.RebootInit()
+                    q_internal.put(o_createMessage.SendMail('Выполнено обновление CMS'))
+
+
                 else:
                     LOG.CMSLogger('Cant stop CMS, code: {}'.format(stSvc), )
             else:
@@ -208,7 +214,6 @@ class RenewContent:
                 fix = False
                 countPass = 0
             time.sleep(10)
-
 
     def ContentRenewHandle(self, Q_out, ):
 

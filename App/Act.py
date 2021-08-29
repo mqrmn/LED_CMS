@@ -207,18 +207,18 @@ class SysInit(Files):
     def CheckLastStd(self, Q_Internal):
         CreateMess = R.CreateMessage()
         flags = win32evtlog.EVENTLOG_BACKWARDS_READ | win32evtlog.EVENTLOG_SEQUENTIAL_READ
-        evt_dict = {win32con.EVENTLOG_INFORMATION_TYPE: 'EVENTLOG_INFORMATION_TYPE',
+        evTypes = {win32con.EVENTLOG_INFORMATION_TYPE: 'EVENTLOG_INFORMATION_TYPE',
                     win32con.EVENTLOG_WARNING_TYPE: 'EVENTLOG_WARNING_TYPE',
                     win32con.EVENTLOG_ERROR_TYPE: 'EVENTLOG_ERROR_TYPE'}
 
-        computer = None
-        logtype = 'System'
-        hand = win32evtlog.OpenEventLog(computer, logtype)
-        list_2 = ['User32', 'Microsoft-Windows-Winlogon', 'Microsoft-Windows-Kernel-Power',
+        machine = None
+        logType = 'System'
+        handle = win32evtlog.OpenEventLog(machine, logType)
+        evSource = ['User32', 'Microsoft-Windows-Winlogon', 'Microsoft-Windows-Kernel-Power',
                   'Microsoft-Windows-Kernel-Boot',
                   'EventLog', 'Kernel-Boot']
 
-        events = 1
+        event = True
 
         table = Database.Tables()
 
@@ -226,25 +226,25 @@ class SysInit(Files):
         # lastInit = table.SystemInit().select().order_by(table.SystemInit.id.desc()).get()
         lastStd = table.SelfInitShutdown().select().where(
             table.SelfInitShutdown.key == ('reboot' or 'shutdown')).order_by(table.SelfInitShutdown.id.desc()).get()
-        PREcurrentRun = table.SystemRun().select().where(table.SystemRun.id == currentRun.id - 1).get()
-        timeLine = (datetime.datetime.now() - PREcurrentRun.datetime).seconds
+        preCurrentRun = table.SystemRun().select().where(table.SystemRun.id == currentRun.id - 1).get()
+        timeLine = (datetime.datetime.now() - preCurrentRun.datetime).seconds
 
 
-        if lastStd.id != PREcurrentRun.id:
+        if lastStd.id != preCurrentRun.id:
             msgTxt = 'Предыдущее отключение не было инициировано CMS, либо произошел сбой записи в БД \n'
-            while events:
+            while event:
                 try:
-                    events = win32evtlog.ReadEventLog(hand, flags, 0)
-                    for ev_obj in events:
+                    event = win32evtlog.ReadEventLog(handle, flags, 0)
+                    for ev_obj in event:
 
                         the_time = ev_obj.TimeGenerated
                         if (datetime.datetime.now() - the_time).seconds <= timeLine:
 
-                            if str(ev_obj.SourceName) in list_2:
+                            if str(ev_obj.SourceName) in evSource:
                                 cat = str(ev_obj.EventCategory)
                                 src = str(ev_obj.SourceName)
-                                evt_type = str(evt_dict[ev_obj.EventType])
-                                msg = str(win32evtlogutil.SafeFormatMessage(ev_obj, logtype))
+                                evt_type = str(evTypes[ev_obj.EventType])
+                                msg = str(win32evtlogutil.SafeFormatMessage(ev_obj, logType))
                                 evt_id = str(winerror.HRESULT_CODE(ev_obj.EventID))
 
                                 if src == 'User32' and evt_id == '1074':
@@ -269,8 +269,8 @@ class SysInit(Files):
 
 
                 except:
-                    print('EXC')
+                   pass
             if msgTxt:
                 LOG.CMSLogger(msgTxt)
                 Q_Internal.put(CreateMess.SendMail(msgTxt))
-            win32evtlog.CloseEventLog(hand)
+            win32evtlog.CloseEventLog(handle)
