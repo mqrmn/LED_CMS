@@ -223,21 +223,12 @@ class SysInit(Files):
         table = Database.Tables()
 
         currentRun = table.SystemRun().select().order_by(table.SystemRun.id.desc()).get()
-        lastInit = table.SystemInit().select().order_by(table.SystemInit.id.desc()).get()
+        # lastInit = table.SystemInit().select().order_by(table.SystemInit.id.desc()).get()
         lastStd = table.SelfInitShutdown().select().where(
             table.SelfInitShutdown.key == ('reboot' or 'shutdown')).order_by(table.SelfInitShutdown.id.desc()).get()
-
         PREcurrentRun = table.SystemRun().select().where(table.SystemRun.id == currentRun.id - 1).get()
-
-        # print('currentRun:', currentRun.id, currentRun.datetime)
-        # print('lastInit:', lastInit.id, lastInit.datetime)
-        # print('lastStd:', lastStd.id, lastStd.datetime)
-        # print()
-        # print('PREcurrentRun', PREcurrentRun.id, PREcurrentRun.datetime)
-
         timeLine = (datetime.datetime.now() - PREcurrentRun.datetime).seconds
 
-        # print(timeLine)
 
         if lastStd.id != PREcurrentRun.id:
             msgTxt = 'Предыдущее отключение не было инициировано CMS, либо произошел сбой записи в БД \n'
@@ -261,7 +252,7 @@ class SysInit(Files):
                                     if re.findall(r'RuntimeBroker.exe', msg):
                                         if re.findall(r'Перезапустить', msg):
                                             msgTxt += 'Система была перезагружена пользователем, \n' \
-                                                        'ВРЕМЯ: {}, \n' \
+                                                        'Время: {}, \n' \
                                                         'Тип: {}, \n' \
                                                         'Источник: {}, \n' \
                                                         'Код события: {}, \n' \
@@ -269,7 +260,7 @@ class SysInit(Files):
 
                                         if re.findall(r'Выключение питания', msg):
                                             msgTxt += 'Система была выключена пользователем, ' \
-                                                      'ВРЕМЯ: {}, \n' \
+                                                      'Время: {}, \n' \
                                                       'Тип: {}, \n' \
                                                       'Источник: {}, \n' \
                                                       'Код события: {}, \n' \
