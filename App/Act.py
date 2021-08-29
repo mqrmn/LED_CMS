@@ -205,6 +205,7 @@ class SysInit(Files):
 
 
     def CheckLastStd(self, Q_Internal):
+        CreateMess = R.CreateMessage()
         flags = win32evtlog.EVENTLOG_BACKWARDS_READ | win32evtlog.EVENTLOG_SEQUENTIAL_READ
         evt_dict = {win32con.EVENTLOG_INFORMATION_TYPE: 'EVENTLOG_INFORMATION_TYPE',
                     win32con.EVENTLOG_WARNING_TYPE: 'EVENTLOG_WARNING_TYPE',
@@ -280,5 +281,5 @@ class SysInit(Files):
                     print('EXC')
             if msgTxt:
                 LOG.CMSLogger(msgTxt)
-                Q_Internal.put()
+                Q_Internal.put(CreateMess.SendMail(msgTxt))
             win32evtlog.CloseEventLog(hand)

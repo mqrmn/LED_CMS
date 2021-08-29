@@ -9,6 +9,10 @@ from email.mime.text import MIMEText
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
+from App import Log
+
+LOG = Log.Log_Manager()
+LOG.CMSLogger('CALLED')
 
 
 def sendmail(messagetext):
@@ -38,9 +42,9 @@ class Mail:
     def __init__(self):
 
         global addr_from
-        addr_from = 'notification.ktk@yandex.ru'
+        addr_from = 'salon.notification@znp74.ru'
         global password
-        password = 'FMV:m53FNPT1'
+        password = '6M3QP8LKKsesZg'
         global addr_to
         addr_to = 'alex.s@znp74.ru'
 
@@ -77,6 +81,7 @@ class Mail:
     def SendMailController(self, Q_in):
 
         while True:
+
             messagetext = Q_in.get()
             self.SendMail(messagetext)
 
