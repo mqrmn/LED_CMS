@@ -266,7 +266,7 @@ class SysInit(Files):
                                                         'Код события: {}, \n' \
                                                         'Описание: {} '.format(the_time.Format(), evt_type, src, evt_id, msg)
                                             br = True
-                                            break
+
 
 
                                         elif re.findall(r'Выключение питания', msg):
@@ -278,7 +278,9 @@ class SysInit(Files):
                                                       'Описание: {} '.format(the_time.Format(), evt_type, src, evt_id,
                                                                              msg)
                                             br = True
-                                            break
+
+                        if br == True:
+                            break
 
                     if br == True:
                         break
