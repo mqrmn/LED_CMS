@@ -80,9 +80,16 @@ def TEST():
                             # print((the_time.Format(), ':', src, cat, evt_id, evt_type, msg))
 
                             if src == 'User32' and evt_id == '1074':
-                                print((the_time.Format(), ':', src, evt_id, msg))
-                                print('ВОЗМОЖНО СИСТЕМА БЫЛА ПЕРЕЗАГРУЖЕНА ПОЛЬЗОВАТЕЛЕМ, '
-                                      'ВРЕМЯ СОБЫТИЯ: {}'.format(the_time.Format()))
+
+                                if re.findall(r'RuntimeBroker.exe', msg):
+                                    if re.findall(r'Перезапустить', msg):
+                                        print((the_time.Format(), ':', src, evt_id, msg))
+                                        print('ВОЗМОЖНО СИСТЕМА БЫЛА ПЕРЕЗАГРУЖЕНА ПОЛЬЗОВАТЕЛЕМ, '
+                                              'ВРЕМЯ СОБЫТИЯ: {}'.format(the_time.Format()))
+                                    if re.findall(r'Выключение питания', msg):
+                                        print((the_time.Format(), ':', src, evt_id, msg))
+                                        print('ВОЗМОЖНО СИСТЕМА БЫЛА ВЫКЛЮЧЕНА ПОЛЬЗОВАТЕЛЕМ, '
+                                              'ВРЕМЯ СОБЫТИЯ: {}'.format(the_time.Format()))
                             # re.findall(r'\d{4}-\d{2}-\d{2}', msg)
 
             except:
