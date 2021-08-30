@@ -28,7 +28,7 @@ class Init:
         o_sys = API.System()
         o_file = File.NovaBin()
 
-class Process:
+class Process(Init):
 
     def Start(self, data):
         if data == R.ProcList[0]:
@@ -44,7 +44,7 @@ class Process:
         if data == R.ProcList[0]:
             o_nova.RestartNova()
 
-class System:
+class System(Init):
 
     def PreShutdown(self):
         o_file.BackupHandle()
@@ -55,7 +55,7 @@ class System:
         o_sys.RestartPC()
 
 
-class Files:
+class Files(Init):
 
     # Archives logs
     def LogArch(self):
