@@ -62,3 +62,6 @@ smtpPass = '6M3QP8LKKsesZg'
 smtpReceiver = 'alex.s@znp74.ru'
 smtpServer = 'smtp.yandex.ru'
 smtpPort = 587
+
+# Timeouts
+

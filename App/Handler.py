@@ -3,27 +3,42 @@
 import sys
 import time
 import datetime
+from inspect import currentframe, getframeinfo
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
-from App import Act, File
+from App import Act, File, Act, Database, Log
 from App import Resource as R
 
+LOG = Log.Log_Manager()
+
+class Init:
+    def __init__(self):
+        global o_CrMsg
+        global o_Act
+        global o_DBMsg
+
+        o_DBMsg = Database.Prepare()
+        o_CrMsg = R.CreateMessage()
+        o_Act = Act.System()
 
 # Queue handlers
-class Queue:
-    def SendController(self, Q_in, Q_out, Q_SetFlag = None, ):
+class Queue(Init):
+    def SendController(self, Q_in, Q_out, q_Internal=None, Q_SetFlag=None,  ):
         termNovaCount = 0
         termMarsCount = 0
         resNovaCount = 0
         runNovaCount = 0
+        flag = 0
         termNovaTime = datetime.datetime.now()
         termMarsTime = datetime.datetime.now()
         resNovaTime = datetime.datetime.now()
         runNovaTime = datetime.datetime.now()
 
+
         while True:
             data = Q_in.get()
+
             if Q_SetFlag != None:
                 if Q_SetFlag.empty() == False:
                     flag = Q_SetFlag.get()
@@ -33,7 +48,7 @@ class Queue:
                 pass
             # Launching NovaStudio
             if data == R.RunNova[1]:
-                if ((datetime.datetime.now() - runNovaTime).seconds >= 30) or runNovaCount == 0:
+                if ((datetime.datetime.now() - runNovaTime).seconds >= 300) or runNovaCount == 0:
                     self.ToSend(data, Q_out)
                     runNovaTime = datetime.datetime.now()
                     runNovaCount += 1
@@ -42,7 +57,7 @@ class Queue:
                 data = None
             # Stop NovaStudio
             if data == R.TerminateNova:
-                if ((datetime.datetime.now() - termNovaTime).seconds >= 30) or termNovaCount == 0:
+                if ((datetime.datetime.now() - termNovaTime).seconds >= 300) or termNovaCount == 0:
                     self.ToSend(data, Q_out)
                     termNovaTime = datetime.datetime.now()
                     termNovaCount += 1
@@ -51,7 +66,7 @@ class Queue:
                     data = None
             # Stopping MarsServerProvider
             if data == R.TerminateMars[1]:
-                if ((datetime.datetime.now() - termMarsTime).seconds >= 30) or termMarsCount == 0:
+                if ((datetime.datetime.now() - termMarsTime).seconds >= 300) or termMarsCount == 0:
                     self.ToSend(data, Q_out)
                     termMarsTime = datetime.datetime.now()
                     termMarsCount += 1
@@ -60,13 +75,21 @@ class Queue:
                 data = None
             # Restarting NovaStudio
             if data == R.RestartNova[1]:
-                if ((datetime.datetime.now() - resNovaTime).seconds >= 30) or resNovaCount == 0:
+                if ((datetime.datetime.now() - resNovaTime).seconds >= 300) or resNovaCount == 0:
                     self.ToSend(data, Q_out)
                     resNovaTime = datetime.datetime.now()
                     resNovaCount += 1
                 else:
                     pass
                 data = None
+            if data:
+                if (data[R.r[1]] == R.H[1]) and (data[R.r[2]] == R.K[13]) and flag > 0:
+                    LOG.CMSLogger('Инициирована перезагрузка системы всвязи со сбоем NovaStudio')
+                    self.ToSend(data, Q_out)
+                    q_Internal.put(o_CrMsg.SendMail('Инициирована перезагрузка системы всвязи со сбоем NovaStudio'))
+                    q_Internal.put(o_DBMsg.SelfInitShutdownPrep(getframeinfo(currentframe())[2], 'reboot', datetime.datetime.now()))
+                    data = None
+
             if data != None:
                 self.ToSend(data, Q_out)
 
@@ -88,13 +111,17 @@ class Queue:
 
 
     # Prepares commands to be sent to the UA
-    def CreateAction(self, Q_in, Q_out, Q_SetFlag):
+    def CreateAction(self, Q_in, Q_out, ):
         restartNovaCount = 0
+        restoreNovaCount = 0
         lastNovaRestart = None
         DictNova = {}
         DictMars = {}
         command = None
+
+
         while True:
+
             data = Q_in.get()
             if (data[R.r[2]] == R.K[0]) or (data[R.r[2]] == R.K[1] and data[R.r[3]][0] == R.ProcList[0]):
                 DictNova[data[R.r[2]]] = data[R.r[3]]
@@ -124,9 +151,15 @@ class Queue:
                     Q_out.put(command)
                     command = None
                     DictMars = {}
+            # RestoreNova
             if restartNovaCount >= 3 and ((datetime.datetime.now() - lastNovaRestart).seconds <= 300):
                 Q_out.put(R.RestoreNovaBin[0])
+                restoreNovaCount += 1
                 restartNovaCount = 0
+                if restoreNovaCount >= 3:
+                    Q_out.put(o_CrMsg.RebootSystem())
+                    break
+
 
     # Processor of data coming to UA
     def FromCore(self, Q_in, Q_out, ):
@@ -163,6 +196,10 @@ class Queue:
                 Q_out.put(data)
             if data[R.r[2]] == R.K[11]:     # Key == RestoreNovaBin
                 C_File.RestoreHandle()
+            if data[R.r[1]] == R.H[1] and \
+                    data[R.r[2]] == R.K[13] and \
+                    data[R.r[3]] == R.ActionKey[3]:     # Key == System, Data == RebootSystem
+                o_Act.RebootInit()
 
     # Checks the flow of incoming data for a given match
     def Valid(self, Q_in, Q_out, checkValue, maxCount, head, sendAllCircles, ):
@@ -237,11 +274,12 @@ class Queue:
             if data[R.r[1]] == R.H[5]:
                 Q_SendMail.put(data[R.r[3]])
 
-    def SetFlag(self, Q_SetFlag, Q_UAValidSF, Q_Cont_TCPSend):
+    def SetFlag(self, Q_SetFlag, Q_UAValidSF, Q_Cont_TCPSend, q_SendContrSetFLAG):
         while True:
             data = Q_SetFlag.get()
             if data[R.r[2]] == R.K[9]:
                 Q_UAValidSF.put(data[R.r[3]])
+                q_SendContrSetFLAG.put(data[R.r[3]])
             if data[R.r[2]] == R.K[10]:
                 Q_Cont_TCPSend.put({R.r[0]: R.M[0], R.r[1]: R.H[4],
                                     R.r[2]: R.K[10], R.r[3]: data[R.r[3]]})

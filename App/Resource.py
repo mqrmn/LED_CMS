@@ -8,9 +8,9 @@ M = ['put', 'get', ]
 # Head
 H = ['State', 'Action', 'Report', 'DB', 'Flag', 'Mail']
 # Key
-K = ['ScreenState', 'ProcState', 'RunProc', 'TerminateProc', 'RestartProc',
-       'Process', 'TerminateThread', 'UALastAction', 'DBWrite', 'UAValid',
-       'CMSController', 'RestoreNovaBin', 'SendMail']
+K = ['ScreenState', 'ProcState', 'RunProc', 'TerminateProc', 'RestartProc', # 0 - 4
+       'Process', 'TerminateThread', 'UALastAction', 'DBWrite', 'UAValid',  # 5 - 9
+       'CMSController', 'RestoreNovaBin', 'SendMail', 'System']             # 10 - 13
 
 # DB
 DBWriteData = ['table', ]
@@ -75,3 +75,6 @@ class CreateMessage:
 
     def SetFlagCont_2(self):
         return {r[1]: H[4], r[2]: K[10], r[3]: ShutdownFlagData[2]}
+
+    def RebootSystem(self):
+        return {r[1]: H[1], r[2]: K[13], r[3]: ActionKey[3]}

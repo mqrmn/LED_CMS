@@ -43,7 +43,7 @@ def main(Q_External):
 
     TQ_CheckProc = threading.Thread(target=C_Handler.CheckProcList, args=(Q_ProcStateRAW, Q_ProcState))
     TQ_ValidProc = threading.Thread(target=C_Handler.Valid, args=(Q_ProcState, Q_PrepareToSend, False, 1, R.H[0], True,))
-    TQ_PrepareToSend = threading.Thread(target=C_Handlers.SendController, args=(Q_PrepareToSend, Q_ToSend,))
+    TQ_PrepareToSend = threading.Thread(target=C_Handlers.SendController, args=(Q_PrepareToSend, Q_ToSend, ))
     TQ_FromCore = threading.Thread(target=C_Handlers.FromCore, args=(Q_FromCore, Q_Action))
 
     T_ThreadControl = threading.Thread(target=C_Control.Thread, args=(Q_Control, TQ_PrepareToSend, [T_Server, T_Client, T_ActionRun, T_GetScreen, T_CheckScreen,

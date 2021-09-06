@@ -17,95 +17,100 @@ LOG = Log.Log_Manager()
 LOG.CMSLogger('CALLED')
 
 def TEST():
-        # Core initialization
-        Q_Internal = queue.Queue()
-        C_Action = Act.SysInit()
+    q_Internal = queue.Queue()
+    o_Action = Act.SysInit()
 
-        try:
-                C_Action.InitCMS(Q_Internal)
-                LOG.CMSLogger('Core initialized')
-        except:
-                LOG.CMSLogger('Core initialization failed')
+    try:
+        o_Action.InitCMS(q_Internal)
+        LOG.CMSLogger('Core initialized')
+    except:
+        LOG.CMSLogger('Core initialization failed')
 
-        C_Handlers = Handler.Queue()
-        C_Network = Comm.Socket()
-        C_RenewCont = File.RenewContent()
-        C_Valid = Control.CMS()
-        C_DB = Database.DBFoo()
-        O_SendMailCont = Notify.Mail()
+    o_Handlers = Handler.Queue()
+    o_Network = Comm.Socket()
+    o_RenewCont = File.RenewContent()
+    o_Valid = Control.CMS()
+    o_DB = Database.DBFoo()
+    o_SendMailCont = Notify.Mail()
 
-        LOG.CMSLogger('Instances of classes created')
+    LOG.CMSLogger('Instances of classes created')
 
-        Q_FromUA = queue.Queue()
-        Q_Action = queue.Queue()
-        Q_TCPSend = queue.Queue()
-        Q_ValidProc = queue.Queue()
-        Q_PrepareToSend = queue.Queue()
-        Q_ValidScreen = queue.Queue()
-        Q_SetFlag = queue.Queue()
-        Q_UAValid = queue.Queue()
-        Q_DBWrite = queue.Queue()
-        Q_UAValidSF = queue.Queue()
-        Q_Controller = queue.Queue()
-        Q_SendMail = queue.Queue()
+    q_FromUA = queue.Queue()
+    q_Action = queue.Queue()
+    q_TCPSend = queue.Queue()
+    q_ValidProc = queue.Queue()
+    q_PrepareToSend = queue.Queue()
+    q_ValidScreen = queue.Queue()
+    q_SetFlag = queue.Queue()
+    q_UAValid = queue.Queue()
+    q_DBWrite = queue.Queue()
+    q_UAValidSF = queue.Queue()
+    q_Controller = queue.Queue()
+    q_SendMail = queue.Queue()
+    q_SendContrSetFLAG = queue.Queue()
+    LOG.CMSLogger('Queues created')
 
-        LOG.CMSLogger('Queues created')
+    # Exchange threads
+    t_Server = threading.Thread(target=o_Network.Server,
+                                args=(Config.localhost, Config.CMSCoreInternalPort, q_FromUA))
+    t_ClientUA = threading.Thread(target=o_Network.Client,
+                                  args=(Config.localhost, Config.CMSUserAgentPort, q_TCPSend))
+    t_ClientContr = threading.Thread(target=o_Network.Client,
+                                     args=(Config.localhost, Config.CMSControllertPort, q_TCPSend))
 
-        # Exchange threads
-        T_Server = threading.Thread(target=C_Network.Server,
-                                    args=(Config.localhost, Config.CMSCoreInternalPort, Q_FromUA))
+    # Inbound processing flows
+    t_ReceiveDataFromUA = threading.Thread(target=o_Handlers.FromUA,
+                                           args=(q_FromUA, q_ValidScreen, q_ValidProc, q_Internal))
+    t_ValidDataScreen = threading.Thread(target=o_Handlers.Valid,
+                                         args=(q_ValidScreen, q_Action, True, 1, R.H[0], True))
+    t_ValidDataProc = threading.Thread(target=o_Handlers.Valid,
+                                       args=(q_ValidProc, q_Action, False, 1, R.H[0], True))
 
-        T_ClientUA = threading.Thread(target=C_Network.Client,
-                                      args=(Config.localhost, Config.CMSUserAgentPort, Q_TCPSend))
-        # T_ClientContr = threading.Thread(target=C_Network.Client,
-        #                                  args=(Config.localhost, Config.CMSControllertPort, Q_TCPSend))
-        # Inbound processing flows
-        T_ReceiveDataFromUA = threading.Thread(target=C_Handlers.FromUA,
-                                               args=(Q_FromUA, Q_ValidScreen, Q_ValidProc, Q_Internal))
-        T_ValidDataScreen = threading.Thread(target=C_Handlers.Valid,
-                                             args=(Q_ValidScreen, Q_Action, True, 1, R.H[0], True))
-        T_ValidDataProc = threading.Thread(target=C_Handlers.Valid,
-                                           args=(Q_ValidProc, Q_Action, False, 1, R.H[0], True))
-        # Outbound shaping streams
-        T_CreateAction = threading.Thread(target=C_Handlers.CreateAction,
-                                          args=(Q_Action, Q_PrepareToSend, Q_SetFlag))
-        T_SendController = threading.Thread(target=C_Handlers.SendController,
-                                            args=(Q_PrepareToSend, Q_TCPSend, Q_SetFlag))
-        # Internal processing flows
-        T_Internal = threading.Thread(target=C_Handlers.Internal,
-                                      args=(Q_Internal, Q_UAValid, Q_DBWrite, Q_SetFlag, Q_SendMail))
-        T_SetFlag = threading.Thread(target=C_Handlers.SetFlag,
-                                     args=(Q_SetFlag, Q_UAValidSF, Q_Controller))
+    # Internal processing flows
+    t_Internal = threading.Thread(target=o_Handlers.Internal,
+                                  args=(q_Internal, q_UAValid, q_DBWrite, q_SetFlag, q_SendMail))
+    t_SetFlag = threading.Thread(target=o_Handlers.SetFlag,
+                                 args=(q_SetFlag, q_UAValidSF, q_Controller, q_SendContrSetFLAG))
 
-        # Database write processing
-        T_DBWriteController = (threading.Thread(target=C_DB.WriteController,
-                                                args=(Q_DBWrite,)))
-        # Service Streams
-        T_CheckNewContent = threading.Thread(target=C_RenewCont.DynamicRenewCont,
-                                             args=(Q_PrepareToSend,))
-        T_UAValid = threading.Thread(target=C_Valid.UAValid,
-                                     args=(Q_UAValid, Q_Internal, Q_UAValidSF))
-        T_SendMailCont = threading.Thread(target=O_SendMailCont.SendMailController,
-                                          args=(Q_SendMail,))
+    # Outbound shaping streams
+    t_CreateAction = threading.Thread(target=o_Handlers.CreateAction,
+                                      args=(q_Action, q_PrepareToSend, ))
+    t_SendController = threading.Thread(target=o_Handlers.SendController,
+                                        args=(q_PrepareToSend, q_TCPSend, q_Internal, q_SendContrSetFLAG,))
 
-        LOG.CMSLogger('Threads are initialized')
 
-        T_Server.start()
-        T_ClientUA.start()
-        T_ReceiveDataFromUA.start()
-        T_CreateAction.start()
-        T_SendController.start()
-        T_ValidDataScreen.start()
-        T_ValidDataProc.start()
-        T_CheckNewContent.start()
 
-        T_Internal.start()
-        T_UAValid.start()
-        T_DBWriteController.start()
-        T_SetFlag.start()
-        T_SendMailCont.start()
 
-        LOG.CMSLogger('Threads started')
+    # Database write processing
+    t_DBWriteController = (threading.Thread(target=o_DB.WriteController,
+                                            args=(q_DBWrite,)))
+    # Service Streams
+    t_CheckNewContent = threading.Thread(target=o_RenewCont.DynamicRenewCont,
+                                         args=(q_PrepareToSend, q_Internal))
+    t_UAValid = threading.Thread(target=o_Valid.UAValid,
+                                 args=(q_UAValid, q_Internal, q_UAValidSF))
+    t_SendMailCont = threading.Thread(target=o_SendMailCont.SendMailController,
+                                      args=(q_SendMail,))
+
+    LOG.CMSLogger('Threads are initialized')
+
+    t_Server.start()
+    t_ClientUA.start()
+    t_ReceiveDataFromUA.start()
+    t_CreateAction.start()
+    t_SendController.start()
+    t_ValidDataScreen.start()
+    t_ValidDataProc.start()
+    t_CheckNewContent.start()
+
+    t_Internal.start()
+    t_UAValid.start()
+    t_DBWriteController.start()
+    t_SetFlag.start()
+    t_SendMailCont.start()
+    t_ClientContr.start()
+
+    LOG.CMSLogger('Threads started')
 
 
 if __name__ == '__main__':

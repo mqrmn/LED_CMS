@@ -421,7 +421,10 @@ class NovaBin:
         if self.CheckNovaFile() != True:
             if C_Nova.GetProcState(Resource.ProcList[0]) == True:
                 C_Nova.TerminateNova()
-            self.RestoreNovaBin()
+            if self.RestoreNovaBin() == True:
+                LOG.CMSLogger('NovaBin recovery completed')
+            else:
+                LOG.CMSLogger('NovaBin restore canceled')
         else:
             LOG.CMSLogger('NovaBin restore canceled')
 
@@ -437,8 +440,12 @@ class NovaBin:
             return None
 
     def RestoreNovaBin(self):
-        shutil.copy(Config.novaBinFileBak,  Config.novaBinFile)
-        LOG.CMSLogger('NovaBin recovery completed')
+        if os.path.exists(Config.novaBinFileBak):
+            shutil.copy(Config.novaBinFileBak,  Config.novaBinFile)
+
+            return True
+        else:
+            return False
 
     def BackupNovaBin(self):
         shutil.copy(Config.novaBinFile, Config.novaBinFileBak)

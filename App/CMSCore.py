@@ -62,7 +62,6 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
     def main(self):
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
-        # Core initialization
         q_Internal = queue.Queue()
         o_Action = Act.SysInit()
 
@@ -93,9 +92,8 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         q_UAValidSF = queue.Queue()
         q_Controller = queue.Queue()
         q_SendMail = queue.Queue()
-
+        q_SendContrSetFLAG = queue.Queue()
         LOG.CMSLogger('Queues created')
-
 
         # Exchange threads
         t_Server = threading.Thread(target=o_Network.Server,
@@ -113,28 +111,28 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         t_ValidDataProc = threading.Thread(target=o_Handlers.Valid,
                                            args=(q_ValidProc, q_Action, False, 1, R.H[0], True))
 
-        # Outbound shaping streams
-        t_CreateAction = threading.Thread(target=o_Handlers.CreateAction,
-                                          args=(q_Action, q_PrepareToSend, q_SetFlag))
-        t_SendController = threading.Thread(target=o_Handlers.SendController,
-                                            args=(q_PrepareToSend, q_TCPSend, q_SetFlag))
-
         # Internal processing flows
         t_Internal = threading.Thread(target=o_Handlers.Internal,
                                       args=(q_Internal, q_UAValid, q_DBWrite, q_SetFlag, q_SendMail))
         t_SetFlag = threading.Thread(target=o_Handlers.SetFlag,
-                                     args=(q_SetFlag, q_UAValidSF, q_Controller))
+                                     args=(q_SetFlag, q_UAValidSF, q_Controller, q_SendContrSetFLAG))
+
+        # Outbound shaping streams
+        t_CreateAction = threading.Thread(target=o_Handlers.CreateAction,
+                                          args=(q_Action, q_PrepareToSend,))
+        t_SendController = threading.Thread(target=o_Handlers.SendController,
+                                            args=(q_PrepareToSend, q_TCPSend, q_Internal, q_SendContrSetFLAG,))
 
         # Database write processing
         t_DBWriteController = (threading.Thread(target=o_DB.WriteController,
-                                                args=(q_DBWrite, )))
+                                                args=(q_DBWrite,)))
         # Service Streams
         t_CheckNewContent = threading.Thread(target=o_RenewCont.DynamicRenewCont,
                                              args=(q_PrepareToSend, q_Internal))
         t_UAValid = threading.Thread(target=o_Valid.UAValid,
                                      args=(q_UAValid, q_Internal, q_UAValidSF))
         t_SendMailCont = threading.Thread(target=o_SendMailCont.SendMailController,
-                                          args=(q_SendMail, ))
+                                          args=(q_SendMail,))
 
         LOG.CMSLogger('Threads are initialized')
 
@@ -155,7 +153,6 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         t_ClientContr.start()
 
         LOG.CMSLogger('Threads started')
-
 
         while True:
             time.sleep(10)
