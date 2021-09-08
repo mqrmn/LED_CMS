@@ -46,10 +46,8 @@ class CMS(Init):
     # Tracking UA status
     def UAValid(self, Q_in, Q_Internal):
 
-        C_Action = Act.System()
         C_Prepare = Database.Prepare()
         data = datetime.datetime.now()
-        table = Database.Tables()
         count = 0
         while True:
             if Q_in.empty() == False:

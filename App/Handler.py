@@ -7,8 +7,9 @@ from inspect import currentframe, getframeinfo
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
-from App import Act, File, Act, Database, Log
+from App import File, Act, Database, Log, Notify
 from App import Resource as R
+from App.Config import Config as C
 
 LOG = Log.Log_Manager()
 
@@ -17,66 +18,61 @@ class Init:
         global o_CrMsg
         global o_Act
         global o_DBMsg
+        global o_crMailMsg
+
 
         o_DBMsg = Database.Prepare()
         o_CrMsg = R.CreateMessage()
         o_Act = Act.System()
+        o_crMailMsg = Notify.Mail()
 
 # Queue handlers
 class Queue(Init):
     def SendController(self, Q_in, Q_out, q_Internal=None,):
-        termNovaCount = 0
-        termMarsCount = 0
-        resNovaCount = 0
-        runNovaCount = 0
-        flag = 0
-        termNovaTime = datetime.datetime.now()
-        termMarsTime = datetime.datetime.now()
-        resNovaTime = datetime.datetime.now()
-        runNovaTime = datetime.datetime.now()
+
+        NullDatetime = datetime.datetime.strptime('2020-02-02', "%Y-%m-%d")
+
+        termNovaTime = NullDatetime
+        termMarsTime = NullDatetime
+        resNovaTime = NullDatetime
+        runNovaTime = NullDatetime
 
 
         while True:
             data = Q_in.get()
 
-
             # Launching NovaStudio
             if data == R.RunNova[1]:
-                if ((datetime.datetime.now() - runNovaTime).seconds >= 300) or runNovaCount == 0:
+                if ((datetime.datetime.now() - runNovaTime).seconds >= C.runNovaTimeout):
                     self.ToSend(data, Q_out)
                     runNovaTime = datetime.datetime.now()
-                    runNovaCount += 1
                 else:
                     pass
                 data = None
             # Stop NovaStudio
             if data == R.TerminateNova:
-                if ((datetime.datetime.now() - termNovaTime).seconds >= 300) or termNovaCount == 0:
+                if ((datetime.datetime.now() - termNovaTime).seconds >= C.terminateNovaTimeout):
                     self.ToSend(data, Q_out)
                     termNovaTime = datetime.datetime.now()
-                    termNovaCount += 1
                 else:
                     pass
                     data = None
             # Stopping MarsServerProvider
             if data == R.TerminateMars[1]:
-                if ((datetime.datetime.now() - termMarsTime).seconds >= 300) or termMarsCount == 0:
+                if ((datetime.datetime.now() - termMarsTime).seconds >= C.terminateMarsTimeout):
                     self.ToSend(data, Q_out)
                     termMarsTime = datetime.datetime.now()
-                    termMarsCount += 1
                 else:
                     pass
                 data = None
             # Restarting NovaStudio
             if data == R.RestartNova[1]:
-                if ((datetime.datetime.now() - resNovaTime).seconds >= 300) or resNovaCount == 0:
+                if ((datetime.datetime.now() - resNovaTime).seconds >= C.restartNovaTimeout):
                     self.ToSend(data, Q_out)
                     resNovaTime = datetime.datetime.now()
-                    resNovaCount += 1
                 else:
                     pass
                 data = None
-
 
             if data != None:
                 self.ToSend(data, Q_out)
@@ -111,7 +107,9 @@ class Queue(Init):
         while True:
 
             data = Q_in.get()
-            if (data[R.r[2]] == R.K[0]) or (data[R.r[2]] == R.K[1] and data[R.r[3]][0] == R.ProcList[0]):
+            if (data[R.r[2]] == R.K[0]) \
+                    or (data[R.r[2]] == R.K[1]
+                        and data[R.r[3]][0] == R.ProcList[0]):
                 DictNova[data[R.r[2]]] = data[R.r[3]]
 
                 # Run Nova
@@ -129,7 +127,8 @@ class Queue(Init):
                     command = None
                     DictNova = {}
 
-            if data[R.r[2]] == R.K[1] and data[R.r[3]][0] == R.ProcList[1]:
+            if data[R.r[2]] == R.K[1] \
+                    and data[R.r[3]][0] == R.ProcList[1]:
                 DictMars[data[R.r[2]]] = data[R.r[3]]
                 # TerminateMars
                 if DictMars == R.TerminateMars[0]:
@@ -140,13 +139,14 @@ class Queue(Init):
                     command = None
                     DictMars = {}
             # RestoreNova
-            if restartNovaCount >= 1 and ((datetime.datetime.now() - lastNovaRestart).seconds <= 300):
+            if restartNovaCount >= C.restartNovaMaxCount \
+                    and ((datetime.datetime.now() - lastNovaRestart).seconds <= C.restartNovaTimeout):
                 Q_out.put(R.RestoreNovaBin[0])
                 restoreNovaCount += 1
                 restartNovaCount = 0
-                if restoreNovaCount >= 3:
+                if restoreNovaCount >= C.restoreNovaMaxCount:
                     q_Internal.put(o_CrMsg.RebootSystem())
-                    break
+                    q_Internal.put(o_crMailMsg.SendMail('The system attempt to reboot'))
 
 
     # Processor of data coming to UA

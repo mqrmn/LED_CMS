@@ -57,11 +57,18 @@ CMSControllertPort = 2403
 
 # Mail Config
 
-smtpSender = 'salon.notification@znp74.ru'
+smtpSender = 'salon.notify@ya.ru'
 smtpPass = '6M3QP8LKKsesZg'
 smtpReceiver = 'alex.s@znp74.ru'
 smtpServer = 'smtp.yandex.ru'
 smtpPort = 587
 
 # Timeouts
-
+# Handler.Queue.SendController
+runNovaTimeout = 300
+terminateNovaTimeout = 300
+terminateMarsTimeout = 300
+restartNovaTimeout = 300
+# Handler.Queue.CreateAction
+restartNovaMaxCount = 1
+restoreNovaMaxCount = 2
