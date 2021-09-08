@@ -17,15 +17,12 @@ LOG = Log.Log_Manager()
 LOG.CMSLogger('CALLED')
 
 def TEST():
-    q_Internal = queue.Queue()
+
+
+
+
+
     o_Action = Act.SysInit()
-
-    try:
-        o_Action.InitCMS(q_Internal)
-        LOG.CMSLogger('Core initialized')
-    except:
-        LOG.CMSLogger('Core initialization failed')
-
     o_Handlers = Handler.Queue()
     o_Network = Comm.Socket()
     o_RenewCont = File.RenewContent()
@@ -35,6 +32,7 @@ def TEST():
 
     LOG.CMSLogger('Instances of classes created')
 
+    q_Internal = queue.Queue()
     q_FromUA = queue.Queue()
     q_Action = queue.Queue()
     q_TCPSend = queue.Queue()
@@ -47,9 +45,13 @@ def TEST():
     q_UAValidSF = queue.Queue()
     q_Controller = queue.Queue()
     q_SendMail = queue.Queue()
-    q_SendContrSetFLAG = queue.Queue()
+    q_PowerManagerFLAG = queue.Queue()
+    q_PowerManager = queue.Queue()
+
     LOG.CMSLogger('Queues created')
 
+    t_Init = threading.Thread(target=o_Action.InitCMS,
+                              args=(q_Internal, ))
     # Exchange threads
     t_Server = threading.Thread(target=o_Network.Server,
                                 args=(Config.localhost, Config.CMSCoreInternalPort, q_FromUA))
@@ -68,18 +70,15 @@ def TEST():
 
     # Internal processing flows
     t_Internal = threading.Thread(target=o_Handlers.Internal,
-                                  args=(q_Internal, q_UAValid, q_DBWrite, q_SetFlag, q_SendMail))
+                                  args=(q_Internal, q_UAValid, q_DBWrite, q_SetFlag, q_SendMail, q_PowerManager))
     t_SetFlag = threading.Thread(target=o_Handlers.SetFlag,
-                                 args=(q_SetFlag, q_UAValidSF, q_Controller, q_SendContrSetFLAG))
+                                 args=(q_SetFlag, q_Controller, q_PowerManagerFLAG))
 
     # Outbound shaping streams
     t_CreateAction = threading.Thread(target=o_Handlers.CreateAction,
-                                      args=(q_Action, q_PrepareToSend, ))
+                                      args=(q_Action, q_PrepareToSend, q_Internal))
     t_SendController = threading.Thread(target=o_Handlers.SendController,
-                                        args=(q_PrepareToSend, q_TCPSend, q_Internal, q_SendContrSetFLAG,))
-
-
-
+                                        args=(q_PrepareToSend, q_TCPSend, q_Internal))
 
     # Database write processing
     t_DBWriteController = (threading.Thread(target=o_DB.WriteController,
@@ -88,12 +87,15 @@ def TEST():
     t_CheckNewContent = threading.Thread(target=o_RenewCont.DynamicRenewCont,
                                          args=(q_PrepareToSend, q_Internal))
     t_UAValid = threading.Thread(target=o_Valid.UAValid,
-                                 args=(q_UAValid, q_Internal, q_UAValidSF))
+                                 args=(q_UAValid, q_Internal))
     t_SendMailCont = threading.Thread(target=o_SendMailCont.SendMailController,
                                       args=(q_SendMail,))
+    t_PowerManager = threading.Thread(target=o_Valid.PowerManager,
+                                      args=(q_PowerManager, q_Internal, q_PowerManagerFLAG))
 
     LOG.CMSLogger('Threads are initialized')
 
+    t_Init.start()
     t_Server.start()
     t_ClientUA.start()
     t_ReceiveDataFromUA.start()
@@ -109,6 +111,7 @@ def TEST():
     t_SetFlag.start()
     t_SendMailCont.start()
     t_ClientContr.start()
+    t_PowerManager.start()
 
     LOG.CMSLogger('Threads started')
 

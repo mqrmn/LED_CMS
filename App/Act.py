@@ -51,7 +51,7 @@ class System(Init):
 
     def RebootInit(self):
         self.PreShutdown()
-        time.sleep(180)
+        time.sleep(30)
         o_sys.RestartPC()
 
 
@@ -102,15 +102,18 @@ class Files(Init):
 
 class SysInit(Files):
     def InitCMS(self, Q_Internal):
+        data = self.CheckSelf()
+        self.PutSysRun(Q_Internal)
         self.LogArch()
         self.LogDel()
-        data = self.CheckSelf()
+
+        self.CheckLastSelfInitStd(Q_Internal)
         if data == True:
-            self.CheckLastSelfInitStd(Q_Internal)
+            self.CheckLastStd(Q_Internal)
         else:
             pass
-        self.PutSysRun(Q_Internal)
-        self.CheckLastStd(Q_Internal)
+
+
 
     def CheckDB(self):
         data = True
@@ -141,6 +144,7 @@ class SysInit(Files):
     def CheckLastSelfInitStd(self, Q_Internal):
         table = Database.Tables()
         crMsg = R.CreateMessage()
+
         try:
             lastStd = table.SelfInitShutdown().select().order_by(table.SelfInitShutdown.id.desc()).get()
         except:
@@ -151,8 +155,8 @@ class SysInit(Files):
                 (table.SelfInitShutdown.datetime.month == datetime.date.today().month) &
                 (table.SelfInitShutdown.datetime.day == datetime.date.today().day)).count()
             if lastStd.datetime.date() == datetime.datetime.now().date():
-                if (datetime.datetime.now() - lastStd.datetime).seconds <= 300:
-                    if count >= 3:
+                if (datetime.datetime.now() - lastStd.datetime).seconds <= 600:
+                    if count >= 2:
                         Q_Internal.put(crMsg.SetFlagUAV_0())
                         Q_Internal.put(crMsg.SetFlagCont_0())
 
@@ -218,11 +222,22 @@ class SysInit(Files):
         evSource = ['User32', 'Microsoft-Windows-Winlogon', 'Microsoft-Windows-Kernel-Power',
                   'Microsoft-Windows-Kernel-Boot',
                   'EventLog', 'Kernel-Boot']
+
+        time.sleep(10)
         currentRun = o_tbl.SystemRun().select().order_by(o_tbl.SystemRun.id.desc()).get()
-        # lastInit = table.SystemInit().select().order_by(table.SystemInit.id.desc()).get()
-        lastStd = o_tbl.SelfInitShutdown().select().where(
-            o_tbl.SelfInitShutdown.key == ('reboot' or 'shutdown')).order_by(o_tbl.SelfInitShutdown.id.desc()).get()
-        preCurrentRun = o_tbl.SystemRun().select().where(o_tbl.SystemRun.id == currentRun.id - 1).get()
+        if o_tbl.SystemRun().select().count() == 1:
+            LOG.CMSLogger('CMS запущена впервые на этекущей системе')
+            exit()
+        else:
+            preCurrentRun = o_tbl.SystemRun().select().where(o_tbl.SystemRun.id == currentRun.id - 1).get()
+
+        if o_tbl.SelfInitShutdown().select().count() == 0:
+            LOG.CMSLogger('CMS еще не отключал текущую систему')
+            exit()
+        else:
+            lastStd = o_tbl.SelfInitShutdown().select().where(
+                o_tbl.SelfInitShutdown.key == ('reboot' or 'shutdown')).order_by(o_tbl.SelfInitShutdown.id.desc()).get()
+
         timeLine = (datetime.datetime.now() - preCurrentRun.datetime).seconds
 
         if lastStd.id != preCurrentRun.id:

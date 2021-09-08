@@ -24,7 +24,7 @@ class Init:
 
 # Queue handlers
 class Queue(Init):
-    def SendController(self, Q_in, Q_out, q_Internal=None, Q_SetFlag=None,  ):
+    def SendController(self, Q_in, Q_out, q_Internal=None,):
         termNovaCount = 0
         termMarsCount = 0
         resNovaCount = 0
@@ -39,13 +39,7 @@ class Queue(Init):
         while True:
             data = Q_in.get()
 
-            if Q_SetFlag != None:
-                if Q_SetFlag.empty() == False:
-                    flag = Q_SetFlag.get()
-                else:
-                    pass
-            else:
-                pass
+
             # Launching NovaStudio
             if data == R.RunNova[1]:
                 if ((datetime.datetime.now() - runNovaTime).seconds >= 300) or runNovaCount == 0:
@@ -82,13 +76,7 @@ class Queue(Init):
                 else:
                     pass
                 data = None
-            if data:
-                if (data[R.r[1]] == R.H[1]) and (data[R.r[2]] == R.K[13]) and flag > 0:
-                    LOG.CMSLogger('Инициирована перезагрузка системы всвязи со сбоем NovaStudio')
-                    self.ToSend(data, Q_out)
-                    q_Internal.put(o_CrMsg.SendMail('Инициирована перезагрузка системы всвязи со сбоем NovaStudio'))
-                    q_Internal.put(o_DBMsg.SelfInitShutdownPrep(getframeinfo(currentframe())[2], 'reboot', datetime.datetime.now()))
-                    data = None
+
 
             if data != None:
                 self.ToSend(data, Q_out)
@@ -111,7 +99,7 @@ class Queue(Init):
 
 
     # Prepares commands to be sent to the UA
-    def CreateAction(self, Q_in, Q_out, ):
+    def CreateAction(self, Q_in, Q_out, q_Internal ):
         restartNovaCount = 0
         restoreNovaCount = 0
         lastNovaRestart = None
@@ -152,12 +140,12 @@ class Queue(Init):
                     command = None
                     DictMars = {}
             # RestoreNova
-            if restartNovaCount >= 3 and ((datetime.datetime.now() - lastNovaRestart).seconds <= 300):
+            if restartNovaCount >= 1 and ((datetime.datetime.now() - lastNovaRestart).seconds <= 300):
                 Q_out.put(R.RestoreNovaBin[0])
                 restoreNovaCount += 1
                 restartNovaCount = 0
                 if restoreNovaCount >= 3:
-                    Q_out.put(o_CrMsg.RebootSystem())
+                    q_Internal.put(o_CrMsg.RebootSystem())
                     break
 
 
@@ -196,10 +184,7 @@ class Queue(Init):
                 Q_out.put(data)
             if data[R.r[2]] == R.K[11]:     # Key == RestoreNovaBin
                 C_File.RestoreHandle()
-            if data[R.r[1]] == R.H[1] and \
-                    data[R.r[2]] == R.K[13] and \
-                    data[R.r[3]] == R.ActionKey[3]:     # Key == System, Data == RebootSystem
-                o_Act.RebootInit()
+
 
     # Checks the flow of incoming data for a given match
     def Valid(self, Q_in, Q_out, checkValue, maxCount, head, sendAllCircles, ):
@@ -255,9 +240,10 @@ class Queue(Init):
         Q_out.put(data)
 
     # Internal queue processing
-    def Internal(self, q_internal, Q_UAValid, Q_DBWrite, Q_SetFlag, Q_SendMail,):
+    def Internal(self, q_internal, Q_UAValid, Q_DBWrite, Q_SetFlag, Q_SendMail, q_PowerManager=None):
         while True:
             data = q_internal.get()
+
             # Agent check
             if data[R.r[1]] == R.H[2]:
                 if data[R.r[2]] == R.K[7]:
@@ -273,12 +259,13 @@ class Queue(Init):
             # Send Mail
             if data[R.r[1]] == R.H[5]:
                 Q_SendMail.put(data[R.r[3]])
+            if data[R.r[2]] == R.K[13]:
+                q_PowerManager.put(data)
 
-    def SetFlag(self, Q_SetFlag, Q_UAValidSF, Q_Cont_TCPSend, q_SendContrSetFLAG):
+    def SetFlag(self, Q_SetFlag, Q_Cont_TCPSend, q_SendContrSetFLAG):
         while True:
             data = Q_SetFlag.get()
             if data[R.r[2]] == R.K[9]:
-                Q_UAValidSF.put(data[R.r[3]])
                 q_SendContrSetFLAG.put(data[R.r[3]])
             if data[R.r[2]] == R.K[10]:
                 Q_Cont_TCPSend.put({R.r[0]: R.M[0], R.r[1]: R.H[4],
