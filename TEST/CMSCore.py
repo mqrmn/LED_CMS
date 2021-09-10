@@ -50,15 +50,15 @@ def TEST():
 
     LOG.CMSLogger('Queues created')
 
-    t_Init = threading.Thread(target=o_Action.InitCMS,
+    t_Init = threading.Thread(target=o_Action.initcms,
                               args=(q_Internal, ))
     # Exchange threads
     t_Server = threading.Thread(target=o_Network.Server,
-                                args=(Config.localhost, Config.CMSCoreInternalPort, q_FromUA))
+                                args=(Config.address, Config.CMSCoreInternalPort, q_FromUA))
     t_ClientUA = threading.Thread(target=o_Network.Client,
-                                  args=(Config.localhost, Config.CMSUserAgentPort, q_TCPSend))
+                                  args=(Config.address, Config.CMSUserAgentPort, q_TCPSend))
     t_ClientContr = threading.Thread(target=o_Network.Client,
-                                     args=(Config.localhost, Config.CMSControllertPort, q_TCPSend))
+                                     args=(Config.address, Config.CMSControllertPort, q_TCPSend))
 
     # Inbound processing flows
     t_ReceiveDataFromUA = threading.Thread(target=o_Handlers.FromUA,

@@ -46,7 +46,7 @@ def TEST():
     T_Updater = threading.Thread(target=C_CMSUpgrade.CMSUpdater,
                                  args=(Q_FromUpdater, q_internal,))
     T_Server = threading.Thread(target=C_Network.Server,
-                                args=(Config.localhost, Config.CMSControllertPort, Q_FromCore))
+                                args=(Config.address, Config.CMSControllertPort, Q_FromCore))
 
     T_FromCore = threading.Thread(target=o_Handler.FromCore,
                                   args=(Q_FromCore, q_internal))

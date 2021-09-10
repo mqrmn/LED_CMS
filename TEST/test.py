@@ -1,20 +1,29 @@
+from pystray import MenuItem as item
+import pystray
+from PIL import Image
+import tkinter as tk
 
+window = tk.Tk()
+window.title("Title")
 
-from App import Database
-import datetime
+def quit_window(icon, item):
+    icon.stop()
+    window.destroy()
 
+def print():
+    print('test')
 
-def TEST():
-    handle = Database.Prepare()
-    print(type(handle.GetCount()))
-    print(handle.SystemInitPrep(datetime.datetime.now()))
-    print(type(handle.SystemInitPrep(datetime.datetime.now())['data']['data']['id']))
+def show_window(icon, item):
+    icon.stop()
+    window.after(0,window.deiconify)
 
-    data = handle.SystemInitPrep(datetime.datetime.now())['data']['data']
-    print(data)
-    handle.SystemInit.create(id=data['id'], datetime=data['datetime'], )
+def withdraw_window():
+    window.withdraw()
+    image = Image.open("icon.ico")
+    test = ()
+    menu = (item('Quit', quit_window), item('Show', show_window))
+    icon = pystray.Icon("name", image, "title", menu)
+    icon.run()
 
-
-
-if __name__ == '__main__':
-    TEST()
+window.protocol('WM_DELETE_WINDOW', withdraw_window)
+withdraw_window()

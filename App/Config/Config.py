@@ -50,7 +50,7 @@ timeoutSCheck = [10, 30]
 timeoutPCheck = 30
 
 # Setting up sockets for internal communications
-localhost = 'localhost'
+address = 'localhost'
 CMSCoreInternalPort = 2203
 CMSUserAgentPort = 2303
 CMSControllertPort = 2403
@@ -72,3 +72,9 @@ restartNovaTimeout = 300
 # Handler.Queue.CreateAction
 restartNovaMaxCount = 1
 restoreNovaMaxCount = 2
+# CMSUserAgent
+checkScrCountUA = 2
+checkProcCountUA = 2
+# CMSCore
+checkScrCount = 2
+checkProcCount = 2

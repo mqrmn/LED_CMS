@@ -11,8 +11,8 @@ import queue
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
-from App.Config import Config
-from App import Log, Comm, Resource, Handler, File, Act, Database, Control, Notify
+from App.Config import Config as C
+from App import Log, Comm, Handler, File, Act, Database, Control, Notify
 from App import Resource as R
 
 LOG = Log.Log_Manager()
@@ -90,23 +90,23 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         LOG.CMSLogger('Queues created')
 
-        t_Init = threading.Thread(target=o_Action.InitCMS,
+        t_Init = threading.Thread(target=o_Action.initcms,
                                   args=(q_Internal,))
         # Exchange threads
         t_Server = threading.Thread(target=o_Network.Server,
-                                    args=(Config.localhost, Config.CMSCoreInternalPort, q_FromUA))
+                                    args=(C.address, C.CMSCoreInternalPort, q_FromUA))
         t_ClientUA = threading.Thread(target=o_Network.Client,
-                                      args=(Config.localhost, Config.CMSUserAgentPort, q_TCPSend))
+                                      args=(C.address, C.CMSUserAgentPort, q_TCPSend))
         t_ClientContr = threading.Thread(target=o_Network.Client,
-                                         args=(Config.localhost, Config.CMSControllertPort, q_TCPSend))
+                                         args=(C.address, C.CMSControllertPort, q_TCPSend))
 
         # Inbound processing flows
         t_ReceiveDataFromUA = threading.Thread(target=o_Handlers.FromUA,
                                                args=(q_FromUA, q_ValidScreen, q_ValidProc, q_Internal))
         t_ValidDataScreen = threading.Thread(target=o_Handlers.Valid,
-                                             args=(q_ValidScreen, q_Action, True, 1, R.H[0], True))
+                                             args=(q_ValidScreen, q_Action, True, C.checkScrCount, R.H[0], True))
         t_ValidDataProc = threading.Thread(target=o_Handlers.Valid,
-                                           args=(q_ValidProc, q_Action, False, 1, R.H[0], True))
+                                           args=(q_ValidProc, q_Action, False, C.checkProcCount, R.H[0], True))
 
         # Internal processing flows
         t_Internal = threading.Thread(target=o_Handlers.Internal,
@@ -163,7 +163,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
                 LOG.CMSLogger( 'Command to stop service received')
                 C_Comm = Comm.Socket()
-                C_Comm.Send(Config.localhost, Config.CMSUserAgentPort, R.TerminateThread[0])
+                C_Comm.Send(C.address, C.CMSUserAgentPort, R.TerminateThread[0])
                 LOG.CMSLogger('UA stop command sent')
                 servicemanager.LogInfoMsg("Service finished")
                 break

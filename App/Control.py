@@ -100,7 +100,7 @@ class CMS(Init):
         C_ActionSys = Act.System()
         C_ActionInit = Act.SysInit()
         table = Database.Tables()
-        FLAG = C_ActionInit.CheckLastSelfInitStd(Q_Manage)
+        FLAG = C_ActionInit.check_lastselfinitstd(Q_Manage)
 
         while True:
             time.sleep(60)
@@ -111,7 +111,7 @@ class CMS(Init):
 
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as Socket:
                 try:
-                    Socket.connect((Config.localhost, Config.CMSCoreInternalPort))
+                    Socket.connect((Config.address, Config.CMSCoreInternalPort))
                     LOG.CMSLogger('CMS Runned', )
                 except:
                     if Q_FromUpdater.empty() == False:
@@ -127,7 +127,7 @@ class CMS(Init):
 
 
                                 LOG.CMSLogger('Reboot scheduled')
-                                C_ActionSys.RebootInit()
+                                C_ActionSys.rebootinit()
 
                                 break
                             else:
@@ -138,7 +138,7 @@ class CMS(Init):
 
 
                                     LOG.CMSLogger('Reboot scheduled')
-                                    C_ActionSys.RebootInit()
+                                    C_ActionSys.rebootinit()
                                     break
                                 else:
                                     LOG.CMSLogger('Restart access denied')
@@ -167,7 +167,7 @@ class CMS(Init):
                         Q_Internal.put(C_Prepare.SelfInitShutdownPrep(getframeinfo(currentframe())[2], 'reboot',
                                                                       datetime.datetime.now()))
                         LOG.CMSLogger('Reboot scheduled')
-                        C_Action.RebootInit()
+                        C_Action.rebootinit()
                         break
                     else:
                         lastReboot = table.SelfInitShutdown().select().order_by(table.SelfInitShutdown.id.desc()).get()
@@ -176,7 +176,7 @@ class CMS(Init):
                             Q_Internal.put(C_Prepare.SelfInitShutdownPrep(getframeinfo(currentframe())[2], 'reboot',
                                                                           datetime.datetime.now()))
                             LOG.CMSLogger('Reboot scheduled')
-                            C_Action.RebootInit()
+                            C_Action.rebootinit()
                             break
                         else:
                             Q_Internal.put(
