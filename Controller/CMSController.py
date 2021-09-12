@@ -120,7 +120,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
             rc = win32event.WaitForSingleObject(self.hWaitStop, self.timeout)
             if rc == win32event.WAIT_OBJECT_0:
-                C_API.StopService('CMS')
+                C_API.stop_service('CMS')
                 servicemanager.LogInfoMsg("Service finished")
                 break
             if self._paused:

@@ -91,7 +91,7 @@ class CMS(Init):
     def GetProcessState(self, Q_ProcState):
         C_WinApi = API.Process()
         while True:
-            T_GetProcessState = threading.Thread(target=C_WinApi.GetProcessState, args=(Q_ProcState,))
+            T_GetProcessState = threading.Thread(target=C_WinApi.get_process_state, args=(Q_ProcState,))
             T_GetProcessState.start()
             T_GetProcessState.join()
             time.sleep(Config.timeoutPCheck)

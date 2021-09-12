@@ -28,7 +28,7 @@ class CMSUpdate:
             if self.CMSUpgrade(False) == True:
                 LOG.CMSLogger('Update detected')
                 time.sleep(180)
-                stSvc = C_API.StopService('CMS')
+                stSvc = C_API.stop_service('CMS')
                 if stSvc[0] == 0:
                     Q_FromUpdater.put(True)
                     LOG.CMSLogger( 'CMS stopped')
@@ -419,8 +419,8 @@ class NovaBin:
     def RestoreHandle(self):
         C_Nova = API.Nova()
         if self.CheckNovaFile() != True:
-            if C_Nova.GetProcState(Resource.ProcList[0]) == True:
-                C_Nova.TerminateNova()
+            if C_Nova.get_proc_state(Resource.ProcList[0]) == True:
+                C_Nova.terminate_nova()
             if self.RestoreNovaBin() == True:
                 LOG.CMSLogger('NovaBin recovery completed')
             else:

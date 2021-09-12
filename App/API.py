@@ -9,100 +9,101 @@ import psutil
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App import Log
-from App import Resource as R
+from App import Resource as Res
 LOG = Log.Log_Manager()
 
 
 class Win:
 
-    def CoinInit(self):
+    @staticmethod
+    def coin_init():
         pythoncom.CoInitialize()
 
-    def GetWMI(self, privileges=None):
-        self.CoinInit()
+    def get_wmi(self, privileges=None):
+        self.coin_init()
         handle = wmi.WMI(privileges=privileges)
         return handle
 
 
 class Process(Win):
 
-    def GetProcState(self, i):
-        return self.GetWMI().Win32_Process(Name=i)
+    def get_proc_state(self, i):
+        return self.get_wmi().Win32_Process(Name=i)
 
-    def GetProcessState(self, Q_out):
-        for i in R.ProcDict:
-            if self.GetProcState(i):
-                procState = True
+    def get_process_state(self, q_out):
+        for i in Res.ProcDict:
+            if self.get_proc_state(i):
+                proc_state = True
             else:
-                procState = False
-            Q_out.put([i, procState])
+                proc_state = False
+            q_out.put([i, proc_state])
 
-    def StartProc(self, executable):
-        self.GetWMI().Win32_Process.Create(CommandLine=executable, )
+    def start_proc(self, executable):
+        self.get_wmi().Win32_Process.Create(CommandLine=executable, )
 
-    def TerminateProc(self, name):
-        for proc in self.GetWMI().Win32_Process(Name=name):
+    def terminate_proc(self, name):
+        for proc in self.get_wmi().Win32_Process(Name=name):
             proc.terminate(Reason=1)
 
 
 class Service(Win):
 
-    def GetService(self, name):
+    def get_service(self, name):
         LOG.CMSLogger('Called')
         if name:
-            return self.GetWMI().Win32_Service(name=name)[0]
+            return self.get_wmi().Win32_Service(name=name)[0]
 
-    def StopService(self, name):
+    def stop_service(self, name):
         LOG.CMSLogger('Called')
-        return self.GetService(name).StopService()
+        return self.get_service(name).stop_service()
 
-    def StartService(self, name):
+    def start_service(self, name):
         LOG.CMSLogger('Called')
-        return self.GetService(name).StartService()
+        return self.get_service(name).start_service()
 
-    def GetServiceState(self, name):
+    def get_service_state(self, name):
         LOG.CMSLogger('Called')
-        return self.GetService(name).State
+        return self.get_service(name).State
 
 
 class System(Win):
 
-    def RestartPC(self):
+    def restart_pc(self):
         LOG.CMSLogger('Called')
-        self.GetWMI(["Shutdown"]).Win32_OperatingSystem()[0].Reboot()
+        self.get_wmi(["Shutdown"]).Win32_OperatingSystem()[0].Reboot()
+
 
 class Nova(Process):
 
-    def RestartNova(self):
+    def restart_nova(self):
         LOG.CMSLogger('Called')
-        self.TerminateNova()
-        self.RunNova()
+        self.terminate_nova()
+        self.run_nova()
 
-    def RunNova(self):
+    def run_nova(self):
         executable = 'C:\\Program Files (x86)\\NovaStudio\\Bin\\NovaStudio.exe'
-        self.StartProc(executable)
+        self.start_proc(executable)
 
-    def TerminateNova(self):
+    def terminate_nova(self):
         LOG.CMSLogger('Called')
-        self.TerminateProc(R.ProcList[0])
+        self.terminate_proc(Res.ProcList[0])
 
-
-    def TerminateMars(self):
+    def terminate_mars(self):
         LOG.CMSLogger('Called')
         executable = 'C:\\Users\\rAdmin_local\\AppData\\Roaming\\Nova Star\\NovaLCT\\Bin\\NovaLCT.exe'
-        self.StartProc(executable)
+        self.start_proc(executable)
 
         time.sleep(15)
         for proc in psutil.process_iter():
-            processName = proc.as_dict(attrs=['name'])
-            processPid = proc.as_dict(attrs=['pid'])
-            if processName['name'] == 'NovaLCT.exe':
+            process_name = proc.as_dict(attrs=['name'])
+            process_pid = proc.as_dict(attrs=['pid'])
+            if process_name['name'] == 'NovaLCT.exe':
 
-                novaProcess = psutil.Process(processPid['pid'])
-                for child in novaProcess.children(recursive=True):
+                nova_process = psutil.Process(process_pid['pid'])
+                for child in nova_process.children(recursive=True):
                     child.kill()
 
-                novaProcess.kill()
+                nova_process.kill()
 
             else:
                 pass

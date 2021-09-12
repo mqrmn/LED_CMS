@@ -38,19 +38,19 @@ class Process(Init):
     @staticmethod
     def start(data):
         if data == Res.ProcList[0]:
-            o_nova.RunNova()
+            o_nova.run_nova()
 
     @staticmethod
     def terminate(data):
         if data == Res.ProcList[1]:
-            o_nova.TerminateMars()
+            o_nova.terminate_mars()
         if data == Res.ProcList[0]:
-            o_nova.TerminateNova()
+            o_nova.terminate_nova()
 
     @staticmethod
     def restart(data):
         if data == Res.ProcList[0]:
-            o_nova.RestartNova()
+            o_nova.restart_nova()
 
 
 class System(Init):
@@ -62,7 +62,7 @@ class System(Init):
     def reboot_init(self):
         self.pre_shutdown()
         time.sleep(30)
-        o_sys.RestartPC()
+        o_sys.restart_pc()
 
 
 class Files(Init):

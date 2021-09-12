@@ -57,7 +57,7 @@ CMSControllertPort = 2403
 
 # Mail Config
 
-smtpSender = 'salon.notify@ya.ru'
+smtpSender = 'salon.notification@znp74.ru'
 smtpPass = '6M3QP8LKKsesZg'
 smtpReceiver = 'alex.s@znp74.ru'
 smtpServer = 'smtp.yandex.ru'
