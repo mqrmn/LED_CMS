@@ -39,7 +39,7 @@ class CMSUpdate:
                                                   key='reboot',
                                                   datetime=datetime.datetime.now(), )
 
-                    C_Action.rebootinit()
+                    C_Action.RebootInit()
                     q_internal.put(o_createMessage.SendMail('Выполнено обновление CMS'))
 
 

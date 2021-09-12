@@ -42,7 +42,7 @@ class Process(Win):
 
     def TerminateProc(self, name):
         for proc in self.GetWMI().Win32_Process(Name=name):
-            proc.terminate(Reason=1)
+            proc.Terminate(Reason=1)
 
 
 class Service(Win):
