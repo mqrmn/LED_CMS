@@ -173,11 +173,11 @@ class Queue(Init):
         while True:
             data = Q_in.get()
             if data[R.r[2]] == R.K[2]:      # Key == RunProc
-                C_Exec.Start(data[R.r[3]])
+                C_Exec.start(data[R.r[3]])
             if data[R.r[2]] == R.K[3]:      # Key == TerminateProc
-                C_Exec.Terminate(data[R.r[3]])
+                C_Exec.terminate(data[R.r[3]])
             if data[R.r[2]] == R.K[4]:      # Key == RestartProc
-                C_Exec.Restart(data[R.r[3]])
+                C_Exec.restart(data[R.r[3]])
             if data[R.r[2]] == R.K[5]:      # Key == Process
                 pass
             if data[R.r[2]] == R.K[6]:      # Key == TerminateThread

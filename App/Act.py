@@ -11,13 +11,17 @@ import win32evtlogutil
 import win32con
 import winerror
 from datetime import date
-
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 from App.Config import Config
 from App import API, Log, Database, File
-from App import Resource as R
+from App import Resource as Res
 
 LOG = Log.Log_Manager()
+
+global o_nova
+global o_sys
+global o_file
+
 
 class Init:
     def __init__(self):
@@ -28,29 +32,35 @@ class Init:
         o_sys = API.System()
         o_file = File.NovaBin()
 
+
 class Process(Init):
 
-    def Start(self, data):
-        if data == R.ProcList[0]:
+    @staticmethod
+    def start(data):
+        if data == Res.ProcList[0]:
             o_nova.RunNova()
 
-    def Terminate(self, data):
-        if data == R.ProcList[1]:
+    @staticmethod
+    def terminate(data):
+        if data == Res.ProcList[1]:
             o_nova.TerminateMars()
-        if data == R.ProcList[0]:
+        if data == Res.ProcList[0]:
             o_nova.TerminateNova()
 
-    def Restart(self, data):
-        if data == R.ProcList[0]:
+    @staticmethod
+    def restart(data):
+        if data == Res.ProcList[0]:
             o_nova.RestartNova()
+
 
 class System(Init):
 
-    def PreShutdown(self):
+    @staticmethod
+    def pre_shutdown():
         o_file.BackupHandle()
 
-    def RebootInit(self):
-        self.PreShutdown()
+    def reboot_init(self):
+        self.pre_shutdown()
         time.sleep(30)
         o_sys.RestartPC()
 
@@ -58,64 +68,69 @@ class System(Init):
 class Files(Init):
 
     # Archives logs
-    def LogArch(self):
-        listForArchiving = []
+    @staticmethod
+    def log_arch():
+        arch_name = None
+        list_for_archiving = []
         # Lists files stored in a directory
         for file in os.listdir(Config.logPath):
             # Continues to work only with files with the .log extension
             if re.search('log', file):
                 # Checks the creation date of log files
-                logDate = datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0], "%Y-%m-%d")
-                if logDate.date() < date.today():
-                    archName = str(logDate.date())
-                    LOG.CMSLogger( 'Marked for archiving ' + file)
-                    listForArchiving.append(file)
+                log_date = datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0], "%Y-%m-%d")
+                if log_date.date() < date.today():
+                    arch_name = str(log_date.date())
+                    LOG.CMSLogger('Marked for archiving ' + file)
+                    list_for_archiving.append(file)
         # Checks if the folder that I'm going to create exists
-        if listForArchiving and not os.path.exists(Config.logPath + str(date.today())):
-            os.mkdir(Config.logPath + archName)
+        if list_for_archiving and not os.path.exists(Config.logPath + str(date.today())):
+            os.mkdir(Config.logPath + arch_name)
             # Move logs to folder
-            for file in listForArchiving:
-                shutil.move(Config.logPath + file, Config.logPath + archName + '\\' + file)
-                LOG.CMSLogger( 'Moved to archive ' + file)
+            for file in list_for_archiving:
+                shutil.move(Config.logPath + file, Config.logPath + arch_name + '\\' + file)
+                LOG.CMSLogger('Moved to archive ' + file)
             # Archives a folder
-            shutil.make_archive(base_name=Config.logPath + archName, format='zip', root_dir=Config.logPath + archName, )
-            shutil.rmtree(Config.logPath + archName)
+            shutil.make_archive(base_name=Config.logPath + arch_name,
+                                format='zip', root_dir=Config.logPath + arch_name, )
+            shutil.rmtree(Config.logPath + arch_name)
         else:
             LOG.CMSLogger('No logs found to archive')
 
     # Removes obsolete logs
-    def LogDel(self):
-        listForDeleting = []
+    @staticmethod
+    def log_del():
+        list_for_deleting = []
 
         # Lists files stored in a directory
         for file in os.listdir(Config.logPath):
             # Continues to work only with files with the .zip extension
             if re.search('zip', file):
                 # Checks the date the archive was created
-                if (datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0], "%Y-%m-%d").date() - date.today()).days < -90:
-                    listForDeleting.append(file)
+                if (datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0],
+                                               "%Y-%m-%d").date() - date.today()).days < -90:
+                    list_for_deleting.append(file)
 
         # Removes obsolete archives
-        for file in listForDeleting:
+        for file in list_for_deleting:
             os.remove(Config.logPath + file)
             LOG.CMSLogger('File deleted ' + file)
 
-class SysInit(Files):
-    def InitCMS(self, Q_Internal):
-        data = self.CheckSelf()
-        self.PutSysRun(Q_Internal)
-        self.LogArch()
-        self.LogDel()
 
-        self.CheckLastSelfInitStd(Q_Internal)
-        if data == True:
-            self.CheckLastStd(Q_Internal)
+class SysInit(Files):
+    def init_cms(self, q_internal):
+        data = self.check_self()
+        self.put_sys_run(q_internal)
+        self.log_arch()
+        self.log_del()
+
+        self.check_last_self_init_std(q_internal)
+        if data is True:
+            self.check_last_std(q_internal)
         else:
             pass
 
-
-
-    def CheckDB(self):
+    @staticmethod
+    def check_db():
         data = True
         if os.path.exists(Config.DBFolder):
             if os.path.exists(Config.DBPath):
@@ -133,156 +148,159 @@ class SysInit(Files):
             LOG.CMSLogger('Database file created')
         return data
 
-    def CheckSelf(self):
-        data = self.CheckDB()
+    def check_self(self):
+        data = self.check_db()
         return data
 
-    def PutSysRun(self, Q_out):
-        O_DBPrep = Database.Prepare()
-        Q_out.put(O_DBPrep.SystemRunPrep(datetime.datetime.now()))
+    @staticmethod
+    def put_sys_run(q_out):
+        o_db_prep = Database.Prepare()
+        q_out.put(o_db_prep.SystemRunPrep(datetime.datetime.now()))
 
-    def CheckLastSelfInitStd(self, Q_Internal):
+    @staticmethod
+    def check_last_self_init_std(q_internal):
         table = Database.Tables()
-        crMsg = R.CreateMessage()
+        cr_msg = Res.CreateMessage()
 
         try:
-            lastStd = table.SelfInitShutdown().select().order_by(table.SelfInitShutdown.id.desc()).get()
-        except:
-            lastStd = None
-        if lastStd:
+            last_std = table.SelfInitShutdown().select().order_by(table.SelfInitShutdown.id.desc()).get()
+        except 'Exception':
+            last_std = None
+        if last_std:
             count = table.SelfInitShutdown().select().where(
                 (table.SelfInitShutdown.datetime.year == datetime.date.today().year) &
                 (table.SelfInitShutdown.datetime.month == datetime.date.today().month) &
                 (table.SelfInitShutdown.datetime.day == datetime.date.today().day)).count()
-            if lastStd.datetime.date() == datetime.datetime.now().date():
-                if (datetime.datetime.now() - lastStd.datetime).seconds <= 600:
+            if last_std.datetime.date() == datetime.datetime.now().date():
+                if (datetime.datetime.now() - last_std.datetime).seconds <= 600:
                     if count >= 2:
-                        Q_Internal.put(crMsg.SetFlagUAV_0())
-                        Q_Internal.put(crMsg.SetFlagCont_0())
+                        q_internal.put(cr_msg.SetFlagUAV_0())
+                        q_internal.put(cr_msg.SetFlagCont_0())
 
-                        msg = 'Exceeded quantity ' \
-                                'Attempts to restart the system: {} ' \
-                                'Last reboot: {} '.format(count, lastStd.datetime)
+                        msg = 'Exceeded quantity Attempts to restart the system: ' \
+                              '{} Last reboot: {} '.format(count, last_std.datetime)
 
-                        Q_Internal.put(crMsg.SendMail(msg))
+                        q_internal.put(cr_msg.SendMail(msg))
                         LOG.CMSLogger(msg)
                         LOG.CMSLogger('Restart prohibited ')
                     else:
-                        Q_Internal.put(crMsg.SetFlagUAV_1())
-                        Q_Internal.put(crMsg.SetFlagCont_1())
+                        q_internal.put(cr_msg.SetFlagUAV_1())
+                        q_internal.put(cr_msg.SetFlagCont_1())
 
-                        msg = 'The frequency of attempts to ' \
-                              'restart the system has been exceeded ' \
-                                        'Last reboot: {} '.format(lastStd.datetime)
+                        msg = 'The frequency of attempts to restart the system has ' \
+                              'been exceeded Last reboot: {} '.format(last_std.datetime)
 
                         LOG.CMSLogger(msg)
                 elif count >= 5:
-                    Q_Internal.put(crMsg.SetFlagUAV_1())
-                    Q_Internal.put(crMsg.SetFlagCont_1())
+                    q_internal.put(cr_msg.SetFlagUAV_1())
+                    q_internal.put(cr_msg.SetFlagCont_1())
 
                     msg = 'The frequency of attempts to ' \
                           'restart the system has been exceeded ' \
-                          'Last reboot: {} '.format(lastStd.datetime)
+                          'Last reboot: {} '.format(last_std.datetime)
 
-                    Q_Internal.put(crMsg.SendMail(msg))
+                    q_internal.put(cr_msg.SendMail(msg))
                     LOG.CMSLogger(msg)
 
                     LOG.CMSLogger('Restart prohibited')
                 else:
-                    Q_Internal.put(crMsg.SetFlagUAV_2())
-                    Q_Internal.put(crMsg.SetFlagCont_2())
+                    q_internal.put(cr_msg.SetFlagUAV_2())
+                    q_internal.put(cr_msg.SetFlagCont_2())
 
                     LOG.CMSLogger('Restart allowed')
             else:
-                Q_Internal.put(crMsg.SetFlagUAV_2())
-                Q_Internal.put(crMsg.SetFlagCont_2())
+                q_internal.put(cr_msg.SetFlagUAV_2())
+                q_internal.put(cr_msg.SetFlagCont_2())
 
                 LOG.CMSLogger('Restart allowed')
         else:
-            Q_Internal.put(crMsg.SetFlagUAV_2())
-            Q_Internal.put(crMsg.SetFlagCont_2())
+            q_internal.put(cr_msg.SetFlagUAV_2())
+            q_internal.put(cr_msg.SetFlagCont_2())
 
             LOG.CMSLogger('No data on system reboots')
             LOG.CMSLogger('Restart allowed')
 
-    def CheckLastStd(self, Q_Internal):
-        o_crMsg = R.CreateMessage()
+    @staticmethod
+    def check_last_std(q_internal):
+        o_cr_msg = Res.CreateMessage()
         o_tbl = Database.Tables()
 
         machine = None
         ev = True
         br = False
-
+        pre_current_run = None
+        last_std = None
         flags = win32evtlog.EVENTLOG_BACKWARDS_READ | win32evtlog.EVENTLOG_SEQUENTIAL_READ
-        evTypes = {win32con.EVENTLOG_INFORMATION_TYPE: 'EVENTLOG_INFORMATION_TYPE',
+        ev_types = {win32con.EVENTLOG_INFORMATION_TYPE: 'EVENTLOG_INFORMATION_TYPE',
                     win32con.EVENTLOG_WARNING_TYPE: 'EVENTLOG_WARNING_TYPE',
                     win32con.EVENTLOG_ERROR_TYPE: 'EVENTLOG_ERROR_TYPE'}
-        logType = 'System'
-        handle = win32evtlog.OpenEventLog(machine, logType)
-        evSource = ['User32', 'Microsoft-Windows-Winlogon', 'Microsoft-Windows-Kernel-Power',
-                  'Microsoft-Windows-Kernel-Boot',
-                  'EventLog', 'Kernel-Boot']
+        log_type = 'System'
+        handle = win32evtlog.OpenEventLog(machine, log_type)
+        ev_source = ['User32', 'Microsoft-Windows-Winlogon',
+                     'Microsoft-Windows-Kernel-Power',
+                     'Microsoft-Windows-Kernel-Boot',
+                     'EventLog', 'Kernel-Boot']
 
         time.sleep(10)
-        currentRun = o_tbl.SystemRun().select().order_by(o_tbl.SystemRun.id.desc()).get()
+        current_run = o_tbl.SystemRun().select().order_by(o_tbl.SystemRun.id.desc()).get()
         if o_tbl.SystemRun().select().count() == 1:
             LOG.CMSLogger('CMS запущена впервые на этекущей системе')
             exit()
         else:
-            preCurrentRun = o_tbl.SystemRun().select().where(o_tbl.SystemRun.id == currentRun.id - 1).get()
+            pre_current_run = o_tbl.SystemRun().select().where(o_tbl.SystemRun.id == current_run.id - 1).get()
 
         if o_tbl.SelfInitShutdown().select().count() == 0:
             LOG.CMSLogger('CMS еще не отключал текущую систему')
             exit()
         else:
-            lastStd = o_tbl.SelfInitShutdown().select().where(
+            last_std = o_tbl.SelfInitShutdown().select().where(
                 o_tbl.SelfInitShutdown.key == ('reboot' or 'shutdown')).order_by(o_tbl.SelfInitShutdown.id.desc()).get()
 
-        timeLine = (datetime.datetime.now() - preCurrentRun.datetime).seconds
+        time_line = (datetime.datetime.now() - pre_current_run.datetime).seconds
 
-        if lastStd.id != preCurrentRun.id:
-            msgTxt = 'Предыдущее отключение не было инициировано CMS, либо произошел сбой записи в БД \n'
+        if last_std.id != pre_current_run.id:
+            msg_txt = 'Предыдущее отключение не было инициировано CMS, либо произошел сбой записи в БД \n'
             while ev:
                 try:
                     ev = win32evtlog.ReadEventLog(handle, flags, 0)
                     for ev_obj in ev:
                         the_time = ev_obj.TimeGenerated
 
-                        if (datetime.datetime.now() - the_time).seconds <= timeLine:
-                            if str(ev_obj.SourceName) in evSource:
+                        if (datetime.datetime.now() - the_time).seconds <= time_line:
+                            if str(ev_obj.SourceName) in ev_source:
                                 src = str(ev_obj.SourceName)
-                                evType = str(evTypes[ev_obj.EventType])
-                                msg = str(win32evtlogutil.SafeFormatMessage(ev_obj, logType))
-                                evId = str(winerror.HRESULT_CODE(ev_obj.EventID))
+                                ev_type = str(ev_types[ev_obj.EventType])
+                                msg = str(win32evtlogutil.SafeFormatMessage(ev_obj, log_type))
+                                ev_id = str(winerror.HRESULT_CODE(ev_obj.EventID))
 
-                                if src == 'User32' and evId == '1074':
+                                if src == 'User32' and ev_id == '1074':
                                     if re.findall(r'RuntimeBroker.exe', msg):
                                         if re.findall(r'Перезапустить', msg):
-                                            msgTxt += 'Система была перезагружена пользователем, \n' \
+                                            msg_txt += 'Система была перезагружена пользователем, \n' \
                                                         'Время: {}, \n' \
                                                         'Тип: {}, \n' \
                                                         'Источник: {}, \n' \
                                                         'Код события: {}, \n' \
-                                                        'Описание: {} '.format(the_time.Format(), evType, src, evId, msg)
+                                                        'Описание: {} '.format(the_time.Format(),
+                                                                               ev_type, src, ev_id, msg)
                                             br = True
 
                                         elif re.findall(r'Выключение питания', msg):
-                                            msgTxt += 'Система была выключена пользователем, ' \
+                                            msg_txt += 'Система была выключена пользователем, ' \
                                                       'Время: {}, \n' \
                                                       'Тип: {}, \n' \
                                                       'Источник: {}, \n' \
                                                       'Код события: {}, \n' \
-                                                      'Описание: {} '.format(the_time.Format(), evType, src, evId,
+                                                      'Описание: {} '.format(the_time.Format(), ev_type, src, ev_id,
                                                                              msg)
                                             br = True
-                        if br == True:
+                        if br is True:
                             break
-                    if br == True:
+                    if br is True:
                         break
-                except:
-                   pass
-            if msgTxt:
-                LOG.CMSLogger(msgTxt)
-                Q_Internal.put(o_crMsg.SendMail(msgTxt))
+                except 'Exception':
+                    pass
+            if msg_txt:
+                LOG.CMSLogger(msg_txt)
+                q_internal.put(o_cr_msg.SendMail(msg_txt))
             win32evtlog.CloseEventLog(handle)
-

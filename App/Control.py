@@ -100,7 +100,7 @@ class CMS(Init):
         C_ActionSys = Act.System()
         C_ActionInit = Act.SysInit()
         table = Database.Tables()
-        FLAG = C_ActionInit.CheckLastSelfInitStd(Q_Manage)
+        FLAG = C_ActionInit.check_last_self_init_std(Q_Manage)
 
         while True:
             time.sleep(60)
@@ -127,7 +127,7 @@ class CMS(Init):
 
 
                                 LOG.CMSLogger('Reboot scheduled')
-                                C_ActionSys.RebootInit()
+                                C_ActionSys.reboot_init()
 
                                 break
                             else:
@@ -138,7 +138,7 @@ class CMS(Init):
 
 
                                     LOG.CMSLogger('Reboot scheduled')
-                                    C_ActionSys.RebootInit()
+                                    C_ActionSys.reboot_init()
                                     break
                                 else:
                                     LOG.CMSLogger('Restart access denied')
@@ -167,7 +167,7 @@ class CMS(Init):
                         Q_Internal.put(C_Prepare.SelfInitShutdownPrep(getframeinfo(currentframe())[2], 'reboot',
                                                                       datetime.datetime.now()))
                         LOG.CMSLogger('Reboot scheduled')
-                        C_Action.RebootInit()
+                        C_Action.reboot_init()
                         break
                     else:
                         lastReboot = table.SelfInitShutdown().select().order_by(table.SelfInitShutdown.id.desc()).get()
@@ -176,7 +176,7 @@ class CMS(Init):
                             Q_Internal.put(C_Prepare.SelfInitShutdownPrep(getframeinfo(currentframe())[2], 'reboot',
                                                                           datetime.datetime.now()))
                             LOG.CMSLogger('Reboot scheduled')
-                            C_Action.RebootInit()
+                            C_Action.reboot_init()
                             break
                         else:
                             Q_Internal.put(

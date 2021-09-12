@@ -50,7 +50,7 @@ def TEST():
 
     LOG.CMSLogger('Queues created')
 
-    t_Init = threading.Thread(target=o_Action.InitCMS,
+    t_Init = threading.Thread(target=o_Action.init_cms,
                               args=(q_Internal, ))
     # Exchange threads
     t_Server = threading.Thread(target=o_Network.Server,
