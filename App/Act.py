@@ -11,6 +11,7 @@ import win32evtlogutil
 import win32con
 import winerror
 from datetime import date
+
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 from App.Config import Config
 from App import API, Log, Database, File
@@ -47,8 +48,8 @@ class Process(Init):
         if data == Res.ProcList[0]:
             o_nova.terminate_nova()
 
-
-    def restart(self, data):
+    @staticmethod
+    def restart(data):
         if data == Res.ProcList[0]:
             o_nova.restart_nova()
 
@@ -70,6 +71,7 @@ class Files(Init):
     # Archives logs
     @staticmethod
     def log_arch():
+        arch_name = None
         # arch_name = None
         list_for_archiving = []
         # Lists files stored in a directory
@@ -228,8 +230,8 @@ class SysInit(Files):
         machine = None
         ev = True
         br = False
-        # pre_current_run = None
-        # last_std = None
+        pre_current_run = None
+        last_std = None
         flags = win32evtlog.EVENTLOG_BACKWARDS_READ | win32evtlog.EVENTLOG_SEQUENTIAL_READ
         ev_types = {win32con.EVENTLOG_INFORMATION_TYPE: 'EVENTLOG_INFORMATION_TYPE',
                     win32con.EVENTLOG_WARNING_TYPE: 'EVENTLOG_WARNING_TYPE',
@@ -277,22 +279,22 @@ class SysInit(Files):
                                     if re.findall(r'RuntimeBroker.exe', msg):
                                         if re.findall(r'Перезапустить', msg):
                                             msg_txt += 'Система была перезагружена пользователем, \n' \
-                                                        'Время: {}, \n' \
-                                                        'Тип: {}, \n' \
-                                                        'Источник: {}, \n' \
-                                                        'Код события: {}, \n' \
-                                                        'Описание: {} '.format(the_time.Format(),
-                                                                               ev_type, src, ev_id, msg)
+                                                       'Время: {}, \n' \
+                                                       'Тип: {}, \n' \
+                                                       'Источник: {}, \n' \
+                                                       'Код события: {}, \n' \
+                                                       'Описание: {} '.format(the_time.Format(),
+                                                                              ev_type, src, ev_id, msg)
                                             br = True
 
                                         elif re.findall(r'Выключение питания', msg):
                                             msg_txt += 'Система была выключена пользователем, ' \
-                                                      'Время: {}, \n' \
-                                                      'Тип: {}, \n' \
-                                                      'Источник: {}, \n' \
-                                                      'Код события: {}, \n' \
-                                                      'Описание: {} '.format(the_time.Format(), ev_type, src, ev_id,
-                                                                             msg)
+                                                       'Время: {}, \n' \
+                                                       'Тип: {}, \n' \
+                                                       'Источник: {}, \n' \
+                                                       'Код события: {}, \n' \
+                                                       'Описание: {} '.format(the_time.Format(), ev_type, src, ev_id,
+                                                                              msg)
                                             br = True
                         if br is True:
                             break
