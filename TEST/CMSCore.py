@@ -53,11 +53,11 @@ def TEST():
     t_Init = threading.Thread(target=o_Action.init_cms,
                               args=(q_Internal, ))
     # Exchange threads
-    t_Server = threading.Thread(target=o_Network.Server,
+    t_Server = threading.Thread(target=o_Network.server,
                                 args=(Config.localhost, Config.CMSCoreInternalPort, q_FromUA))
-    t_ClientUA = threading.Thread(target=o_Network.Client,
+    t_ClientUA = threading.Thread(target=o_Network.client,
                                   args=(Config.localhost, Config.CMSUserAgentPort, q_TCPSend))
-    t_ClientContr = threading.Thread(target=o_Network.Client,
+    t_ClientContr = threading.Thread(target=o_Network.client,
                                      args=(Config.localhost, Config.CMSControllertPort, q_TCPSend))
 
     # Inbound processing flows

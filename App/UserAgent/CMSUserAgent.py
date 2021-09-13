@@ -33,8 +33,8 @@ def main(Q_External):
 
     LOG.CMSLogger('Instances of classes created')
 
-    T_Server = threading.Thread(target=C_Network.Server, args=(Config.localhost, Config.CMSUserAgentPort, Q_FromCore,))
-    T_Client = threading.Thread(target=C_Network.Client, args=(Config.localhost, Config.CMSCoreInternalPort, Q_ToSend))
+    T_Server = threading.Thread(target=C_Network.server, args=(Config.localhost, Config.CMSUserAgentPort, Q_FromCore,))
+    T_Client = threading.Thread(target=C_Network.client, args=(Config.localhost, Config.CMSCoreInternalPort, Q_ToSend))
 
     T_ActionRun = threading.Thread(target=C_Handlers.UAAction, args=(Q_Action, Q_Control))
     T_GetScreen = threading.Thread(target=C_Control.GetScreenStatic, args=(Q_ValidScreenRAW,))

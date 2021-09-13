@@ -92,12 +92,12 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         t_init = threading.Thread(target=o_action.init_cms,
                                   args=(q_internal,))
         # Exchange threads
-        t_server = threading.Thread(target=o_network.Server,
+        t_server = threading.Thread(target=o_network.server,
                                     args=(Config.localhost, Config.CMSCoreInternalPort, q_from_ua))
-        t_client_ua = threading.Thread(target=o_network.Client,
+        t_client_ua = threading.Thread(target=o_network.client,
                                        args=(Config.localhost, Config.CMSUserAgentPort, q_tcp_send))
 
-        t_client_cont = threading.Thread(target=o_network.Client,
+        t_client_cont = threading.Thread(target=o_network.client,
                                          args=(Config.localhost, Config.CMSControllertPort, q_tcp_send))
 
         # Inbound processing flows
@@ -170,7 +170,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
             if rc == win32event.WAIT_OBJECT_0:
                 LOG.CMSLogger('Command to stop service received')
                 c_comm = Comm.Socket()
-                c_comm.Send(Config.localhost, Config.CMSUserAgentPort, Res.TerminateThread[0])
+                c_comm.send(Config.localhost, Config.CMSUserAgentPort, Res.TerminateThread[0])
                 LOG.CMSLogger('UA stop command sent')
                 servicemanager.LogInfoMsg("Service finished")
                 break

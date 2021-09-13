@@ -13,7 +13,8 @@ LOG = Log.Log_Manager()
 
 class Socket:
 
-    def Server(self, host, port, Q_):
+    @staticmethod
+    def server(host, port, q_):
         LOG.CMSLogger('Called')
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((host, port))
@@ -29,21 +30,19 @@ class Socket:
                         if not data:
                             break
 
-                        Q_.put(pickle.loads(data))
+                        q_.put(pickle.loads(data))
 
-
-    def Client(self, host, port, Q_in, ):
+    def client(self, host, port, q_in, ):
         LOG.CMSLogger('Called')
         while True:
-            data = Q_in.get()
-            self.Send(host, port, data)
+            data = q_in.get()
+            self.send(host, port, data)
 
-    def Send(self, host, port, data):
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as Socket:
-                try:
-                    Socket.connect((host, port))
-                    Socket.sendall(pickle.dumps(data))
-                except:
-                    LOG.CMSLogger('CONNECTION ERROR')
-
-
+    @staticmethod
+    def send(host, port, data):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as SOCKET:
+            try:
+                SOCKET.connect((host, port))
+                SOCKET.sendall(pickle.dumps(data))
+            except:
+                LOG.CMSLogger('CONNECTION ERROR')
