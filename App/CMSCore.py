@@ -72,66 +72,75 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         LOG.CMSLogger('Instances of classes created')
 
-        q_Internal = queue.Queue()
-        q_FromUA = queue.Queue()
-        q_Action = queue.Queue()
-        q_TCPSend = queue.Queue()
-        q_ValidProc = queue.Queue()
-        q_PrepareToSend = queue.Queue()
-        q_ValidScreen = queue.Queue()
-        q_SetFlag = queue.Queue()
-        q_UAValid = queue.Queue()
-        q_DBWrite = queue.Queue()
+        q_internal = queue.Queue()
+        q_from_ua = queue.Queue()
+        q_action = queue.Queue()
+        q_tcp_send = queue.Queue()
+        q_valid_proc = queue.Queue()
+        q_prepare_to_send = queue.Queue()
+        q_valid_screen = queue.Queue()
+        q_set_flag = queue.Queue()
+        q_ua_valid = queue.Queue()
+        q_db_write = queue.Queue()
         q_UAValidSF = queue.Queue()
-        q_Controller = queue.Queue()
-        q_SendMail = queue.Queue()
-        q_PowerManagerFLAG = queue.Queue()
-        q_PowerManager = queue.Queue()
+        q_controller = queue.Queue()
+        q_send_mail = queue.Queue()
+        q_power_manager_flag = queue.Queue()
+        q_power_manager = queue.Queue()
 
         LOG.CMSLogger('Queues created')
 
+        # 0 - out
         t_Init = threading.Thread(target=o_Action.init_cms,
-                                  args=(q_Internal,))
+                                  args=(q_internal,))
         # Exchange threads
         t_Server = threading.Thread(target=o_Network.Server,
-                                    args=(Config.localhost, Config.CMSCoreInternalPort, q_FromUA))
+                                    args=(Config.localhost, Config.CMSCoreInternalPort, q_from_ua))
         t_ClientUA = threading.Thread(target=o_Network.Client,
-                                      args=(Config.localhost, Config.CMSUserAgentPort, q_TCPSend))
+                                      args=(Config.localhost, Config.CMSUserAgentPort, q_tcp_send))
         t_ClientContr = threading.Thread(target=o_Network.Client,
-                                         args=(Config.localhost, Config.CMSControllertPort, q_TCPSend))
+                                         args=(Config.localhost, Config.CMSControllertPort, q_tcp_send))
 
         # Inbound processing flows
+        # 0 - in, 1, 2, 3 - out
         t_ReceiveDataFromUA = threading.Thread(target=o_Handlers.FromUA,
-                                               args=(q_FromUA, q_ValidScreen, q_ValidProc, q_Internal))
+                                               args=(q_from_ua, q_valid_screen, q_valid_proc, q_internal))
+
         t_ValidDataScreen = threading.Thread(target=o_Handlers.Valid,
-                                             args=(q_ValidScreen, q_Action, True, 1, R.H[0], True))
+                                             args=(q_valid_screen, q_action, True, 1, R.H[0], True))
         t_ValidDataProc = threading.Thread(target=o_Handlers.Valid,
-                                           args=(q_ValidProc, q_Action, False, 1, R.H[0], True))
+                                           args=(q_valid_proc, q_action, False, 1, R.H[0], True))
 
         # Internal processing flows
         t_Internal = threading.Thread(target=o_Handlers.Internal,
-                                      args=(q_Internal, q_UAValid, q_DBWrite, q_SetFlag, q_SendMail, q_PowerManager))
+                                      args=(q_internal, q_ua_valid, q_db_write, q_set_flag, q_send_mail, q_power_manager))
         t_SetFlag = threading.Thread(target=o_Handlers.SetFlag,
-                                     args=(q_SetFlag, q_Controller, q_PowerManagerFLAG))
+                                     args=(q_set_flag, q_controller, q_power_manager_flag))
 
         # Outbound shaping streams
+        # 0 - in, 1, 2 - out
         t_CreateAction = threading.Thread(target=o_Handlers.CreateAction,
-                                          args=(q_Action, q_PrepareToSend, q_Internal))
+                                          args=(q_action, q_prepare_to_send, q_internal))
+
+
         t_SendController = threading.Thread(target=o_Handlers.SendController,
-                                            args=(q_PrepareToSend, q_TCPSend, q_Internal))
+                                            args=(q_prepare_to_send, q_tcp_send, ))
 
         # Database write processing
         t_DBWriteController = (threading.Thread(target=o_DB.WriteController,
-                                                args=(q_DBWrite,)))
+                                                args=(q_db_write,)))
         # Service Streams
+        # 0, 1 - out
         t_CheckNewContent = threading.Thread(target=o_RenewCont.DynamicRenewCont,
-                                             args=(q_PrepareToSend, q_Internal))
+                                             args=(q_prepare_to_send, q_internal))
+        # 0 - in, 1 - out
         t_UAValid = threading.Thread(target=o_Valid.UAValid,
-                                     args=(q_UAValid, q_Internal))
+                                     args=(q_ua_valid, q_internal))
         t_SendMailCont = threading.Thread(target=o_SendMailCont.SendMailController,
-                                          args=(q_SendMail,))
+                                          args=(q_send_mail,))
+        # 0, 2 - in, 1 - out
         t_PowerManager = threading.Thread(target=o_Valid.PowerManager,
-                                          args=(q_PowerManager, q_Internal, q_PowerManagerFLAG))
+                                          args=(q_power_manager, q_internal, q_power_manager_flag))
 
         LOG.CMSLogger('Threads are initialized')
 

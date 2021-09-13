@@ -47,8 +47,8 @@ class Process(Init):
         if data == Res.ProcList[0]:
             o_nova.terminate_nova()
 
-    @staticmethod
-    def restart(data):
+
+    def restart(self, data):
         if data == Res.ProcList[0]:
             o_nova.restart_nova()
 
@@ -70,7 +70,7 @@ class Files(Init):
     # Archives logs
     @staticmethod
     def log_arch():
-        arch_name = None
+        # arch_name = None
         list_for_archiving = []
         # Lists files stored in a directory
         for file in os.listdir(Config.logPath):
@@ -228,8 +228,8 @@ class SysInit(Files):
         machine = None
         ev = True
         br = False
-        pre_current_run = None
-        last_std = None
+        # pre_current_run = None
+        # last_std = None
         flags = win32evtlog.EVENTLOG_BACKWARDS_READ | win32evtlog.EVENTLOG_SEQUENTIAL_READ
         ev_types = {win32con.EVENTLOG_INFORMATION_TYPE: 'EVENTLOG_INFORMATION_TYPE',
                     win32con.EVENTLOG_WARNING_TYPE: 'EVENTLOG_WARNING_TYPE',

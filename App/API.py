@@ -43,7 +43,10 @@ class Process(Win):
 
     def terminate_proc(self, name):
         for proc in self.get_wmi().Win32_Process(Name=name):
-            proc.terminate(Reason=1)
+            try:
+                proc.terminate(Reason=1)
+            except:
+                LOG.CMSLogger(sys.exc_info()[1])
 
 
 class Service(Win):
@@ -81,6 +84,7 @@ class Nova(Process):
         self.run_nova()
 
     def run_nova(self):
+        LOG.CMSLogger('Called')
         executable = 'C:\\Program Files (x86)\\NovaStudio\\Bin\\NovaStudio.exe'
         self.start_proc(executable)
 

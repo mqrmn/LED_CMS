@@ -39,9 +39,10 @@ class Mail:
         return msg
 
     def InitServer(self):
+
         server = smtplib.SMTP(Config.smtpServer, Config.smtpPort)
         server.starttls()
-        server.login(addr_from, Config.smtpPass)
+        server.login(Config.smtpSender, Config.smtpPass)
 
         return server
 
