@@ -45,6 +45,8 @@ class Process(Win):
         for proc in self.get_wmi().Win32_Process(Name=name):
             try:
                 proc.terminate(Reason=1)
+            except TypeError:
+                pass
             except:
                 LOG.CMSLogger(sys.exc_info()[1])
 
