@@ -86,11 +86,11 @@ def TEST():
     # Service Streams
     t_CheckNewContent = threading.Thread(target=o_RenewCont.DynamicRenewCont,
                                          args=(q_PrepareToSend, q_Internal))
-    t_UAValid = threading.Thread(target=o_Valid.UAValid,
+    t_UAValid = threading.Thread(target=o_Valid.ua_valid,
                                  args=(q_UAValid, q_Internal))
     t_SendMailCont = threading.Thread(target=o_SendMailCont.SendMailController,
                                       args=(q_SendMail,))
-    t_PowerManager = threading.Thread(target=o_Valid.PowerManager,
+    t_PowerManager = threading.Thread(target=o_Valid.power_manager,
                                       args=(q_PowerManager, q_Internal, q_PowerManagerFLAG))
 
     LOG.CMSLogger('Threads are initialized')

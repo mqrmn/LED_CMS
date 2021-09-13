@@ -133,12 +133,12 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         t_check_new_content = threading.Thread(target=o_renew_cont.DynamicRenewCont,
                                                args=(q_prepare_to_send, q_internal))
         # 0 - in, 1 - out
-        t_ua_valid = threading.Thread(target=o_valid.UAValid,
+        t_ua_valid = threading.Thread(target=o_valid.ua_valid,
                                       args=(q_ua_valid, q_internal))
         t_send_mail_cont = threading.Thread(target=o_send_mail_cont.SendMailController,
                                             args=(q_send_mail,))
         # 0, 2 - in, 1 - out
-        t_power_manager = threading.Thread(target=o_valid.PowerManager,
+        t_power_manager = threading.Thread(target=o_valid.power_manager,
                                            args=(q_power_manager, q_internal, q_power_manager_flag))
 
         LOG.CMSLogger('Threads are initialized')

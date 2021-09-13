@@ -96,7 +96,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         T_Internal = threading.Thread(target=o_Handler.Internal,
                                       args=(q_internal, None, Q_DBWrite, Q_setFlag, Q_SendMail))
 
-        T_CMSServiceCont = threading.Thread(target=C_Control.CMSService,
+        T_CMSServiceCont = threading.Thread(target=C_Control.cms_service,
                                             args=(Q_setFlag, Q_FromUpdater, q_internal))
 
         T_SendMailCont = threading.Thread(target=O_SendMailCont.SendMailController,
