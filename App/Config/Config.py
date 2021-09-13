@@ -65,9 +65,9 @@ smtpPort = 587
 
 # Timeouts
 # Handler.Queue.SendController
-runNovaTimeout = 300
-terminateNovaTimeout = 300
-terminateMarsTimeout = 300
+runNovaTimeout = 30
+terminateNovaTimeout = 30
+terminateMarsTimeout = 30
 restartNovaTimeout = 30
 # Handler.Queue.CreateAction
 restartNovaMaxCount = 5

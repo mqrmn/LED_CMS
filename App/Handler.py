@@ -47,15 +47,15 @@ class Queue(Init):
                     self.ToSend(data, q_tcp_send)
                     runNovaTime = datetime.datetime.now()
                 else:
-                    pass
+                    LOG.CMSLogger('RunNova timeout fail')
                 data = None
             # Stop NovaStudio
-            if data == R.TerminateNova:
+            if data == R.TerminateNova[0]:
                 if ((datetime.datetime.now() - termNovaTime).seconds >= C.terminateNovaTimeout):
                     self.ToSend(data, q_tcp_send)
                     termNovaTime = datetime.datetime.now()
                 else:
-                    pass
+                    LOG.CMSLogger('TerminateNova timeout fail')
                 data = None
             # Stopping MarsServerProvider
             if data == R.TerminateMars[1]:
