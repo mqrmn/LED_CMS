@@ -126,7 +126,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
                                              args=(q_prepare_to_send, q_tcp_send,))
 
         # Database write processing
-        t_db_write_controller = (threading.Thread(target=o_db.WriteController,
+        t_db_write_controller = (threading.Thread(target=o_db.write_controller,
                                                   args=(q_db_write,)))
         # Service Streams
         # 0, 1 - out

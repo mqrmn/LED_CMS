@@ -5,15 +5,17 @@ from peewee import *
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
-from App import Resource as R
+from App import Resource as Res
 
-dbhandle = SqliteDatabase(Config.DBPath)
+db_handle = SqliteDatabase(Config.DBPath)
 
 
 class BaseModel(Model):
     id = AutoField()
+
     class Meta:
-        database = dbhandle
+        database = db_handle
+
 
 class Tables:
 
@@ -22,6 +24,7 @@ class Tables:
         trigger = TextField()
         key = TextField()
         datetime = DateTimeField()
+
         class Meta:
             db_table = "SelfInitShutdown"
             order_by = ('-id',)
@@ -29,72 +32,76 @@ class Tables:
     class SystemInit(BaseModel):
         id = IntegerField()
         datetime = DateTimeField()
+
         class Meta:
             db_table = "SystemInit"
             order_by = ('-id',)
 
     class SystemRun(BaseModel):
         datetime = DateTimeField()
+
         class Meta:
             db_table = "SystemRun"
             order_by = ('-id',)
 
 
-
 class DBFoo(Tables):
 
-    def CreateTables(self):
-        with dbhandle:
-            dbhandle.create_tables([self.SelfInitShutdown, ])
-            dbhandle.create_tables([self.SystemRun, ])
-            dbhandle.create_tables([self.SystemInit, ])
-    def GetCount(self):
+    def create_tables(self):
+        with db_handle:
+            db_handle.create_tables([self.SelfInitShutdown, ])
+            db_handle.create_tables([self.SystemRun, ])
+            db_handle.create_tables([self.SystemInit, ])
+
+    def get_count(self):
 
         count = self.SystemRun().select().count()
         return count
 
-    def WriteController(self, Q_in):
+    def write_controller(self, q_in):
         while True:
-            data = Q_in.get()
+            data = q_in.get()
             if data['table'] == 'SystemInit':
-                wrData = data['data']
-                self.SystemInit.create(id=wrData['id'], datetime=wrData['datetime'], )
+                wr_data = data['data']
+                self.SystemInit.create(id=wr_data['id'], datetime=wr_data['datetime'], )
 
             if data['table'] == 'SystemRun':
-                wrData = data['data']
-                self.SystemRun.create(datetime=wrData['datetime'], )
+                wr_data = data['data']
+                self.SystemRun.create(datetime=wr_data['datetime'], )
 
             if data['table'] == 'SelfInitShutdown':
-                wrData = data['data']
-                self.SelfInitShutdown.create(id=wrData['id'], trigger=wrData['trigger'], key=wrData['key'], datetime=wrData['datetime'], )
+                wr_data = data['data']
+                self.SelfInitShutdown.create(id=wr_data['id'], trigger=wr_data['trigger'],
+                                             key=wr_data['key'], datetime=wr_data['datetime'], )
 
-    def ReadController(self):
+    def read_controller(self):
         pass
 
 
 class Prepare(DBFoo):
 
-    def SelfInitShutdownPrep(self, trigger, key, datetimeData):
-        return {R.r[1]: R.H[3],
-                R.r[2]: R.K[8],
-                R.r[3]: {R.DBWriteData[0]: 'SelfInitShutdown',
-                                R.r[3]: {'id': self.GetCount(),
-                                            'trigger': trigger,
-                                            'key': key,
-                                            'datetime': datetimeData},
-                                                }, }
+    def self_init_shutdown_prep(self, trigger, key, datetime_data):
+        return {Res.r[1]: Res.H[3],
+                Res.r[2]: Res.K[8],
+                Res.r[3]: {Res.DBWriteData[0]: 'SelfInitShutdown',
+                           Res.r[3]: {'id': self.get_count(),
+                                      'trigger': trigger,
+                                      'key': key,
+                                      'datetime': datetime_data},
+                           }, }
 
-    def SystemInitPrep(self, datetimeData):
-        return {R.r[1]: R.H[3],
-                R.r[2]: R.K[8],
-                R.r[3]: {R.DBWriteData[0]: 'SystemInit',
-                                R.r[3]: {'id': self.GetCount(),
-                                            'datetime': datetimeData,
-                                                }, }, }
+    def system_init_prep(self, datetime_data):
+        return {Res.r[1]: Res.H[3],
+                Res.r[2]: Res.K[8],
+                Res.r[3]: {Res.DBWriteData[0]: 'SystemInit',
+                           Res.r[3]: {'id': self.get_count(),
+                                      'datetime': datetime_data,
+                                      }, }, }
 
-    def SystemRunPrep(self, datetimeData):
-        return {R.r[1]: R.H[3],
-                R.r[2]: R.K[8],
-                R.r[3]: {R.DBWriteData[0]: 'SystemRun',
-                                R.r[3]: {'datetime': datetimeData,
-                                                }, }, }
+    @staticmethod
+    def system_run_prep(datetime_data):
+        return {Res.r[1]: Res.H[3],
+                Res.r[2]: Res.K[8],
+                Res.r[3]: {Res.DBWriteData[0]: 'SystemRun',
+                           Res.r[3]: {'datetime': datetime_data,
+                                      }, }, }

@@ -139,13 +139,13 @@ class SysInit(Files):
                 LOG.CMSLogger('Database file exist')
             else:
                 handle = Database.DBFoo()
-                handle.CreateTables()
+                handle.create_tables()
                 data = False
                 LOG.CMSLogger('Database file created')
         else:
             os.mkdir(Config.DBFolder)
             handle = Database.DBFoo()
-            handle.CreateTables()
+            handle.create_tables()
             data = False
             LOG.CMSLogger('Database file created')
         return data
@@ -157,7 +157,7 @@ class SysInit(Files):
     @staticmethod
     def put_sys_run(q_out):
         o_db_prep = Database.Prepare()
-        q_out.put(o_db_prep.SystemRunPrep(datetime.datetime.now()))
+        q_out.put(o_db_prep.system_run_prep(datetime.datetime.now()))
 
     @staticmethod
     def check_last_self_init_std(q_internal):
