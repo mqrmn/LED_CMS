@@ -2,13 +2,14 @@
 
 import sys
 import os
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as Et
 import time
 import shutil
 import pythoncom
 import datetime
 import re
 from inspect import currentframe, getframeinfo
+
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
@@ -16,40 +17,40 @@ from App import Resource, Log, API, Act, Database
 
 LOG = Log.Log_Manager()
 
+
 class CMSUpdate:
 
-    def CMSUpdater(self, Q_FromUpdater, q_internal):
+    def cms_updater(self, q_from_updater, q_internal):
 
-        o_createMessage = Resource.CreateMessage()
-        C_API = API.Service()
-        C_Action = Act.System()
+        o_create_message = Resource.CreateMessage()
+        c_api = API.Service()
+        c_action = Act.System()
         pythoncom.CoInitialize()
         while True:
-            if self.CMSUpgrade(False) == True:
+            if self.cms_upgrade(False) is True:
                 LOG.CMSLogger('Update detected')
                 time.sleep(180)
-                stSvc = C_API.stop_service('CMS')
-                if stSvc[0] == 0:
-                    Q_FromUpdater.put(True)
-                    LOG.CMSLogger( 'CMS stopped')
+                st_svc = c_api.stop_service('CMS')
+                if st_svc[0] == 0:
+                    q_from_updater.put(True)
+                    LOG.CMSLogger('CMS stopped')
                     time.sleep(30)
-                    self.CMSUpgrade(True)
+                    self.cms_upgrade(True)
                     table = Database.Tables()
                     table.SelfInitShutdown.create(trigger=getframeinfo(currentframe())[2],
                                                   key='reboot',
                                                   datetime=datetime.datetime.now(), )
 
-                    C_Action.reboot_init()
-                    q_internal.put(o_createMessage.SendMail('Выполнено обновление CMS'))
-
+                    c_action.reboot_init()
+                    q_internal.put(o_create_message.SendMail('Выполнено обновление CMS'))
 
                 else:
-                    LOG.CMSLogger('Cant stop CMS, code: {}'.format(stSvc), )
+                    LOG.CMSLogger('Cant stop CMS, code: {}'.format(st_svc), )
             else:
                 time.sleep(1800)
 
-    def CMSUpgrade(self, key):
-
+    def cms_upgrade(self, key):
+        current_v = None
         priorities = {'GLOBAL': 0, 'GROUP': 0, 'LOCAL': 0}
         versions = {'GLOBAL': 0, 'GROUP': 0, 'LOCAL': 0, 'CURRENT': 0}
 
@@ -57,47 +58,46 @@ class CMSUpdate:
             # Reading the current version
             if os.path.exists(os.path.dirname(__file__) + '\\PACKAGE.ver'):
                 file = open(os.path.dirname(__file__) + '\\PACKAGE.ver', 'r')
-                currentV = file.read()
+                current_v = file.read()
                 file.close()
-                versions['CURRENT'] = currentV
+                versions['CURRENT'] = current_v
 
-            priorities['GLOBAL'], versions['GLOBAL'] = self.CheckCMSUpdates(Config.globalCmsRenew, 'GLOBAL')
-            priorities['GROUP'], versions['GROUP'] = self.CheckCMSUpdates(Config.groupCmsRenew, 'GROUP')
-            priorities['LOCAL'], versions['LOCAL'] = self.CheckCMSUpdates(Config.localCmsRenew, 'LOCAL')
+            priorities['GLOBAL'], versions['GLOBAL'] = self.check_cms_updates(Config.globalCmsRenew, 'GLOBAL')
+            priorities['GROUP'], versions['GROUP'] = self.check_cms_updates(Config.groupCmsRenew, 'GROUP')
+            priorities['LOCAL'], versions['LOCAL'] = self.check_cms_updates(Config.localCmsRenew, 'LOCAL')
 
-            maxPriority = sorted(priorities, key=priorities.__getitem__)[-1]
-            LOG.CMSLogger('The priority of the update catalog has been determined: ' + maxPriority)
+            max_priority = sorted(priorities, key=priorities.__getitem__)[-1]
+            LOG.CMSLogger('The priority of the update catalog has been determined: ' + max_priority)
 
-            if priorities[maxPriority] > 200:
-                currentVArr = versions['CURRENT'].split('.')
-                newtVArr = versions[maxPriority].split('.')
+            if priorities[max_priority] > 200:
+                current_v_arr = versions['CURRENT'].split('.')
+                newt_v_arr = versions[max_priority].split('.')
 
                 # Version comparison
-                stopCheck = 0
-                if currentVArr[0] == newtVArr[0]:
-                    if currentVArr[1] == newtVArr[1]:
-                        if currentVArr[2] == newtVArr[2]:
+                stop_check = 0
+                if current_v_arr[0] == newt_v_arr[0]:
+                    if current_v_arr[1] == newt_v_arr[1]:
+                        if current_v_arr[2] == newt_v_arr[2]:
                             LOG.CMSLogger('No updates found')
-                        elif int(currentVArr[2]) < int(newtVArr[2]):
-                            LOG.CMSLogger('Update detected ' + versions[maxPriority])
-                            if key == True:
-                                self.CurrentCMSArch(currentV)
-                                self.RenewCMSFiles(Config.globalCmsRenew)
+                        elif int(current_v_arr[2]) < int(newt_v_arr[2]):
+                            LOG.CMSLogger('Update detected ' + versions[max_priority])
+                            if key is True:
+                                self.current_cms_arch(current_v)
+                                self.renew_cms_files(Config.globalCmsRenew)
                             else:
                                 return True
-                            stopCheck = 1
-                    elif int(currentVArr[1]) < int(newtVArr[1]) and stopCheck != 1:
-                        if key == True:
-                            LOG.CMSLogger('ОUpdate detected ' + versions[maxPriority])
-                            self.CurrentCMSArch(currentV)
-                            self.RenewCMSFiles(Config.groupCmsRenew)
+                    elif int(current_v_arr[1]) < int(newt_v_arr[1]) and stop_check != 1:
+                        if key is True:
+                            LOG.CMSLogger('ОUpdate detected ' + versions[max_priority])
+                            self.current_cms_arch(current_v)
+                            self.renew_cms_files(Config.groupCmsRenew)
                         else:
                             return True
-                elif int(currentVArr[0]) < int(newtVArr[0]) and stopCheck != 1:
-                    if key == True:
-                        LOG.CMSLogger('Update detected ' + versions[maxPriority])
-                        self.CurrentCMSArch(currentV)
-                        self.RenewCMSFiles(Config.globalCmsRenew)
+                elif int(current_v_arr[0]) < int(newt_v_arr[0]) and stop_check != 1:
+                    if key is True:
+                        LOG.CMSLogger('Update detected ' + versions[max_priority])
+                        self.current_cms_arch(current_v)
+                        self.renew_cms_files(Config.globalCmsRenew)
                     else:
                         return True
             else:
@@ -106,11 +106,12 @@ class CMSUpdate:
             pass
         # Checks CMS update keys
 
-    def CheckCMSUpdates(self, path, type):
+    @staticmethod
+    def check_cms_updates(path, type_f):
 
-        upgradeScoreKey = {'IGNORE': 0, 'FREE': 200, 'FORCE': 300, 'LOCK': 400}
-        upgradeScoreType = {'GLOBAL': 30, 'GROUP': 20, 'LOCAL': 10}
-        upgradeScoreTypeLoc = {'GLOBAL': 10, 'GROUP': 20, 'LOCAL': 30}
+        upgrade_score_key = {'IGNORE': 0, 'FREE': 200, 'FORCE': 300, 'LOCK': 400}
+        upgrade_score_type = {'GLOBAL': 30, 'GROUP': 20, 'LOCAL': 10}
+        upgrade_score_type_loc = {'GLOBAL': 10, 'GROUP': 20, 'LOCAL': 30}
 
         if os.path.exists(path + 'PACKAGE.ver'):
             file = open(path + 'PACKAGE.ver', 'r')
@@ -121,18 +122,19 @@ class CMSUpdate:
             key = file.read()
             file.close()
 
-            score = upgradeScoreKey[key]
+            score = upgrade_score_key[key]
             if key == 'LOCK':
-                score += upgradeScoreTypeLoc[type]
+                score += upgrade_score_type_loc[type_f]
             else:
-                score += upgradeScoreType[type]
+                score += upgrade_score_type[type_f]
         else:
             score, version = 0, '0.0.0'
         return score, version
 
         # Archives the current CMS package
 
-    def CurrentCMSArch(self, version):
+    @staticmethod
+    def current_cms_arch(version):
 
         if not os.path.exists(Config.CMSArchPath + str(version)):
             shutil.copytree(os.getcwd(), Config.CMSArchPath + str(version))
@@ -140,262 +142,275 @@ class CMSUpdate:
 
         # Updates CMS files directly
 
-    def RenewCMSFiles(self, path):
+    @staticmethod
+    def renew_cms_files(path):
         # shutil.rmtree(os.path.dirname(__file__))
         # shutil.copytree(path, os.path.dirname(__file__))
 
         LOG.CMSLogger('Update completed')
 
+
 class RenewContent:
 
-    def DynamicRenewCont(self, Q_PrepareToSend, Q_Internal):
-        crMsg = Resource.CreateMessage()
-        list = None
+    def dynamic_renew_cont(self, q_prepare_to_send, q_internal):
+        cr_msg = Resource.CreateMessage()
+        list_f = None
         fix = False
-        countPass = 0
+        count_pass = 0
         while True:
-            x = self.CheckNewContent()
-            if x != list:
-                list = x
+            x = self.check_new_content()
+            if x != list_f:
+                list_f = x
                 fix = True
-                countPass = 0
+                count_pass = 0
 
-            if fix == True:
-                countPass += 1
-            if countPass >= 5:
-                self.ContentRenewHandle(Q_PrepareToSend, )
-                Q_Internal.put(crMsg.SendMail('Выполнено обновление контента'))
-                list = None
+            if fix is True:
+                count_pass += 1
+            if count_pass >= 5:
+                self.content_renew_handle(q_prepare_to_send, )
+                q_internal.put(cr_msg.SendMail('Выполнено обновление контента'))
+                list_f = None
                 fix = False
-                countPass = 0
+                count_pass = 0
             time.sleep(10)
 
-    def ContentRenewHandle(self, Q_PrepareToSend, ):
+    def content_renew_handle(self, q_prepare_to_send, ):
 
-        appendStatus = self.AppendContent()
-        Q_PrepareToSend.put(Resource.TerminateNova[0])
+        append_status = self.append_content()
+        q_prepare_to_send.put(Resource.TerminateNova[0])
         time.sleep(5)
-        removeStatus = self.RemoveContent()
-        if (appendStatus == True) or (removeStatus == True):
-            self.Generate()
-        Q_PrepareToSend.put(Resource.RunNova[1])
+        remove_status = self.remove_content()
+        if (append_status is True) or (remove_status is True):
+            self.generate()
+        q_prepare_to_send.put(Resource.RunNova[1])
 
-    def CheckNewContent(self):
+    @staticmethod
+    def check_new_content():
         x = 0
         for formatPath in Config.screenFormat:
-            yaListFilesExcept = os.listdir(Config.yaFilesExcept + formatPath)
-            yaListFilesUnex = os.listdir(Config.yaFilesUnex + formatPath)
-            yaListFilesEx = os.listdir(Config.yaFilesEx + formatPath)
-            localListFilesUnex = os.listdir(Config.localFilesUnex + formatPath)
-            localListFilesEx = os.listdir(Config.localFilesEx + formatPath)
+            ya_list_files_except = os.listdir(Config.yaFilesExcept + formatPath)
+            ya_list_files_unex = os.listdir(Config.yaFilesUnex + formatPath)
+            ya_list_files_ex = os.listdir(Config.yaFilesEx + formatPath)
+            local_list_files_unex = os.listdir(Config.localFilesUnex + formatPath)
+            local_list_files_ex = os.listdir(Config.localFilesEx + formatPath)
 
-            for file in yaListFilesExcept:
-                if file in localListFilesUnex:
+            for file in ya_list_files_except:
+                if file in local_list_files_unex:
                     x = 1
                     break
                 else:
                     pass
 
-            for file in localListFilesUnex:
-                if file in yaListFilesExcept:
+            for file in local_list_files_unex:
+                if file in ya_list_files_except:
                     x = 1
                     break
                 else:
                     pass
 
-            if localListFilesUnex == yaListFilesUnex:
+            if local_list_files_unex == ya_list_files_unex:
                 pass
             else:
-                c1 = yaListFilesUnex
-                c2 = localListFilesUnex
+                c1 = ya_list_files_unex
+                c2 = local_list_files_unex
                 for file in list(set(c1) - set(c2)):
-                    if file not in yaListFilesExcept:
+                    if file not in ya_list_files_except:
                         x = 1
-                c1 = yaListFilesUnex
-                c2 = localListFilesUnex
+                c1 = ya_list_files_unex
+                c2 = local_list_files_unex
                 if list(set(c2) - set(c1)):
                     x = 1
 
-            if localListFilesEx == yaListFilesEx:
+            if local_list_files_ex == ya_list_files_ex:
                 pass
             else:
                 x = 1
 
             if x == 1:
-                return [yaListFilesExcept, yaListFilesUnex, yaListFilesEx, ]
+                return [ya_list_files_except, ya_list_files_unex, ya_list_files_ex, ]
             else:
                 return None
 
-    def AppendContent(self):
+    @staticmethod
+    def append_content():
 
-        refreshStatus = False
+        refresh_status = False
 
         for formatPath in Config.screenFormat:
-            yaListFilesExcept = os.listdir(Config.yaFilesExcept + formatPath)
-            yaListFilesUnex = os.listdir(Config.yaFilesUnex + formatPath)
-            yaListFilesEx = os.listdir(Config.yaFilesEx + formatPath)
-            localListFilesUnex = os.listdir(Config.localFilesUnex + formatPath)
-            localListFilesEx = os.listdir(Config.localFilesEx + formatPath)
-            if yaListFilesUnex != localListFilesUnex:
-                for file in yaListFilesUnex:
-                    if file not in yaListFilesExcept:
-                        if file not in localListFilesUnex:
+            ya_list_files_except = os.listdir(Config.yaFilesExcept + formatPath)
+            ya_list_files_unex = os.listdir(Config.yaFilesUnex + formatPath)
+            ya_list_files_ex = os.listdir(Config.yaFilesEx + formatPath)
+            local_list_files_unex = os.listdir(Config.localFilesUnex + formatPath)
+            local_list_files_ex = os.listdir(Config.localFilesEx + formatPath)
+            if ya_list_files_unex != local_list_files_unex:
+                for file in ya_list_files_unex:
+                    if file not in ya_list_files_except:
+                        if file not in local_list_files_unex:
                             shutil.copy(Config.yaFilesUnex + formatPath + '\\' + file,
                                         Config.localFilesUnex + formatPath)
                             LOG.CMSLogger('File added: ' + Config.yaFilesUnex + formatPath + '\\' + file)
-                            refreshStatus = True
+                            refresh_status = True
 
-            if yaListFilesEx != localListFilesEx:
-                for file in yaListFilesEx:
-                    if file not in localListFilesEx:
+            if ya_list_files_ex != local_list_files_ex:
+                for file in ya_list_files_ex:
+                    if file not in local_list_files_ex:
                         shutil.copy(Config.yaFilesEx + formatPath + '\\' + file, Config.localFilesEx + formatPath)
                         LOG.CMSLogger('File added: ' + Config.yaFilesEx + formatPath + '\\' + file)
-                        refreshStatus = True
+                        refresh_status = True
 
-        return refreshStatus
+        return refresh_status
 
-    def RemoveContent(self):
+    @staticmethod
+    def remove_content():
 
-        refreshStatus = False
+        refresh_status = False
 
         for formatPath in Config.screenFormat:
-            yaListFilesExcept = os.listdir(Config.yaFilesExcept + formatPath)
-            yaListFilesUnex = os.listdir(Config.yaFilesUnex + formatPath)
-            yaListFilesEx = os.listdir(Config.yaFilesEx + formatPath)
-            localListFilesUnex = os.listdir(Config.localFilesUnex + formatPath)
-            localListFilesEx = os.listdir(Config.localFilesEx + formatPath)
+            ya_list_files_except = os.listdir(Config.yaFilesExcept + formatPath)
+            ya_list_files_unex = os.listdir(Config.yaFilesUnex + formatPath)
+            ya_list_files_ex = os.listdir(Config.yaFilesEx + formatPath)
+            local_list_files_unex = os.listdir(Config.localFilesUnex + formatPath)
+            local_list_files_ex = os.listdir(Config.localFilesEx + formatPath)
 
-            for file in yaListFilesExcept:
-                if file in localListFilesUnex:
+            for file in ya_list_files_except:
+                if file in local_list_files_unex:
                     os.remove(Config.localFilesUnex + formatPath + '\\' + file)
                     LOG.CMSLogger('File deleted by exception: ' + Config.localFilesUnex + formatPath + '\\' + file)
-                    refreshStatus = True
+                    refresh_status = True
 
-            if yaListFilesUnex != localListFilesUnex:
-                for file in localListFilesUnex:
-                    if file not in yaListFilesUnex:
+            if ya_list_files_unex != local_list_files_unex:
+                for file in local_list_files_unex:
+                    if file not in ya_list_files_unex:
                         os.remove(Config.localFilesUnex + formatPath + '\\' + file)
                         LOG.CMSLogger('File deleted: ' + Config.localFilesUnex + formatPath + '\\' + file)
-                        refreshStatus = True
-            if yaListFilesEx != localListFilesEx:
-                for file in localListFilesEx:
-                    if file not in yaListFilesEx:
+                        refresh_status = True
+            if ya_list_files_ex != local_list_files_ex:
+                for file in local_list_files_ex:
+                    if file not in ya_list_files_ex:
                         os.remove(Config.localFilesEx + formatPath + '\\' + file)
                         LOG.CMSLogger('File deleted: ' + Config.localFilesEx + formatPath + '\\' + file)
-                        refreshStatus = True
-        return refreshStatus
+                        refresh_status = True
+        return refresh_status
 
-    def Generate(self):
+    def generate(self):
+        format_path = None
+        for format_path in Config.screenFormat:
 
-        for formatPath in Config.screenFormat:
+            all_file_path_list = []
+            all_file_name_list = []
 
-            allFilePathList = []
-            allFileNameList = []
+            local_list_files_unex = os.listdir(Config.localFilesUnex + format_path)
+            local_list_files_ex = os.listdir(Config.localFilesEx + format_path)
 
-            localListFilesUnex = os.listdir(Config.localFilesUnex + formatPath)
-            localListFilesEx = os.listdir(Config.localFilesEx + formatPath)
+            for file in local_list_files_unex:
+                all_file_path_list.append(Config.localFilesUnex + format_path + '\\' + file)
+                LOG.CMSLogger(
+                    'The file is included in the playlist: ' + Config.localFilesUnex + format_path + '\\' + file)
+                all_file_name_list.append(file)
 
-            for file in localListFilesUnex:
-                allFilePathList.append(Config.localFilesUnex + formatPath + '\\' + file)
-                LOG.CMSLogger('The file is included in the playlist: ' + Config.localFilesUnex + formatPath + '\\' + file)
-                allFileNameList.append(file)
+            for file in local_list_files_ex:
+                all_file_path_list.append(Config.localFilesEx + format_path + '\\' + file)
+                LOG.CMSLogger(
+                    'ФThe file is included in the playlist: ' + Config.localFilesEx + format_path + '\\' + file)
+                all_file_name_list.append(file)
 
-            for file in localListFilesEx:
-                allFilePathList.append(Config.localFilesEx + formatPath + '\\' + file)
-                LOG.CMSLogger('ФThe file is included in the playlist: ' + Config.localFilesEx + formatPath + '\\' + file)
-                allFileNameList.append(file)
-
-            PlayProgram = self.CreateXML(allFilePathList, allFileNameList)
-            self.Prettify(PlayProgram)
-            tree = ET.ElementTree(PlayProgram)
-            tree.write('{}{}_playerConfig.plym'.format(Config.configTargetPath, formatPath), encoding='UTF-8',
+            play_program = self.create_xml(all_file_path_list, all_file_name_list)
+            self.prettify(play_program)
+            tree = Et.ElementTree(play_program)
+            tree.write('{}{}_playerConfig.plym'.format(Config.configTargetPath, format_path), encoding='UTF-8',
                        xml_declaration=True)
-        LOG.CMSLogger('Playlist generated: ' + '{}{}_playerConfig.plym'.format(Config.configTargetPath, formatPath))
+        LOG.CMSLogger('Playlist generated: ' + '{}{}_playerConfig.plym'.format(Config.configTargetPath, format_path))
 
-    def CreateXML(self, file_path_arr, file_name_arr):
+    @staticmethod
+    def create_xml(file_path_arr, file_name_arr):
 
         x = 0
-        PlayProgram = ET.Element('PlayProgram', X="0", Y="0", Width="320", Height="120")
-        Playlist = ET.SubElement(PlayProgram, 'Playlist', Type="TimeSegment", Name="General Segment1", Date="",
+        play_program = Et.Element('PlayProgram', X="0", Y="0", Width="320", Height="120")
+        playlist = Et.SubElement(play_program, 'Playlist', Type="TimeSegment", Name="General Segment1", Date="",
                                  Day="True#True#True#True#True#True#True", Time="", IsSpeficTimeZone="False",
                                  DiffToUTC="00:00:00", ID="0")
-        Context = ET.SubElement(Playlist, 'Context')
-        BasicPage = ET.SubElement(Context, 'BasicPage')
-        Page = ET.SubElement(BasicPage, 'Page', Name="Program1", PlayType="Order", Duration="00:06:00", PlayTimes="1",
+        context = Et.SubElement(playlist, 'Context')
+        basic_page = Et.SubElement(context, 'BasicPage')
+        page = Et.SubElement(basic_page, 'Page', Name="Program1", PlayType="Order", Duration="00:06:00", PlayTimes="1",
                              BackColor="255#0#0#0", BackgroundImage="", ImageLayout="Stretch", BackMusic="",
                              CustomString="")
-        Window = ET.SubElement(Page, 'Window', Name=Config.objType, X="0", Y="0", Width="320", Height="120",
+        window = Et.SubElement(page, 'Window', Name=Config.objType, X="0", Y="0", Width="320", Height="120",
                                Tag="Common")
         for file_path in file_path_arr:
-            Item = ET.SubElement(Window, 'Item', Type="0")
-            Media = ET.SubElement(Item, 'Media')
-            VideoMedia = ET.SubElement(Media, 'VideoMedia')
-            Name = ET.SubElement(VideoMedia, 'Name').text = file_name_arr[x]
-            PlayDuration = ET.SubElement(VideoMedia, 'PlayDuration')
-            string = ET.SubElement(PlayDuration, 'string').text = '0#0#0#15#0'
-            BeginTime = ET.SubElement(VideoMedia, 'BeginTime').text = '0001-01-01T00:00:00'
-            EndTime = ET.SubElement(VideoMedia, 'EndTime').text = '0001-01-01T00:00:00'
-            Times = ET.SubElement(VideoMedia, 'Times').text = '-1'
-            BackColor = ET.SubElement(VideoMedia, 'BackColor')
-            string_2 = ET.SubElement(BackColor, 'string').text = '255#0#0#0'
-            BackImagePath = ET.SubElement(VideoMedia, 'BackImagePath')
-            BackImageLayout = ET.SubElement(VideoMedia, 'BackImageLayout').text = 'Stretch'
-            Opacity = ET.SubElement(VideoMedia, 'Opacity').text = '1'
-            ID = ET.SubElement(VideoMedia, 'ID').text = '{}'.format(x + 1)
-            EnableBorderElement = ET.SubElement(VideoMedia, 'EnableBorderElement').text = 'false'
-            BorderElement = ET.SubElement(VideoMedia, 'BorderElement')
-            BorderType = ET.SubElement(BorderElement, 'BorderType').text = '6'
-            IsClockWise = ET.SubElement(BorderElement, 'IsClockWise').text = 'true'
-            Speed = ET.SubElement(BorderElement, 'Speed').text = '5'
-            BorderWidth = ET.SubElement(BorderElement, 'BorderWidth').text = '1'
-            BackColor = ET.SubElement(BorderElement, 'BackColor')
-            string_3 = ET.SubElement(BackColor, 'string').text = '255#0#0#0'
-            ForeColor = ET.SubElement(BorderElement, 'ForeColor')
-            string_4 = ET.SubElement(ForeColor, 'string').text = '255#0#128#0'
-            ColorType = ET.SubElement(BorderElement, 'ColorType').text = '0'
-            BorderDirectionStyle = ET.SubElement(BorderElement, 'BorderDirectionStyle').text = '0'
-            BorderSurroundedType = ET.SubElement(BorderElement, 'BorderSurroundedType').text = '0'
-            BorderUnitData = ET.SubElement(BorderElement, 'BorderUnitData')
-            string_5 = ET.SubElement(BorderUnitData,
-                                     'string').text = '''424d960000000000000036000000280000002000000001000000010018000000000000000000202e0000202e00000000000000000000ff0000ff0000ff0000ff0000ff0000ff0000ff0000ff00000000ff0000ff0000ff0000ff0000ff0000ff0000ff0000ff00ff0000ff0000ff0000ff0000ff0000ff0000ff0000ff0000ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff'''
-            BorderLeftUnitData = ET.SubElement(BorderElement, 'BorderLeftUnitData')
-            string_6 = ET.SubElement(BorderLeftUnitData, 'string')
-            BorderRightUnitData = ET.SubElement(BorderElement, 'BorderRightUnitData')
-            string_7 = ET.SubElement(BorderRightUnitData, 'string')
-            BorderBottomUnitData = ET.SubElement(BorderElement, 'BorderBottomUnitData')
-            string_8 = ET.SubElement(BorderBottomUnitData, 'string')
-            Tag = ET.SubElement(VideoMedia, 'Tag')
-            FinishedMode = ET.SubElement(VideoMedia, 'FinishedMode').text = 'PlayInSpecTime'
-            RotateAngle = ET.SubElement(VideoMedia, 'RotateAngle').text = 'None'
-            Path = ET.SubElement(VideoMedia, 'Path').text = file_path
-            DispRatioType = ET.SubElement(VideoMedia, 'DispRatioType').text = 'Full'
-            TxtElement = ET.SubElement(VideoMedia, 'TxtElement')
-            TextFont = ET.SubElement(TxtElement, 'TextFont')
-            string_9 = ET.SubElement(TextFont, 'string').text = 'Arial#12#Regular#Point#12'
-            TextColor = ET.SubElement(TxtElement, 'TextColor')
-            string_10 = ET.SubElement(TextColor, 'string').text = '255#255#0#0'
-            IsTextEffect = ET.SubElement(TxtElement, 'IsTextEffect').text = 'false'
-            TextEffectType = ET.SubElement(TxtElement, 'TextEffectType').text = '0'
-            TextEffectColor = ET.SubElement(TxtElement, 'TextEffectColor')
-            string_11 = ET.SubElement(TextEffectColor, 'string').text = '255#255#255#0'
-            TextEffectWidth = ET.SubElement(TxtElement, 'TextEffectWidth').text = '2'
-            TextAlignment = ET.SubElement(TxtElement, 'TextAlignment').text = 'TopLeft'
-            IsShowTextElement = ET.SubElement(VideoMedia, 'IsShowTextElement').text = 'false'
-            VolumnPercent = ET.SubElement(VideoMedia, 'VolumnPercent').text = '0'
-            RotateType = ET.SubElement(VideoMedia, 'RotateType').text = 'None'
-            IsStartFromSpecificPos = ET.SubElement(VideoMedia, 'IsStartFromSpecificPos').text = 'false'
-            StartPosition = ET.SubElement(VideoMedia, 'StartPosition')
-            string_12 = ET.SubElement(StartPosition, 'string').text = '0#0#0#0#0'
-            EndPosition = ET.SubElement(VideoMedia, 'EndPosition')
-            string_13 = ET.SubElement(EndPosition, 'string').text = '0#0#0#15#0'
-            AdditionalInfo = ET.SubElement(Item, 'AdditionalInfo')
+            item = Et.SubElement(window, 'Item', Type="0")
+            media = Et.SubElement(item, 'Media')
+            video_media = Et.SubElement(media, 'VideoMedia')
+            Et.SubElement(video_media, 'Name').text = file_name_arr[x]
+            play_duration = Et.SubElement(video_media, 'PlayDuration')
+            Et.SubElement(play_duration, 'string').text = '0#0#0#15#0'
+            Et.SubElement(video_media, 'BeginTime').text = '0001-01-01T00:00:00'
+            Et.SubElement(video_media, 'EndTime').text = '0001-01-01T00:00:00'
+            Et.SubElement(video_media, 'Times').text = '-1'
+            back_color = Et.SubElement(video_media, 'BackColor')
+            Et.SubElement(back_color, 'string').text = '255#0#0#0'
+            Et.SubElement(video_media, 'BackImagePath')
+            Et.SubElement(video_media, 'BackImageLayout').text = 'Stretch'
+            Et.SubElement(video_media, 'Opacity').text = '1'
+            Et.SubElement(video_media, 'ID').text = '{}'.format(x + 1)
+            Et.SubElement(video_media, 'EnableBorderElement').text = 'false'
+            border_element = Et.SubElement(video_media, 'BorderElement')
+            Et.SubElement(border_element, 'BorderType').text = '6'
+            Et.SubElement(border_element, 'IsClockWise').text = 'true'
+            Et.SubElement(border_element, 'Speed').text = '5'
+            Et.SubElement(border_element, 'BorderWidth').text = '1'
+            back_color = Et.SubElement(border_element, 'BackColor')
+            Et.SubElement(back_color, 'string').text = '255#0#0#0'
+            fore_color = Et.SubElement(border_element, 'ForeColor')
+            Et.SubElement(fore_color, 'string').text = '255#0#128#0'
+            Et.SubElement(border_element, 'ColorType').text = '0'
+            Et.SubElement(border_element, 'BorderDirectionStyle').text = '0'
+            Et.SubElement(border_element, 'BorderSurroundedType').text = '0'
+            border_unit_data = Et.SubElement(border_element, 'BorderUnitData')
+            Et.SubElement(border_unit_data,
+                          'string').text = '''424d9600000000000000360000002800000020000000010000000
+                          10018000000000000000000202e0000202e00000000000000000000ff0000ff0000ff0000
+                          ff0000ff0000ff0000ff0000ff00000000ff0000ff0000ff0000ff0000ff0000ff0000ff0
+                          000ff00ff0000ff0000ff0000ff0000ff0000ff0000ff0000ff0000ffff00ffff00ffff00
+                          ffff00ffff00ffff00ffff00ffff'''
+            border_left_unit_data = Et.SubElement(border_element, 'BorderLeftUnitData')
+            Et.SubElement(border_left_unit_data, 'string')
+            border_right_unit_data = Et.SubElement(border_element, 'BorderRightUnitData')
+            Et.SubElement(border_right_unit_data, 'string')
+            border_bottom_unit_data = Et.SubElement(border_element, 'BorderBottomUnitData')
+            Et.SubElement(border_bottom_unit_data, 'string')
+            Et.SubElement(video_media, 'Tag')
+            Et.SubElement(video_media, 'FinishedMode').text = 'PlayInSpecTime'
+            Et.SubElement(video_media, 'RotateAngle').text = 'None'
+            Et.SubElement(video_media, 'Path').text = file_path
+            Et.SubElement(video_media, 'DispRatioType').text = 'Full'
+            txt_element = Et.SubElement(video_media, 'TxtElement')
+            text_font = Et.SubElement(txt_element, 'TextFont')
+            Et.SubElement(text_font, 'string').text = 'Arial#12#Regular#Point#12'
+            text_color = Et.SubElement(txt_element, 'TextColor')
+            Et.SubElement(text_color, 'string').text = '255#255#0#0'
+            Et.SubElement(txt_element, 'IsTextEffect').text = 'false'
+            Et.SubElement(txt_element, 'TextEffectType').text = '0'
+            text_effect_color = Et.SubElement(txt_element, 'TextEffectColor')
+            Et.SubElement(text_effect_color, 'string').text = '255#255#255#0'
+            Et.SubElement(txt_element, 'TextEffectWidth').text = '2'
+            Et.SubElement(txt_element, 'TextAlignment').text = 'TopLeft'
+            Et.SubElement(video_media, 'IsShowTextElement').text = 'false'
+            Et.SubElement(video_media, 'VolumnPercent').text = '0'
+            Et.SubElement(video_media, 'RotateType').text = 'None'
+            Et.SubElement(video_media, 'IsStartFromSpecificPos').text = 'false'
+            start_position = Et.SubElement(video_media, 'StartPosition')
+            Et.SubElement(start_position, 'string').text = '0#0#0#0#0'
+            end_position = Et.SubElement(video_media, 'EndPosition')
+            Et.SubElement(end_position, 'string').text = '0#0#0#15#0'
+            Et.SubElement(item, 'AdditionalInfo')
             x += 1
-        GlobalPage = ET.SubElement(Context, 'GlobalPage')
-        Page = ET.SubElement(GlobalPage, 'Page')
+        global_page = Et.SubElement(context, 'GlobalPage')
+        Et.SubElement(global_page, 'Page')
 
-        return PlayProgram
+        return play_program
 
-    def Prettify(self, element, ident='   '):
+    @staticmethod
+    def prettify(element, ident='   '):
         queue = [(0, element)]
         while queue:
             level, element = queue.pop(0)
@@ -408,27 +423,29 @@ class RenewContent:
                 element.tail = '\n' + ident * (level - 1)
             queue[0:0] = children
 
+
 class NovaBin:
 
-    def BackupHandle(self):
-        if self.CheckNovaFile() == True:
-            self.BackupNovaBin()
+    def backup_handle(self):
+        if self.check_nova_file() is True:
+            self.backup_nova_bin()
         else:
             LOG.CMSLogger('NovaBin backup canceled')
 
-    def RestoreHandle(self):
-        C_Nova = API.Nova()
-        if self.CheckNovaFile() != True:
-            if C_Nova.get_proc_state(Resource.ProcList[0]) == True:
-                C_Nova.terminate_nova()
-            if self.RestoreNovaBin() == True:
+    def restore_handle(self):
+        c_nova = API.Nova()
+        if self.check_nova_file() is not True:
+            if c_nova.get_proc_state(Resource.ProcList[0]) is True:
+                c_nova.terminate_nova()
+            if self.restore_nova_bin() is True:
                 LOG.CMSLogger('NovaBin recovery completed')
             else:
                 LOG.CMSLogger('NovaBin restore canceled')
         else:
             LOG.CMSLogger('NovaBin restore canceled')
 
-    def CheckNovaFile(self):
+    @staticmethod
+    def check_nova_file():
         if os.path.exists(Config.novaBinFile):
             file = open(Config.novaBinFile, 'rb')
             string = file.read()
@@ -439,14 +456,16 @@ class NovaBin:
         else:
             return None
 
-    def RestoreNovaBin(self):
+    @staticmethod
+    def restore_nova_bin():
         if os.path.exists(Config.novaBinFileBak):
-            shutil.copy(Config.novaBinFileBak,  Config.novaBinFile)
+            shutil.copy(Config.novaBinFileBak, Config.novaBinFile)
 
             return True
         else:
             return False
 
-    def BackupNovaBin(self):
+    @staticmethod
+    def backup_nova_bin():
         shutil.copy(Config.novaBinFile, Config.novaBinFileBak)
         LOG.CMSLogger('NovaBin has been backed up')

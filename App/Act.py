@@ -58,7 +58,7 @@ class System(Init):
 
     @staticmethod
     def pre_shutdown():
-        o_file.BackupHandle()
+        o_file.backup_handle()
 
     def reboot_init(self):
         self.pre_shutdown()

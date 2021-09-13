@@ -130,7 +130,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
                                                   args=(q_db_write,)))
         # Service Streams
         # 0, 1 - out
-        t_check_new_content = threading.Thread(target=o_renew_cont.DynamicRenewCont,
+        t_check_new_content = threading.Thread(target=o_renew_cont.dynamic_renew_cont,
                                                args=(q_prepare_to_send, q_internal))
         # 0 - in, 1 - out
         t_ua_valid = threading.Thread(target=o_valid.ua_valid,

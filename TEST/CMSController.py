@@ -43,7 +43,7 @@ def TEST():
     LOG.CMSLogger('Queues created')
 
     # Thread initialization
-    T_Updater = threading.Thread(target=C_CMSUpgrade.CMSUpdater,
+    T_Updater = threading.Thread(target=C_CMSUpgrade.cms_updater,
                                  args=(Q_FromUpdater, q_internal,))
     T_Server = threading.Thread(target=C_Network.server,
                                 args=(Config.localhost, Config.CMSControllertPort, Q_FromCore))

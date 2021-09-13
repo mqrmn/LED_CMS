@@ -185,7 +185,7 @@ class Queue(Init):
             if data[R.r[2]] == R.K[6]:      # Key == TerminateThread
                 Q_out.put(data)
             if data[R.r[2]] == R.K[11]:     # Key == RestoreNovaBin
-                C_File.RestoreHandle()
+                C_File.restore_handle()
 
 
     # Checks the flow of incoming data for a given match

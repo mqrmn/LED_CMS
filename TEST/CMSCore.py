@@ -84,7 +84,7 @@ def TEST():
     t_DBWriteController = (threading.Thread(target=o_DB.write_controller,
                                             args=(q_DBWrite,)))
     # Service Streams
-    t_CheckNewContent = threading.Thread(target=o_RenewCont.DynamicRenewCont,
+    t_CheckNewContent = threading.Thread(target=o_RenewCont.dynamic_renew_cont,
                                          args=(q_PrepareToSend, q_Internal))
     t_UAValid = threading.Thread(target=o_Valid.ua_valid,
                                  args=(q_UAValid, q_Internal))
