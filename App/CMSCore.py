@@ -32,26 +32,26 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         self.resumeTimeout = 1000
         self._paused = False
 
-    def svc_stop(self):
+    def SvcStop(self):
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
         win32event.SetEvent(self.hWaitStop)
         servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
                               servicemanager.PYS_SERVICE_STOPPED,
                               (self._svc_name_, ''))
 
-    def svc_pause(self):
+    def SvcPause(self):
         self.ReportServiceStatus(win32service.SERVICE_PAUSE_PENDING)
         self._paused = True
         self.ReportServiceStatus(win32service.SERVICE_PAUSED)
         servicemanager.LogInfoMsg("The %s service has paused." % (self._svc_name_,))
 
-    def svc_continue(self):
+    def SvcContinue(self):
         self.ReportServiceStatus(win32service.SERVICE_CONTINUE_PENDING)
         win32event.SetEvent(self.hWaitResume)
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
         servicemanager.LogInfoMsg("The %s service has resumed." % (self._svc_name_,))
 
-    def svc_do_run(self):
+    def SvcDoRun(self):
         self.ReportServiceStatus(win32service.SERVICE_START_PENDING)
         servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
                               servicemanager.PYS_SERVICE_STARTED,
