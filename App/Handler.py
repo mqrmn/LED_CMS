@@ -44,7 +44,7 @@ class Queue(Init):
 
         while True:
             data = q_prepare_to_send.get()
-
+            print('send_controller', data)
             # Launching NovaStudio
             if data == Res.RunNova[1]:
                 if (datetime.datetime.now() - run_nova_time).seconds >= Conf.runNovaTimeout:
@@ -200,7 +200,7 @@ class Queue(Init):
 
         while True:
             data = q_in.get()
-            if type(data) == dict_d:
+            if type(data) is dict:
                 if data[Res.r[3]][0] not in dict_d:
                     dict_d[data[Res.r[3]][0]] = 0
                 else:
