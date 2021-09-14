@@ -182,7 +182,8 @@ class RenewContent:
         remove_status = self.remove_content()
         if (append_status is True) or (remove_status is True):
             self.generate()
-        q_prepare_to_send.put(Resource.RunNova[1])
+        a = Resource.RunNova[1]
+        q_prepare_to_send.put(a)
 
     @staticmethod
     def check_new_content():
