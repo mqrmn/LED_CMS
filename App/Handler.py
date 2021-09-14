@@ -37,10 +37,9 @@ class Queue(Init):
         resNovaTime = NullDatetime
         runNovaTime = NullDatetime
 
-
         while True:
             data = q_prepare_to_send.get()
-
+            print('SendController', data)
             # Launching NovaStudio
             if data == R.RunNova[1]:
                 if ((datetime.datetime.now() - runNovaTime).seconds >= C.runNovaTimeout):
@@ -155,8 +154,10 @@ class Queue(Init):
     def FromCore(self, Q_in, Q_out, ):
         while True:
             data = Q_in.get()
+            print('FromCore 1', data)
             if data[R.r[0]] == R.M[0]:      # Method == put
                 if data[R.r[1]] == R.H[1]:  # Head == Action
+                    print('FromCore 2', data)
                     Q_out.put(data)
                 if data[R.r[1]] == R.H[4]:  # Head == Flag
                     Q_out.put(data[R.r[3]])
