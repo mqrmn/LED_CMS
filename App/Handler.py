@@ -6,33 +6,30 @@ import datetime
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
-from App import File, Act, Database, Log, Notify
+from App import File, Act, Log
 from App import Resource as Res
 from App.Config import Config as Conf
 
 LOG = Log.LogManager()
 
-global o_CrMsg
-global o_Act
-global o_DBMsg
-global o_crMailMsg
-
 
 class Init:
     def __init__(self):
-        global o_CrMsg
-        global o_Act
-        global o_DBMsg
-        global o_crMailMsg
-
-        o_DBMsg = Database.Prepare()
-        o_CrMsg = Res.CreateMessage()
-        o_Act = Act.System()
-        o_crMailMsg = Notify.Mail()
+        pass
+        # global o_CrMsg
+        # global o_Act
+        # global o_DBMsg
+        # global o_crMailMsg
+        #
+        # o_DBMsg = Database.Prepare()
+        # o_CrMsg = Res.CreateMessage()
+        # o_Act = Act.System()
+        # o_crMailMsg = Notify.Mail()
 
 
 # Queue handlers
 class Queue(Init):
+
     def send_controller(self, q_prepare_to_send, q_tcp_send, q_internal=None, ):
 
         null_datetime = datetime.datetime.strptime('2020-02-02', "%Y-%m-%d")
@@ -41,14 +38,15 @@ class Queue(Init):
         term_mars_time = null_datetime
         res_nova_time = null_datetime
         run_nova_time = null_datetime
-
+        counter = 0
         while True:
+            counter += 1
             data = q_prepare_to_send.get()
-            print('send_controller', data)
             # Launching NovaStudio
             if data == Res.RunNova[1]:
                 if (datetime.datetime.now() - run_nova_time).seconds >= Conf.runNovaTimeout:
                     self.to_send(data, q_tcp_send)
+
                     run_nova_time = datetime.datetime.now()
                 else:
                     pass
@@ -101,6 +99,7 @@ class Queue(Init):
     # Prepares commands to be sent to the UA
     @staticmethod
     def create_action(q_action, q_prepare_to_send, q_internal):
+        o_cr_msg = Res.CreateMessage()
         restart_nova_count = 0
         restore_nova_count = 0
         last_nova_restart = None
@@ -118,7 +117,7 @@ class Queue(Init):
 
                 # Run Nova
                 if dict_nova == Res.RunNova[0]:
-                    command = Res.RunNova[1]
+                    command = Res.CreateMessage.command_run_nova()
                     dict_nova = {}
                 # Restart Nova
                 if dict_nova == Res.RestartNova[0]:
@@ -128,9 +127,8 @@ class Queue(Init):
                     last_nova_restart = datetime.datetime.now()
                 if command:
                     q_prepare_to_send.put(command)
-                    command = None
                     dict_nova = {}
-
+                command = None
             if data[Res.r[2]] == Res.K[1] \
                     and data[Res.r[3]][0] == Res.ProcList[1]:
                 dict_mars[data[Res.r[2]]] = data[Res.r[3]]
@@ -140,8 +138,8 @@ class Queue(Init):
                     dict_mars = {}
                 if command:
                     q_prepare_to_send.put(command)
-                    command = None
                     dict_mars = {}
+                command = None
             # RestoreNova
             if restart_nova_count >= Conf.restartNovaMaxCount \
                     and ((datetime.datetime.now() - last_nova_restart).seconds <= Conf.restartNovaTimeout):
@@ -149,8 +147,8 @@ class Queue(Init):
                 restore_nova_count += 1
                 restart_nova_count = 0
                 if restore_nova_count >= Conf.restoreNovaMaxCount:
-                    a = o_CrMsg.RebootSystem()
-                    b = o_CrMsg.SendMail('The system attempt to reboot')
+                    a = Res.CreateMessage.reboot_system()
+                    b = Res.CreateMessage.send_mail('The system attempt to reboot')
                     q_internal.put(a)
                     q_internal.put(b)
 
@@ -159,6 +157,7 @@ class Queue(Init):
     def from_core(q_in, q_out, ):
         while True:
             data = q_in.get()
+            print('from_core', data)
             if data[Res.r[0]] == Res.M[0]:      # Method == put
                 if data[Res.r[1]] == Res.H[1]:  # Head == Action
                     q_out.put(data)

@@ -85,3 +85,7 @@ class CreateMessage:
     @staticmethod
     def reboot_system():
         return {r[1]: H[1], r[2]: K[13], r[3]: ActionKey[3]}
+
+    @staticmethod
+    def command_run_nova():
+        return {r[1]: H[1], r[2]: K[2], r[3]: ProcList[0], }

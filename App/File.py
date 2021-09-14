@@ -14,6 +14,7 @@ sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
 from App import Resource, Log, API, Act, Database
+from App import Resource as Res
 
 LOG = Log.LogManager()
 
@@ -182,8 +183,8 @@ class RenewContent:
         remove_status = self.remove_content()
         if (append_status is True) or (remove_status is True):
             self.generate()
-        a = Resource.RunNova[1]
-        q_prepare_to_send.put(a)
+
+        q_prepare_to_send.put(Res.CreateMessage.command_run_nova())
 
     @staticmethod
     def check_new_content():
