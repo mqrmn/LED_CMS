@@ -10,24 +10,24 @@ sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
 
-class Log_Manager:
 
-    def InitModule(self, module):
+class LogManager:
+
+    @staticmethod
+    def init_module(module):
 
         logger = logging.getLogger(module)
         logging.basicConfig(level=logging.INFO)
         handler = logging.FileHandler('{}{}_{}.log'.format(Config.logPath, date.today(), module), encoding="UTF-8")
-        if (logger.hasHandlers()):
+        if logger.hasHandlers():
             logger.handlers.clear()
         logger.addHandler(handler)
 
-        return(logger)
+        return logger
 
-    def CMSLogger(self, string):
-
+    def cms_logger(self, string):
 
         frame = getframeinfo(currentframe().f_back)
-        logger = self.InitModule(getmodulename(frame.filename))
+        logger = self.init_module(getmodulename(frame.filename))
 
         logger.info('{} {}: {}'.format(time.ctime(), frame.function, string))
-

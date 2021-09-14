@@ -2,19 +2,18 @@
 
 import sys
 
-
 sys.path.append("C:\\MOBILE\\Local\\CMS")
-
 
 from App import Log
 
-LOG = Log.Log_Manager()
+LOG = Log.LogManager()
+
 
 class System:
 
-    def Threads(self, Threads):
+    @staticmethod
+    def threads(threads):
         state = []
-        for i in Threads:
+        for i in threads:
             state.append(i.is_alive())
         return state
-

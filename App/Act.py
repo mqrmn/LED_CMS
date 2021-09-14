@@ -17,7 +17,7 @@ from App.Config import Config
 from App import API, Log, Database, File
 from App import Resource as Res
 
-LOG = Log.Log_Manager()
+LOG = Log.LogManager()
 
 global o_nova
 global o_sys
@@ -82,7 +82,7 @@ class Files(Init):
                 log_date = datetime.datetime.strptime(re.findall(r'\d{4}-\d{2}-\d{2}', file)[0], "%Y-%m-%d")
                 if log_date.date() < date.today():
                     arch_name = str(log_date.date())
-                    LOG.CMSLogger('Marked for archiving ' + file)
+                    LOG.cms_logger('Marked for archiving ' + file)
                     list_for_archiving.append(file)
         # Checks if the folder that I'm going to create exists
         if list_for_archiving and not os.path.exists(Config.logPath + str(date.today())):
@@ -90,13 +90,13 @@ class Files(Init):
             # Move logs to folder
             for file in list_for_archiving:
                 shutil.move(Config.logPath + file, Config.logPath + arch_name + '\\' + file)
-                LOG.CMSLogger('Moved to archive ' + file)
+                LOG.cms_logger('Moved to archive ' + file)
             # Archives a folder
             shutil.make_archive(base_name=Config.logPath + arch_name,
                                 format='zip', root_dir=Config.logPath + arch_name, )
             shutil.rmtree(Config.logPath + arch_name)
         else:
-            LOG.CMSLogger('No logs found to archive')
+            LOG.cms_logger('No logs found to archive')
 
     # Removes obsolete logs
     @staticmethod
@@ -115,7 +115,7 @@ class Files(Init):
         # Removes obsolete archives
         for file in list_for_deleting:
             os.remove(Config.logPath + file)
-            LOG.CMSLogger('File deleted ' + file)
+            LOG.cms_logger('File deleted ' + file)
 
 
 class SysInit(Files):
@@ -136,18 +136,18 @@ class SysInit(Files):
         data = True
         if os.path.exists(Config.DBFolder):
             if os.path.exists(Config.DBPath):
-                LOG.CMSLogger('Database file exist')
+                LOG.cms_logger('Database file exist')
             else:
                 handle = Database.DBFoo()
                 handle.create_tables()
                 data = False
-                LOG.CMSLogger('Database file created')
+                LOG.cms_logger('Database file created')
         else:
             os.mkdir(Config.DBFolder)
             handle = Database.DBFoo()
             handle.create_tables()
             data = False
-            LOG.CMSLogger('Database file created')
+            LOG.cms_logger('Database file created')
         return data
 
     def check_self(self):
@@ -176,51 +176,51 @@ class SysInit(Files):
             if last_std.datetime.date() == datetime.datetime.now().date():
                 if (datetime.datetime.now() - last_std.datetime).seconds <= 600:
                     if count >= 2:
-                        q_internal.put(cr_msg.SetFlagUAV_0())
-                        q_internal.put(cr_msg.SetFlagCont_0())
+                        q_internal.put(cr_msg.set_flag_uav_0())
+                        q_internal.put(cr_msg.set_flag_cont_0())
 
                         msg = 'Exceeded quantity Attempts to restart the system: ' \
                               '{} Last reboot: {} '.format(count, last_std.datetime)
 
-                        q_internal.put(cr_msg.SendMail(msg))
-                        LOG.CMSLogger(msg)
-                        LOG.CMSLogger('Restart prohibited ')
+                        q_internal.put(cr_msg.send_mail(msg))
+                        LOG.cms_logger(msg)
+                        LOG.cms_logger('Restart prohibited ')
                     else:
-                        q_internal.put(cr_msg.SetFlagUAV_1())
-                        q_internal.put(cr_msg.SetFlagCont_1())
+                        q_internal.put(cr_msg.set_flag_uav_1())
+                        q_internal.put(cr_msg.set_flag_cont_1())
 
                         msg = 'The frequency of attempts to restart the system has ' \
                               'been exceeded Last reboot: {} '.format(last_std.datetime)
 
-                        LOG.CMSLogger(msg)
+                        LOG.cms_logger(msg)
                 elif count >= 5:
-                    q_internal.put(cr_msg.SetFlagUAV_1())
-                    q_internal.put(cr_msg.SetFlagCont_1())
+                    q_internal.put(cr_msg.set_flag_uav_1())
+                    q_internal.put(cr_msg.set_flag_cont_1())
 
                     msg = 'The frequency of attempts to ' \
                           'restart the system has been exceeded ' \
                           'Last reboot: {} '.format(last_std.datetime)
 
-                    q_internal.put(cr_msg.SendMail(msg))
-                    LOG.CMSLogger(msg)
+                    q_internal.put(cr_msg.send_mail(msg))
+                    LOG.cms_logger(msg)
 
-                    LOG.CMSLogger('Restart prohibited')
+                    LOG.cms_logger('Restart prohibited')
                 else:
-                    q_internal.put(cr_msg.SetFlagUAV_2())
-                    q_internal.put(cr_msg.SetFlagCont_2())
+                    q_internal.put(cr_msg.set_flag_uav_2())
+                    q_internal.put(cr_msg.set_flag_cont_2())
 
-                    LOG.CMSLogger('Restart allowed')
+                    LOG.cms_logger('Restart allowed')
             else:
-                q_internal.put(cr_msg.SetFlagUAV_2())
-                q_internal.put(cr_msg.SetFlagCont_2())
+                q_internal.put(cr_msg.set_flag_uav_2())
+                q_internal.put(cr_msg.set_flag_cont_2())
 
-                LOG.CMSLogger('Restart allowed')
+                LOG.cms_logger('Restart allowed')
         else:
-            q_internal.put(cr_msg.SetFlagUAV_2())
-            q_internal.put(cr_msg.SetFlagCont_2())
+            q_internal.put(cr_msg.set_flag_uav_2())
+            q_internal.put(cr_msg.set_flag_cont_2())
 
-            LOG.CMSLogger('No data on system reboots')
-            LOG.CMSLogger('Restart allowed')
+            LOG.cms_logger('No data on system reboots')
+            LOG.cms_logger('Restart allowed')
 
     @staticmethod
     def check_last_std(q_internal):
@@ -246,13 +246,13 @@ class SysInit(Files):
         time.sleep(10)
         current_run = o_tbl.SystemRun().select().order_by(o_tbl.SystemRun.id.desc()).get()
         if o_tbl.SystemRun().select().count() == 1:
-            LOG.CMSLogger('CMS запущена впервые на этекущей системе')
+            LOG.cms_logger('CMS запущена впервые на этекущей системе')
             exit()
         else:
             pre_current_run = o_tbl.SystemRun().select().where(o_tbl.SystemRun.id == current_run.id - 1).get()
 
         if o_tbl.SelfInitShutdown().select().count() == 0:
-            LOG.CMSLogger('CMS еще не отключал текущую систему')
+            LOG.cms_logger('CMS еще не отключал текущую систему')
             exit()
         else:
             last_std = o_tbl.SelfInitShutdown().select().where(
@@ -303,6 +303,6 @@ class SysInit(Files):
                 except 'Exception':
                     pass
             if msg_txt:
-                LOG.CMSLogger(msg_txt)
-                q_internal.put(o_cr_msg.SendMail(msg_txt))
+                LOG.cms_logger(msg_txt)
+                q_internal.put(o_cr_msg.send_mail(msg_txt))
             win32evtlog.CloseEventLog(handle)

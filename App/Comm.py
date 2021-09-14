@@ -8,14 +8,14 @@ sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App import Log
 
-LOG = Log.Log_Manager()
+LOG = Log.LogManager()
 
 
 class Socket:
 
     @staticmethod
     def server(host, port, q_):
-        LOG.CMSLogger('Called')
+        LOG.cms_logger('Called')
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((host, port))
             s.listen(2)
@@ -33,7 +33,7 @@ class Socket:
                         q_.put(pickle.loads(data))
 
     def client(self, host, port, q_in, ):
-        LOG.CMSLogger('Called')
+        LOG.cms_logger('Called')
         while True:
             data = q_in.get()
             self.send(host, port, data)
@@ -45,4 +45,4 @@ class Socket:
                 SOCKET.connect((host, port))
                 SOCKET.sendall(pickle.dumps(data))
             except:
-                LOG.CMSLogger('CONNECTION ERROR')
+                LOG.cms_logger('CONNECTION ERROR')

@@ -13,8 +13,8 @@ from App.Config import Config
 from App import Log, Comm, Resource, Handler, File, Act, Database, Control, Notify
 from App import Resource as R
 
-LOG = Log.Log_Manager()
-LOG.CMSLogger('CALLED')
+LOG = Log.LogManager()
+LOG.cms_logger('CALLED')
 
 def TEST():
 
@@ -30,7 +30,7 @@ def TEST():
     o_DB = Database.DBFoo()
     o_SendMailCont = Notify.Mail()
 
-    LOG.CMSLogger('Instances of classes created')
+    LOG.cms_logger('Instances of classes created')
 
     q_Internal = queue.Queue()
     q_FromUA = queue.Queue()
@@ -48,7 +48,7 @@ def TEST():
     q_PowerManagerFLAG = queue.Queue()
     q_PowerManager = queue.Queue()
 
-    LOG.CMSLogger('Queues created')
+    LOG.cms_logger('Queues created')
 
     t_Init = threading.Thread(target=o_Action.init_cms,
                               args=(q_Internal, ))
@@ -61,23 +61,23 @@ def TEST():
                                      args=(Config.localhost, Config.CMSControllertPort, q_TCPSend))
 
     # Inbound processing flows
-    t_ReceiveDataFromUA = threading.Thread(target=o_Handlers.FromUA,
+    t_ReceiveDataFromUA = threading.Thread(target=o_Handlers.from_ua,
                                            args=(q_FromUA, q_ValidScreen, q_ValidProc, q_Internal))
-    t_ValidDataScreen = threading.Thread(target=o_Handlers.Valid,
+    t_ValidDataScreen = threading.Thread(target=o_Handlers.valid,
                                          args=(q_ValidScreen, q_Action, True, 1, R.H[0], True))
-    t_ValidDataProc = threading.Thread(target=o_Handlers.Valid,
+    t_ValidDataProc = threading.Thread(target=o_Handlers.valid,
                                        args=(q_ValidProc, q_Action, False, 1, R.H[0], True))
 
     # Internal processing flows
-    t_Internal = threading.Thread(target=o_Handlers.Internal,
+    t_Internal = threading.Thread(target=o_Handlers.internal,
                                   args=(q_Internal, q_UAValid, q_DBWrite, q_SetFlag, q_SendMail, q_PowerManager))
-    t_SetFlag = threading.Thread(target=o_Handlers.SetFlag,
+    t_SetFlag = threading.Thread(target=o_Handlers.set_flag,
                                  args=(q_SetFlag, q_Controller, q_PowerManagerFLAG))
 
     # Outbound shaping streams
-    t_CreateAction = threading.Thread(target=o_Handlers.CreateAction,
+    t_CreateAction = threading.Thread(target=o_Handlers.create_action,
                                       args=(q_Action, q_PrepareToSend, q_Internal))
-    t_SendController = threading.Thread(target=o_Handlers.SendController,
+    t_SendController = threading.Thread(target=o_Handlers.send_controller,
                                         args=(q_PrepareToSend, q_TCPSend, q_Internal))
 
     # Database write processing
@@ -88,12 +88,12 @@ def TEST():
                                          args=(q_PrepareToSend, q_Internal))
     t_UAValid = threading.Thread(target=o_Valid.ua_valid,
                                  args=(q_UAValid, q_Internal))
-    t_SendMailCont = threading.Thread(target=o_SendMailCont.SendMailController,
+    t_SendMailCont = threading.Thread(target=o_SendMailCont.send_mail_controller,
                                       args=(q_SendMail,))
     t_PowerManager = threading.Thread(target=o_Valid.power_manager,
                                       args=(q_PowerManager, q_Internal, q_PowerManagerFLAG))
 
-    LOG.CMSLogger('Threads are initialized')
+    LOG.cms_logger('Threads are initialized')
 
     t_Init.start()
     t_Server.start()
@@ -113,7 +113,7 @@ def TEST():
     t_ClientContr.start()
     t_PowerManager.start()
 
-    LOG.CMSLogger('Threads started')
+    LOG.cms_logger('Threads started')
 
 
 if __name__ == '__main__':

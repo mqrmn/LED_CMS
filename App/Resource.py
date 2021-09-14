@@ -8,9 +8,9 @@ M = ['put', 'get', ]
 # Head
 H = ['State', 'Action', 'Report', 'DB', 'Flag', 'Mail']
 # Key
-K = ['ScreenState', 'ProcState', 'RunProc', 'TerminateProc', 'RestartProc', # 0 - 4
-       'Process', 'TerminateThread', 'UALastAction', 'DBWrite', 'UAValid',  # 5 - 9
-       'CMSController', 'RestoreNovaBin', 'SendMail', 'System']             # 10 - 13
+K = ['ScreenState', 'ProcState', 'RunProc', 'TerminateProc', 'RestartProc',  # 0 - 4
+     'Process', 'TerminateThread', 'UALastAction', 'DBWrite', 'UAValid',  # 5 - 9
+     'CMSController', 'RestoreNovaBin', 'SendMail', 'System']             # 10 - 13
 
 # DB
 DBWriteData = ['table', ]
@@ -27,7 +27,7 @@ ScreenState = ['Static', ]
 # ACTION
 ActionKey = ['RunNova', 'RestartNova', 'TerminateNova', 'RestartSystem', 'RestoreNovaBin', ]
 
-### DEPENDENCY
+# DEPENDENCY
 
 # PROC STATE
 ProcDict = {ProcList[0]: True, ProcList[1]: False, }
@@ -52,29 +52,36 @@ TerminateThread = [{r[0]:M[0], r[1]: H[1], r[2]: K[6], r[3]: 'UA_All', }, ]
 RestoreNovaBin = [{r[1]: H[1], r[2]: K[11], r[3]: True}]
 
 
-
 class CreateMessage:
 
-    def SendMail(self, msgTxt):
-        return {r[1]: H[5], r[2]: K[12], r[3]: msgTxt, }
+    @staticmethod
+    def send_mail(msg_txt):
+        return {r[1]: H[5], r[2]: K[12], r[3]: msg_txt, }
 
-    def SetFlagUAV_0(self):
-        return  {r[1]: H[4], r[2]: K[9], r[3]: ShutdownFlagData[0]}
+    @staticmethod
+    def set_flag_uav_0():
+        return {r[1]: H[4], r[2]: K[9], r[3]: ShutdownFlagData[0]}
 
-    def SetFlagCont_0(self):
-        return  {r[1]: H[4], r[2]: K[10], r[3]: ShutdownFlagData[0]}
+    @staticmethod
+    def set_flag_cont_0():
+        return {r[1]: H[4], r[2]: K[10], r[3]: ShutdownFlagData[0]}
 
-    def SetFlagUAV_1(self):
+    @staticmethod
+    def set_flag_uav_1():
         return {r[1]: H[4], r[2]: K[9], r[3]: ShutdownFlagData[1]}
 
-    def SetFlagCont_1(self):
+    @staticmethod
+    def set_flag_cont_1():
         return {r[1]: H[4], r[2]: K[10], r[3]: ShutdownFlagData[1]}
 
-    def SetFlagUAV_2(self):
+    @staticmethod
+    def set_flag_uav_2():
         return {r[1]: H[4], r[2]: K[9], r[3]: ShutdownFlagData[2]}
 
-    def SetFlagCont_2(self):
+    @staticmethod
+    def set_flag_cont_2():
         return {r[1]: H[4], r[2]: K[10], r[3]: ShutdownFlagData[2]}
 
-    def RebootSystem(self):
+    @staticmethod
+    def reboot_system():
         return {r[1]: H[1], r[2]: K[13], r[3]: ActionKey[3]}

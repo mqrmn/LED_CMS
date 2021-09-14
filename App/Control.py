@@ -18,7 +18,7 @@ from App import Valid, API, Act, Log, Database
 from App import Resource as Res
 
 
-LOG = Log.Log_Manager()
+LOG = Log.LogManager()
 
 global o_CrMsg
 
@@ -38,7 +38,7 @@ class CMS(Init):
                 if q_data == Res.TerminateThread[0]:
                     break
             c_valid = Valid.System()
-            th_states = c_valid.Threads(data)
+            th_states = c_valid.threads(data)
             if False in th_states:
                 pass
             time.sleep(10)
@@ -58,7 +58,7 @@ class CMS(Init):
                     count += 1
             else:
                 if (datetime.datetime.now() - data).seconds >= 300:
-                    q_internal.put(o_CrMsg.RebootSystem())
+                    q_internal.put(o_CrMsg.reboot_system())
 
             time.sleep(3)
 
@@ -111,25 +111,25 @@ class CMS(Init):
             if q_manage.empty() is False:
                 flag = q_manage.get()[Res.r[3]]
 
-                LOG.CMSLogger('Reboot control flag: {}'.format(flag))
+                LOG.cms_logger('Reboot control flag: {}'.format(flag))
 
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as Socket:
                 try:
                     Socket.connect((Config.localhost, Config.CMSCoreInternalPort))
-                    LOG.CMSLogger('CMS Run', )
+                    LOG.cms_logger('CMS Run', )
                 except:
                     if q_from_updater.empty() is False:
                         if q_from_updater.get() is True:
-                            LOG.CMSLogger('CMS Stopped for upgrade', )
+                            LOG.cms_logger('CMS Stopped for upgrade', )
                             break
                         else:
                             pass
                     else:
-                        LOG.CMSLogger('CMS Stopped', )
+                        LOG.cms_logger('CMS Stopped', )
                         if flag > 0:
                             if flag > 1:
 
-                                LOG.CMSLogger('Reboot scheduled')
+                                LOG.cms_logger('Reboot scheduled')
                                 c_action_sys.reboot_init()
 
                                 break
@@ -139,13 +139,13 @@ class CMS(Init):
                                     table.SelfInitShutdown.id.desc()).get()
                                 if (datetime.datetime.now() - last_reboot.datetime).seconds >= 300:
 
-                                    LOG.CMSLogger('Reboot scheduled')
+                                    LOG.cms_logger('Reboot scheduled')
                                     c_action_sys.reboot_init()
                                     break
                                 else:
-                                    LOG.CMSLogger('Restart access denied')
+                                    LOG.cms_logger('Restart access denied')
                         else:
-                            LOG.CMSLogger('Restart access denied')
+                            LOG.cms_logger('Restart access denied')
 
     @staticmethod
     def power_manager(q_power_manager, q_internal, q_power_manage_flag):
@@ -156,9 +156,9 @@ class CMS(Init):
         table = Database.Tables()
         while True:
             flag = q_power_manage_flag.get()
-            LOG.CMSLogger('Reboot control flag: {}'.format(flag))
+            LOG.cms_logger('Reboot control flag: {}'.format(flag))
             data = q_power_manager.get()
-            LOG.CMSLogger('Power manager received data: {}'.format(data))
+            LOG.cms_logger('Power manager received data: {}'.format(data))
 
             if data:
 
@@ -167,7 +167,7 @@ class CMS(Init):
 
                         q_internal.put(c_prepare.self_init_shutdown_prep(getframeinfo(currentframe())[2], 'reboot',
                                                                          datetime.datetime.now()))
-                        LOG.CMSLogger('Reboot scheduled')
+                        LOG.cms_logger('Reboot scheduled')
                         c_action.reboot_init()
                         break
                     else:
@@ -176,17 +176,17 @@ class CMS(Init):
 
                             q_internal.put(c_prepare.self_init_shutdown_prep(getframeinfo(currentframe())[2], 'reboot',
                                                                              datetime.datetime.now()))
-                            LOG.CMSLogger('Reboot scheduled')
+                            LOG.cms_logger('Reboot scheduled')
                             c_action.reboot_init()
                             break
                         else:
                             q_internal.put(
                                 c_prepare.self_init_shutdown_prep(getframeinfo(currentframe())[2], 'rebootAccessDenied',
                                                                   datetime.datetime.now()))
-                            LOG.CMSLogger('Restart access denied')
+                            LOG.cms_logger('Restart access denied')
                 else:
                     q_internal.put(c_prepare.self_init_shutdown_prep(getframeinfo(currentframe())[2], 'rebootAccessDenied',
                                                                      datetime.datetime.now()))
-                    LOG.CMSLogger('Restart access denied')
+                    LOG.cms_logger('Restart access denied')
             else:
                 pass

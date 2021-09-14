@@ -18,9 +18,9 @@ from App import Resource as R
 
 
 def TEST():
-    LOG = Log.Log_Manager()
+    LOG = Log.LogManager()
 
-    LOG.CMSLogger('Controller initialized')
+    LOG.cms_logger('Controller initialized')
 
     # Creating class instances
     C_CMSUpgrade = File.CMSUpdate()
@@ -30,7 +30,7 @@ def TEST():
     O_SendMailCont = Notify.Mail()
     o_Handler = Handler.Queue()
 
-    LOG.CMSLogger('Instances of classes created')
+    LOG.cms_logger('Instances of classes created')
 
     # Queue creation
     Q_FromUpdater = queue.Queue()
@@ -40,7 +40,7 @@ def TEST():
     q_internal = queue.Queue()
     Q_DBWrite = queue.Queue()
 
-    LOG.CMSLogger('Queues created')
+    LOG.cms_logger('Queues created')
 
     # Thread initialization
     T_Updater = threading.Thread(target=C_CMSUpgrade.cms_updater,
@@ -48,19 +48,19 @@ def TEST():
     T_Server = threading.Thread(target=C_Network.server,
                                 args=(Config.localhost, Config.CMSControllertPort, Q_FromCore))
 
-    T_FromCore = threading.Thread(target=o_Handler.FromCore,
+    T_FromCore = threading.Thread(target=o_Handler.from_core,
                                   args=(Q_FromCore, q_internal))
 
-    T_Internal = threading.Thread(target=o_Handler.Internal,
+    T_Internal = threading.Thread(target=o_Handler.internal,
                                   args=(q_internal, None, Q_DBWrite, Q_setFlag, Q_SendMail))
 
     T_CMSServiceCont = threading.Thread(target=C_Control.cms_service,
                                         args=(Q_setFlag, Q_FromUpdater, q_internal))
 
-    T_SendMailCont = threading.Thread(target=O_SendMailCont.SendMailController,
+    T_SendMailCont = threading.Thread(target=O_SendMailCont.send_mail_controller,
                                       args=(Q_SendMail,))
 
-    LOG.CMSLogger('Threads are initialized')
+    LOG.cms_logger('Threads are initialized')
 
     # Launching streams
     T_Updater.start()
@@ -71,7 +71,7 @@ def TEST():
     T_CMSServiceCont.start()
     T_SendMailCont.start()
 
-    LOG.CMSLogger('Threads started')
+    LOG.cms_logger('Threads started')
 
     while True:
         time.sleep(10)

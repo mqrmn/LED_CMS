@@ -15,8 +15,6 @@ from App.Config import Config
 from App import Log, API, File, Comm, Control, Notify, Handler
 
 
-
-
 class AppServerSvc(win32serviceutil.ServiceFramework):
     _svc_name_ = "CMSController"
     _svc_display_name_ = "CMSController"
@@ -56,71 +54,70 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
                               (self._svc_name_, ''))
         self.main()
 
-
     def main(self):
         self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
-        LOG = Log.Log_Manager()
+        log = Log.LogManager()
 
-        LOG.CMSLogger('Controller initialized')
+        log.cms_logger('Controller initialized')
 
         # Creating class instances
-        C_CMSUpgrade = File.CMSUpdate()
-        C_Network = Comm.Socket()
-        C_Control = Control.CMS()
-        C_API = API.Service()
-        O_SendMailCont = Notify.Mail()
-        o_Handler = Handler.Queue()
+        c_cms_upgrade = File.CMSUpdate()
+        c_network = Comm.Socket()
+        c_control = Control.CMS()
+        c_api = API.Service()
+        o_send_mail_cont = Notify.Mail()
+        o_handler = Handler.Queue()
 
-        LOG.CMSLogger('Instances of classes created')
+        log.cms_logger('Instances of classes created')
 
         # Queue creation
-        Q_FromUpdater = queue.Queue()
-        Q_FromCore = queue.Queue()
-        Q_setFlag = queue.Queue()
-        Q_SendMail = queue.Queue()
+        q_from_updater = queue.Queue()
+        q_from_core = queue.Queue()
+        q_set_flag = queue.Queue()
+        q_send_mail = queue.Queue()
         q_internal = queue.Queue()
-        Q_DBWrite = queue.Queue()
+        q_db_write = queue.Queue()
 
-        LOG.CMSLogger('Queues created')
+        log.cms_logger('Queues created')
 
         # Thread initialization
-        T_Updater = threading.Thread(target=C_CMSUpgrade.cms_updater,
-                                     args=(Q_FromUpdater, q_internal,))
-        T_Server = threading.Thread(target=C_Network.server,
-                                    args=(Config.localhost, Config.CMSControllertPort, Q_FromCore))
+        t_updater = threading.Thread(target=c_cms_upgrade.cms_updater,
+                                     args=(q_from_updater, q_internal,))
+        t_server = threading.Thread(target=c_network.server,
+                                    args=(Config.localhost, Config.CMSControllertPort, q_from_core))
 
-        T_FromCore = threading.Thread(target=o_Handler.FromCore,
-                                      args=(Q_FromCore, q_internal))
+        t_from_core = threading.Thread(target=o_handler.from_core,
+                                       args=(q_from_core, q_internal))
 
-        T_Internal = threading.Thread(target=o_Handler.Internal,
-                                      args=(q_internal, None, Q_DBWrite, Q_setFlag, Q_SendMail))
+        t_internal = threading.Thread(target=o_handler.internal,
+                                      args=(q_internal, None, q_db_write, q_set_flag, q_send_mail))
 
-        T_CMSServiceCont = threading.Thread(target=C_Control.cms_service,
-                                            args=(Q_setFlag, Q_FromUpdater, q_internal))
+        t_cms_service_cont = threading.Thread(target=c_control.cms_service,
+                                              args=(q_set_flag, q_from_updater, q_internal))
 
-        T_SendMailCont = threading.Thread(target=O_SendMailCont.SendMailController,
-                                          args=(Q_SendMail,))
+        t_send_mail_cont = threading.Thread(target=o_send_mail_cont.send_mail_controller,
+                                            args=(q_send_mail,))
 
-        LOG.CMSLogger('Threads are initialized')
+        log.cms_logger('Threads are initialized')
 
         # Launching streams
-        T_Updater.start()
-        T_Server.start()
-        T_FromCore.start()
-        T_Internal.start()
+        t_updater.start()
+        t_server.start()
+        t_from_core.start()
+        t_internal.start()
 
-        T_CMSServiceCont.start()
-        T_SendMailCont.start()
+        t_cms_service_cont.start()
+        t_send_mail_cont.start()
 
-        LOG.CMSLogger('Threads started')
+        log.cms_logger('Threads started')
 
         while True:
             time.sleep(10)
 
             rc = win32event.WaitForSingleObject(self.hWaitStop, self.timeout)
             if rc == win32event.WAIT_OBJECT_0:
-                C_API.stop_service('CMS')
+                c_api.stop_service('CMS')
                 servicemanager.LogInfoMsg("Service finished")
                 break
             if self._paused:
@@ -131,6 +128,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
                     self._paused = False
                     servicemanager.LogInfoMsg("Service continue")
                     break
+
 
 if __name__ == '__main__':
     win32serviceutil.HandleCommandLine(AppServerSvc)

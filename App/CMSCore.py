@@ -15,8 +15,8 @@ from App.Config import Config
 from App import Log, Comm, Handler, File, Act, Database, Control, Notify
 from App import Resource as Res
 
-LOG = Log.Log_Manager()
-LOG.CMSLogger('CALLED')
+LOG = Log.LogManager()
+LOG.cms_logger('CALLED')
 
 
 class AppServerSvc(win32serviceutil.ServiceFramework):
@@ -69,7 +69,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         o_db = Database.DBFoo()
         o_send_mail_cont = Notify.Mail()
 
-        LOG.CMSLogger('Instances of classes created')
+        LOG.cms_logger('Instances of classes created')
 
         q_internal = queue.Queue()
         q_from_ua = queue.Queue()
@@ -86,7 +86,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         q_power_manager_flag = queue.Queue()
         q_power_manager = queue.Queue()
 
-        LOG.CMSLogger('Queues created')
+        LOG.cms_logger('Queues created')
 
         # 0 - out
         t_init = threading.Thread(target=o_action.init_cms,
@@ -102,27 +102,27 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         # Inbound processing flows
         # 0 - in, 1, 2, 3 - out
-        t_receive_data_from_ua = threading.Thread(target=o_handlers.FromUA,
+        t_receive_data_from_ua = threading.Thread(target=o_handlers.from_ua,
                                                   args=(q_from_ua, q_valid_screen, q_valid_proc, q_internal))
 
-        t_valid_data_screen = threading.Thread(target=o_handlers.Valid,
+        t_valid_data_screen = threading.Thread(target=o_handlers.valid,
                                                args=(q_valid_screen, q_action, True, 1, Res.H[0], True))
-        t_valid_data_proc = threading.Thread(target=o_handlers.Valid,
+        t_valid_data_proc = threading.Thread(target=o_handlers.valid,
                                              args=(q_valid_proc, q_action, False, 1, Res.H[0], True))
 
         # Internal processing flows
-        t_internal = threading.Thread(target=o_handlers.Internal,
+        t_internal = threading.Thread(target=o_handlers.internal,
                                       args=(q_internal, q_ua_valid, q_db_write,
                                             q_set_flag, q_send_mail, q_power_manager))
-        t_set_flag = threading.Thread(target=o_handlers.SetFlag,
+        t_set_flag = threading.Thread(target=o_handlers.set_flag,
                                       args=(q_set_flag, q_controller, q_power_manager_flag))
 
         # Outbound shaping streams
         # 0 - in, 1, 2 - out
-        t_create_action = threading.Thread(target=o_handlers.CreateAction,
+        t_create_action = threading.Thread(target=o_handlers.create_action,
                                            args=(q_action, q_prepare_to_send, q_internal))
 
-        t_send_controller = threading.Thread(target=o_handlers.SendController,
+        t_send_controller = threading.Thread(target=o_handlers.send_controller,
                                              args=(q_prepare_to_send, q_tcp_send,))
 
         # Database write processing
@@ -135,13 +135,13 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         # 0 - in, 1 - out
         t_ua_valid = threading.Thread(target=o_valid.ua_valid,
                                       args=(q_ua_valid, q_internal))
-        t_send_mail_cont = threading.Thread(target=o_send_mail_cont.SendMailController,
+        t_send_mail_cont = threading.Thread(target=o_send_mail_cont.send_mail_controller,
                                             args=(q_send_mail,))
         # 0, 2 - in, 1 - out
         t_power_manager = threading.Thread(target=o_valid.power_manager,
                                            args=(q_power_manager, q_internal, q_power_manager_flag))
 
-        LOG.CMSLogger('Threads are initialized')
+        LOG.cms_logger('Threads are initialized')
 
         t_init.start()
         t_server.start()
@@ -161,17 +161,17 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         t_client_cont.start()
         t_power_manager.start()
 
-        LOG.CMSLogger('Threads started')
+        LOG.cms_logger('Threads started')
 
         while True:
             time.sleep(10)
 
             rc = win32event.WaitForSingleObject(self.hWaitStop, self.timeout)
             if rc == win32event.WAIT_OBJECT_0:
-                LOG.CMSLogger('Command to stop service received')
+                LOG.cms_logger('Command to stop service received')
                 c_comm = Comm.Socket()
                 c_comm.send(Config.localhost, Config.CMSUserAgentPort, Res.TerminateThread[0])
-                LOG.CMSLogger('UA stop command sent')
+                LOG.cms_logger('UA stop command sent')
                 servicemanager.LogInfoMsg("Service finished")
                 break
 

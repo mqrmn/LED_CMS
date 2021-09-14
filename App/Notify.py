@@ -11,8 +11,11 @@ sys.path.append("C:\\MOBILE\\Local\\CMS")
 from App.Config import Config
 from App import Log
 
-LOG = Log.Log_Manager()
-LOG.CMSLogger('CALLED')
+LOG = Log.LogManager()
+LOG.cms_logger('CALLED')
+
+global addr_from
+
 
 class Mail:
 
@@ -21,7 +24,8 @@ class Mail:
         global addr_from
         addr_from = Config.smtpSender
 
-    def InitMsg(self, messagetext):
+    @staticmethod
+    def init_msg(messagetext):
 
         msg = MIMEMultipart()
         msg['From'] = addr_from
@@ -38,7 +42,8 @@ class Mail:
 
         return msg
 
-    def InitServer(self):
+    @staticmethod
+    def init_server():
 
         server = smtplib.SMTP(Config.smtpServer, Config.smtpPort)
         server.starttls()
@@ -46,15 +51,14 @@ class Mail:
 
         return server
 
-    def SendMail(self, messagetext):
+    def send_mail(self, messagetext):
 
-        server = self.InitServer()
-        server.send_message(self.InitMsg(messagetext))
+        server = self.init_server()
+        server.send_message(self.init_msg(messagetext))
         server.quit()
 
-    def SendMailController(self, Q_in):
+    def send_mail_controller(self, q_in):
 
         while True:
-            messagetext = Q_in.get()
-            self.SendMail(messagetext)
-
+            messagetext = q_in.get()
+            self.send_mail(messagetext)

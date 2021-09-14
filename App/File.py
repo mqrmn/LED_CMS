@@ -15,7 +15,7 @@ sys.path.append("C:\\MOBILE\\Local\\CMS")
 from App.Config import Config
 from App import Resource, Log, API, Act, Database
 
-LOG = Log.Log_Manager()
+LOG = Log.LogManager()
 
 
 class CMSUpdate:
@@ -28,12 +28,12 @@ class CMSUpdate:
         pythoncom.CoInitialize()
         while True:
             if self.cms_upgrade(False) is True:
-                LOG.CMSLogger('Update detected')
+                LOG.cms_logger('Update detected')
                 time.sleep(180)
                 st_svc = c_api.stop_service('CMS')
                 if st_svc[0] == 0:
                     q_from_updater.put(True)
-                    LOG.CMSLogger('CMS stopped')
+                    LOG.cms_logger('CMS stopped')
                     time.sleep(30)
                     self.cms_upgrade(True)
                     table = Database.Tables()
@@ -42,10 +42,10 @@ class CMSUpdate:
                                                   datetime=datetime.datetime.now(), )
 
                     c_action.reboot_init()
-                    q_internal.put(o_create_message.SendMail('Выполнено обновление CMS'))
+                    q_internal.put(o_create_message.send_mail('Выполнено обновление CMS'))
 
                 else:
-                    LOG.CMSLogger('Cant stop CMS, code: {}'.format(st_svc), )
+                    LOG.cms_logger('Cant stop CMS, code: {}'.format(st_svc), )
             else:
                 time.sleep(1800)
 
@@ -67,7 +67,7 @@ class CMSUpdate:
             priorities['LOCAL'], versions['LOCAL'] = self.check_cms_updates(Config.localCmsRenew, 'LOCAL')
 
             max_priority = sorted(priorities, key=priorities.__getitem__)[-1]
-            LOG.CMSLogger('The priority of the update catalog has been determined: ' + max_priority)
+            LOG.cms_logger('The priority of the update catalog has been determined: ' + max_priority)
 
             if priorities[max_priority] > 200:
                 current_v_arr = versions['CURRENT'].split('.')
@@ -78,9 +78,9 @@ class CMSUpdate:
                 if current_v_arr[0] == newt_v_arr[0]:
                     if current_v_arr[1] == newt_v_arr[1]:
                         if current_v_arr[2] == newt_v_arr[2]:
-                            LOG.CMSLogger('No updates found')
+                            LOG.cms_logger('No updates found')
                         elif int(current_v_arr[2]) < int(newt_v_arr[2]):
-                            LOG.CMSLogger('Update detected ' + versions[max_priority])
+                            LOG.cms_logger('Update detected ' + versions[max_priority])
                             if key is True:
                                 self.current_cms_arch(current_v)
                                 self.renew_cms_files(Config.globalCmsRenew)
@@ -88,20 +88,20 @@ class CMSUpdate:
                                 return True
                     elif int(current_v_arr[1]) < int(newt_v_arr[1]) and stop_check != 1:
                         if key is True:
-                            LOG.CMSLogger('ОUpdate detected ' + versions[max_priority])
+                            LOG.cms_logger('ОUpdate detected ' + versions[max_priority])
                             self.current_cms_arch(current_v)
                             self.renew_cms_files(Config.groupCmsRenew)
                         else:
                             return True
                 elif int(current_v_arr[0]) < int(newt_v_arr[0]) and stop_check != 1:
                     if key is True:
-                        LOG.CMSLogger('Update detected ' + versions[max_priority])
+                        LOG.cms_logger('Update detected ' + versions[max_priority])
                         self.current_cms_arch(current_v)
                         self.renew_cms_files(Config.globalCmsRenew)
                     else:
                         return True
             else:
-                LOG.CMSLogger('The priority is insufficient. Cancel update.')
+                LOG.cms_logger('The priority is insufficient. Cancel update.')
         else:
             pass
         # Checks CMS update keys
@@ -138,7 +138,7 @@ class CMSUpdate:
 
         if not os.path.exists(Config.CMSArchPath + str(version)):
             shutil.copytree(os.getcwd(), Config.CMSArchPath + str(version))
-            LOG.CMSLogger('The current package is archived')
+            LOG.cms_logger('The current package is archived')
 
         # Updates CMS files directly
 
@@ -147,7 +147,7 @@ class CMSUpdate:
         # shutil.rmtree(os.path.dirname(__file__))
         # shutil.copytree(path, os.path.dirname(__file__))
 
-        LOG.CMSLogger('Update completed')
+        LOG.cms_logger('Update completed')
 
 
 class RenewContent:
@@ -168,7 +168,7 @@ class RenewContent:
                 count_pass += 1
             if count_pass >= 5:
                 self.content_renew_handle(q_prepare_to_send, )
-                q_internal.put(cr_msg.SendMail('Выполнено обновление контента'))
+                q_internal.put(cr_msg.send_mail('Выполнено обновление контента'))
                 list_f = None
                 fix = False
                 count_pass = 0
@@ -248,14 +248,14 @@ class RenewContent:
                         if file not in local_list_files_unex:
                             shutil.copy(Config.yaFilesUnex + formatPath + '\\' + file,
                                         Config.localFilesUnex + formatPath)
-                            LOG.CMSLogger('File added: ' + Config.yaFilesUnex + formatPath + '\\' + file)
+                            LOG.cms_logger('File added: ' + Config.yaFilesUnex + formatPath + '\\' + file)
                             refresh_status = True
 
             if ya_list_files_ex != local_list_files_ex:
                 for file in ya_list_files_ex:
                     if file not in local_list_files_ex:
                         shutil.copy(Config.yaFilesEx + formatPath + '\\' + file, Config.localFilesEx + formatPath)
-                        LOG.CMSLogger('File added: ' + Config.yaFilesEx + formatPath + '\\' + file)
+                        LOG.cms_logger('File added: ' + Config.yaFilesEx + formatPath + '\\' + file)
                         refresh_status = True
 
         return refresh_status
@@ -275,20 +275,20 @@ class RenewContent:
             for file in ya_list_files_except:
                 if file in local_list_files_unex:
                     os.remove(Config.localFilesUnex + formatPath + '\\' + file)
-                    LOG.CMSLogger('File deleted by exception: ' + Config.localFilesUnex + formatPath + '\\' + file)
+                    LOG.cms_logger('File deleted by exception: ' + Config.localFilesUnex + formatPath + '\\' + file)
                     refresh_status = True
 
             if ya_list_files_unex != local_list_files_unex:
                 for file in local_list_files_unex:
                     if file not in ya_list_files_unex:
                         os.remove(Config.localFilesUnex + formatPath + '\\' + file)
-                        LOG.CMSLogger('File deleted: ' + Config.localFilesUnex + formatPath + '\\' + file)
+                        LOG.cms_logger('File deleted: ' + Config.localFilesUnex + formatPath + '\\' + file)
                         refresh_status = True
             if ya_list_files_ex != local_list_files_ex:
                 for file in local_list_files_ex:
                     if file not in ya_list_files_ex:
                         os.remove(Config.localFilesEx + formatPath + '\\' + file)
-                        LOG.CMSLogger('File deleted: ' + Config.localFilesEx + formatPath + '\\' + file)
+                        LOG.cms_logger('File deleted: ' + Config.localFilesEx + formatPath + '\\' + file)
                         refresh_status = True
         return refresh_status
 
@@ -304,13 +304,13 @@ class RenewContent:
 
             for file in local_list_files_unex:
                 all_file_path_list.append(Config.localFilesUnex + format_path + '\\' + file)
-                LOG.CMSLogger(
+                LOG.cms_logger(
                     'The file is included in the playlist: ' + Config.localFilesUnex + format_path + '\\' + file)
                 all_file_name_list.append(file)
 
             for file in local_list_files_ex:
                 all_file_path_list.append(Config.localFilesEx + format_path + '\\' + file)
-                LOG.CMSLogger(
+                LOG.cms_logger(
                     'ФThe file is included in the playlist: ' + Config.localFilesEx + format_path + '\\' + file)
                 all_file_name_list.append(file)
 
@@ -319,7 +319,7 @@ class RenewContent:
             tree = Et.ElementTree(play_program)
             tree.write('{}{}_playerConfig.plym'.format(Config.configTargetPath, format_path), encoding='UTF-8',
                        xml_declaration=True)
-        LOG.CMSLogger('Playlist generated: ' + '{}{}_playerConfig.plym'.format(Config.configTargetPath, format_path))
+        LOG.cms_logger('Playlist generated: ' + '{}{}_playerConfig.plym'.format(Config.configTargetPath, format_path))
 
     @staticmethod
     def create_xml(file_path_arr, file_name_arr):
@@ -430,7 +430,7 @@ class NovaBin:
         if self.check_nova_file() is True:
             self.backup_nova_bin()
         else:
-            LOG.CMSLogger('NovaBin backup canceled')
+            LOG.cms_logger('NovaBin backup canceled')
 
     def restore_handle(self):
         c_nova = API.Nova()
@@ -438,11 +438,11 @@ class NovaBin:
             if c_nova.get_proc_state(Resource.ProcList[0]) is True:
                 c_nova.terminate_nova()
             if self.restore_nova_bin() is True:
-                LOG.CMSLogger('NovaBin recovery completed')
+                LOG.cms_logger('NovaBin recovery completed')
             else:
-                LOG.CMSLogger('NovaBin restore canceled')
+                LOG.cms_logger('NovaBin restore canceled')
         else:
-            LOG.CMSLogger('NovaBin restore canceled')
+            LOG.cms_logger('NovaBin restore canceled')
 
     @staticmethod
     def check_nova_file():
@@ -468,4 +468,4 @@ class NovaBin:
     @staticmethod
     def backup_nova_bin():
         shutil.copy(Config.novaBinFile, Config.novaBinFileBak)
-        LOG.CMSLogger('NovaBin has been backed up')
+        LOG.cms_logger('NovaBin has been backed up')

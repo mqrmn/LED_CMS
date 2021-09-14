@@ -11,7 +11,7 @@ from App.Config import Config
 from App import Comm, Handler, Control, Log
 from App import Resource as Res
 
-LOG = Log.Log_Manager()
+LOG = Log.LogManager()
 
 
 def main(q_external):
@@ -24,35 +24,35 @@ def main(q_external):
     q_action = queue.Queue()
     q_control = queue.Queue()
 
-    LOG.CMSLogger('Queues created')
+    LOG.cms_logger('Queues created')
 
     o_handlers = Handler.Queue()
     o_network = Comm.Socket()
     o_handler = Handler.Queue()
     o_control = Control.CMS()
 
-    LOG.CMSLogger('Instances of classes created')
+    LOG.cms_logger('Instances of classes created')
 
     t_server = threading.Thread(target=o_network.server,
                                 args=(Config.localhost, Config.CMSUserAgentPort, q_from_core,))
     t_client = threading.Thread(target=o_network.client,
                                 args=(Config.localhost, Config.CMSCoreInternalPort, q_to_send))
-    t_prepare_to_send = threading.Thread(target=o_handlers.SendController,
+    t_prepare_to_send = threading.Thread(target=o_handlers.send_controller,
                                          args=(q_prepare_to_send, q_to_send,))
-    t_check_proc = threading.Thread(target=o_handler.CheckProcList,
+    t_check_proc = threading.Thread(target=o_handler.check_proc_list,
                                     args=(q_proc_state_raw, q_proc_state))
     t_get_proc_state = threading.Thread(target=o_control.get_process_state,
                                         args=(q_proc_state_raw,))
     t_get_screen = threading.Thread(target=o_control.get_screen_static,
                                     args=(q_valid_screen_raw,))
-    t_from_core = threading.Thread(target=o_handlers.FromCore,
+    t_from_core = threading.Thread(target=o_handlers.from_core,
                                    args=(q_from_core, q_action))
-    t_action_run = threading.Thread(target=o_handlers.UAAction,
+    t_action_run = threading.Thread(target=o_handlers.ua_action,
                                     args=(q_action, q_control))
-    t_check_screen = threading.Thread(target=o_handlers.Valid,
+    t_check_screen = threading.Thread(target=o_handlers.valid,
                                       args=(q_valid_screen_raw,
                                             q_prepare_to_send, True, 2, Res.H[0], True,))
-    t_valid_proc = threading.Thread(target=o_handler.Valid,
+    t_valid_proc = threading.Thread(target=o_handler.valid,
                                     args=(q_proc_state,
                                           q_prepare_to_send, False, 1, Res.H[0], True,))
     t_thread_control = threading.Thread(target=o_control.thread,
@@ -62,7 +62,7 @@ def main(q_external):
                                                           t_valid_proc, t_prepare_to_send,
                                                           t_from_core, ],))
 
-    LOG.CMSLogger('Threads are initialized')
+    LOG.cms_logger('Threads are initialized')
 
     t_server.start()
     t_client.start()
@@ -76,7 +76,7 @@ def main(q_external):
     t_prepare_to_send.start()
     t_thread_control.start()
 
-    LOG.CMSLogger('Threads started')
+    LOG.cms_logger('Threads started')
 
     while True:
         _d = q_control.get()
@@ -87,13 +87,13 @@ if __name__ == '__main__':
     Q_External = Queue()
     proc = Process(target=main, args=(Q_External,))
     proc.start()
-    LOG.CMSLogger('Process started')
+    LOG.cms_logger('Process started')
 
     while True:
         data = Q_External.get()
         if data == Res.TerminateThread[0]:
             proc.kill()
-            LOG.CMSLogger('Process terminated')
+            LOG.cms_logger('Process terminated')
             break
         else:
             pass
