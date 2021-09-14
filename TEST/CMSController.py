@@ -55,7 +55,7 @@ def TEST():
                                   args=(q_internal, None, Q_DBWrite, Q_setFlag, Q_SendMail))
 
     T_CMSServiceCont = threading.Thread(target=C_Control.cms_service,
-                                        args=(Q_setFlag, Q_FromUpdater, q_internal))
+                                        args=(Q_setFlag, Q_FromUpdater))
 
     T_SendMailCont = threading.Thread(target=O_SendMailCont.send_mail_controller,
                                       args=(Q_SendMail,))

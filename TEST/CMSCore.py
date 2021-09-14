@@ -10,108 +10,112 @@ import queue
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App.Config import Config
-from App import Log, Comm, Resource, Handler, File, Act, Database, Control, Notify
-from App import Resource as R
+from App import Log, Comm, Resource, Handler, File, Act, Database, Control, Notify, API
+from App import Resource as Res
 
 LOG = Log.LogManager()
 LOG.cms_logger('CALLED')
 
 def TEST():
-
-
-
-
-
-    o_Action = Act.SysInit()
-    o_Handlers = Handler.Queue()
-    o_Network = Comm.Socket()
-    o_RenewCont = File.RenewContent()
-    o_Valid = Control.CMS()
-    o_DB = Database.DBFoo()
-    o_SendMailCont = Notify.Mail()
+    o_action = Act.SysInit()
+    o_handlers = Handler.Queue()
+    o_network = Comm.Socket()
+    o_renew_cont = File.RenewContent()
+    o_valid = Control.CMS()
+    o_db = Database.DBFoo()
+    o_send_mail_cont = Notify.Mail()
 
     LOG.cms_logger('Instances of classes created')
 
-    q_Internal = queue.Queue()
-    q_FromUA = queue.Queue()
-    q_Action = queue.Queue()
-    q_TCPSend = queue.Queue()
-    q_ValidProc = queue.Queue()
-    q_PrepareToSend = queue.Queue()
-    q_ValidScreen = queue.Queue()
-    q_SetFlag = queue.Queue()
-    q_UAValid = queue.Queue()
-    q_DBWrite = queue.Queue()
-    q_UAValidSF = queue.Queue()
-    q_Controller = queue.Queue()
-    q_SendMail = queue.Queue()
-    q_PowerManagerFLAG = queue.Queue()
-    q_PowerManager = queue.Queue()
+    q_internal = queue.Queue()
+    q_from_ua = queue.Queue()
+    q_action = queue.Queue()
+    q_tcp_send = queue.Queue()
+    q_valid_proc = queue.Queue()
+    q_prepare_to_send = queue.Queue()
+    q_valid_screen = queue.Queue()
+    q_set_flag = queue.Queue()
+    q_ua_valid = queue.Queue()
+    q_db_write = queue.Queue()
+    q_controller = queue.Queue()
+    q_send_mail = queue.Queue()
+    q_power_manager_flag = queue.Queue()
+    q_power_manager = queue.Queue()
 
     LOG.cms_logger('Queues created')
 
-    t_Init = threading.Thread(target=o_Action.init_cms,
-                              args=(q_Internal, ))
+    # 0 - out
+    t_init = threading.Thread(target=o_action.init_cms,
+                              args=(q_internal,))
     # Exchange threads
-    t_Server = threading.Thread(target=o_Network.server,
-                                args=(Config.localhost, Config.CMSCoreInternalPort, q_FromUA))
-    t_ClientUA = threading.Thread(target=o_Network.client,
-                                  args=(Config.localhost, Config.CMSUserAgentPort, q_TCPSend))
-    t_ClientContr = threading.Thread(target=o_Network.client,
-                                     args=(Config.localhost, Config.CMSControllertPort, q_TCPSend))
+    t_server = threading.Thread(target=o_network.server,
+                                args=(Config.localhost, Config.CMSCoreInternalPort, q_from_ua))
+    t_client_ua = threading.Thread(target=o_network.client,
+                                   args=(Config.localhost, Config.CMSUserAgentPort, q_tcp_send))
+
+    t_client_cont = threading.Thread(target=o_network.client,
+                                     args=(Config.localhost, Config.CMSControllertPort, q_tcp_send))
 
     # Inbound processing flows
-    t_ReceiveDataFromUA = threading.Thread(target=o_Handlers.from_ua,
-                                           args=(q_FromUA, q_ValidScreen, q_ValidProc, q_Internal))
-    t_ValidDataScreen = threading.Thread(target=o_Handlers.valid,
-                                         args=(q_ValidScreen, q_Action, True, 1, R.H[0], True))
-    t_ValidDataProc = threading.Thread(target=o_Handlers.valid,
-                                       args=(q_ValidProc, q_Action, False, 1, R.H[0], True))
+    # 0 - in, 1, 2, 3 - out
+    t_receive_data_from_ua = threading.Thread(target=o_handlers.from_ua,
+                                              args=(q_from_ua, q_valid_screen, q_valid_proc, q_internal))
+
+    t_valid_data_screen = threading.Thread(target=o_handlers.valid,
+                                           args=(q_valid_screen, q_action, True, 1, Res.H[0], True))
+    t_valid_data_proc = threading.Thread(target=o_handlers.valid,
+                                         args=(q_valid_proc, q_action, False, 1, Res.H[0], True))
 
     # Internal processing flows
-    t_Internal = threading.Thread(target=o_Handlers.internal,
-                                  args=(q_Internal, q_UAValid, q_DBWrite, q_SetFlag, q_SendMail, q_PowerManager))
-    t_SetFlag = threading.Thread(target=o_Handlers.set_flag,
-                                 args=(q_SetFlag, q_Controller, q_PowerManagerFLAG))
+    t_internal = threading.Thread(target=o_handlers.internal,
+                                  args=(q_internal, q_ua_valid, q_db_write,
+                                        q_set_flag, q_send_mail, q_power_manager))
+    t_set_flag = threading.Thread(target=o_handlers.set_flag,
+                                  args=(q_set_flag, q_controller, q_power_manager_flag))
 
     # Outbound shaping streams
-    t_CreateAction = threading.Thread(target=o_Handlers.create_action,
-                                      args=(q_Action, q_PrepareToSend, q_Internal))
-    t_SendController = threading.Thread(target=o_Handlers.send_controller,
-                                        args=(q_PrepareToSend, q_TCPSend, q_Internal))
+    # 0 - in, 1, 2 - out
+    t_create_action = threading.Thread(target=o_handlers.create_action,
+                                       args=(q_action, q_prepare_to_send, q_internal))
+
+    t_send_controller = threading.Thread(target=o_handlers.send_controller,
+                                         args=(q_prepare_to_send, q_tcp_send,))
 
     # Database write processing
-    t_DBWriteController = (threading.Thread(target=o_DB.write_controller,
-                                            args=(q_DBWrite,)))
+    t_db_write_controller = (threading.Thread(target=o_db.write_controller,
+                                              args=(q_db_write,)))
     # Service Streams
-    t_CheckNewContent = threading.Thread(target=o_RenewCont.dynamic_renew_cont,
-                                         args=(q_PrepareToSend, q_Internal))
-    t_UAValid = threading.Thread(target=o_Valid.ua_valid,
-                                 args=(q_UAValid, q_Internal))
-    t_SendMailCont = threading.Thread(target=o_SendMailCont.send_mail_controller,
-                                      args=(q_SendMail,))
-    t_PowerManager = threading.Thread(target=o_Valid.power_manager,
-                                      args=(q_PowerManager, q_Internal, q_PowerManagerFLAG))
+    # 0, 1 - out
+    t_check_new_content = threading.Thread(target=o_renew_cont.dynamic_renew_cont,
+                                           args=(q_prepare_to_send, q_internal))
+    # 0 - in, 1 - out
+    t_ua_valid = threading.Thread(target=o_valid.ua_valid,
+                                  args=(q_ua_valid, q_internal))
+    t_send_mail_cont = threading.Thread(target=o_send_mail_cont.send_mail_controller,
+                                        args=(q_send_mail,))
+    # 0, 2 - in, 1 - out
+    t_power_manager = threading.Thread(target=o_valid.power_manager,
+                                       args=(q_power_manager, q_internal, q_power_manager_flag))
 
     LOG.cms_logger('Threads are initialized')
 
-    t_Init.start()
-    t_Server.start()
-    t_ClientUA.start()
-    t_ReceiveDataFromUA.start()
-    t_CreateAction.start()
-    t_SendController.start()
-    t_ValidDataScreen.start()
-    t_ValidDataProc.start()
-    t_CheckNewContent.start()
+    t_init.start()
+    t_server.start()
+    t_client_ua.start()
+    t_receive_data_from_ua.start()
+    t_create_action.start()
+    t_send_controller.start()
+    t_valid_data_screen.start()
+    t_valid_data_proc.start()
+    t_check_new_content.start()
 
-    t_Internal.start()
-    t_UAValid.start()
-    t_DBWriteController.start()
-    t_SetFlag.start()
-    t_SendMailCont.start()
-    t_ClientContr.start()
-    t_PowerManager.start()
+    t_internal.start()
+    t_ua_valid.start()
+    t_db_write_controller.start()
+    t_set_flag.start()
+    t_send_mail_cont.start()
+    t_client_cont.start()
+    t_power_manager.start()
 
     LOG.cms_logger('Threads started')
 

@@ -166,7 +166,7 @@ class SysInit(Files):
 
         try:
             last_std = table.SelfInitShutdown().select().order_by(table.SelfInitShutdown.id.desc()).get()
-        except 'Exception':
+        except:
             last_std = None
         if last_std:
             count = table.SelfInitShutdown().select().where(

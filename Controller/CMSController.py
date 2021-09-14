@@ -94,7 +94,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
                                       args=(q_internal, None, q_db_write, q_set_flag, q_send_mail))
 
         t_cms_service_cont = threading.Thread(target=c_control.cms_service,
-                                              args=(q_set_flag, q_from_updater, q_internal))
+                                              args=(q_set_flag, q_from_updater))
 
         t_send_mail_cont = threading.Thread(target=o_send_mail_cont.send_mail_controller,
                                             args=(q_send_mail,))
