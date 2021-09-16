@@ -19,12 +19,13 @@ from App import Resource as Res
 
 LOG = Log.LogManager()
 
-
+global o_nova
+global o_sys
+global o_file
 
 
 class Init:
     def __init__(self):
-        pass
         global o_nova
         global o_sys
         global o_file

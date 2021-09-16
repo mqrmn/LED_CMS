@@ -50,10 +50,10 @@ timeoutSCheck = [10, 30]
 timeoutPCheck = 30
 
 # Setting up sockets for internal communications
-localhost = 'localhost'
-CMSCoreInternalPort = 2203
-CMSUserAgentPort = 2303
-CMSControllertPort = 2403
+localhost = '127.0.0.1'
+CMSCoreInternalPort = 22031
+CMSUserAgentPort = 23032
+CMSControllertPort = 24033
 
 # Mail Config
 
@@ -68,7 +68,7 @@ smtpPort = 587
 runNovaTimeout = 5
 terminateNovaTimeout = 5
 terminateMarsTimeout = 30
-restartNovaTimeout = 30
+restartNovaTimeout = 500
 # Handler.Queue.CreateAction
-restartNovaMaxCount = 5
+restartNovaMaxCount = 3
 restoreNovaMaxCount = 3

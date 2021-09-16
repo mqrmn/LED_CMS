@@ -30,7 +30,7 @@ class Init:
 # Queue handlers
 class Queue(Init):
 
-    def send_controller(self, q_prepare_to_send, q_tcp_send, q_internal=None, ):
+    def send_controller(self, q_prepare_to_send, q_tcp_send, ):
 
         null_datetime = datetime.datetime.strptime('2020-02-02', "%Y-%m-%d")
 
@@ -38,21 +38,19 @@ class Queue(Init):
         term_mars_time = null_datetime
         res_nova_time = null_datetime
         run_nova_time = null_datetime
-        counter = 0
+
         while True:
-            counter += 1
             data = q_prepare_to_send.get()
             # Launching NovaStudio
-            if data == Res.RunNova[1]:
+            if data == Res.CreateMessage.command_run_nova():
                 if (datetime.datetime.now() - run_nova_time).seconds >= Conf.runNovaTimeout:
                     self.to_send(data, q_tcp_send)
-
                     run_nova_time = datetime.datetime.now()
                 else:
                     pass
                 data = None
             # Stop NovaStudio
-            if data == Res.TerminateNova:
+            if data == Res.CreateMessage.command_term_nova():
                 if (datetime.datetime.now() - term_nova_time).seconds >= Conf.terminateNovaTimeout:
                     self.to_send(data, q_tcp_send)
                     term_nova_time = datetime.datetime.now()
@@ -99,7 +97,7 @@ class Queue(Init):
     # Prepares commands to be sent to the UA
     @staticmethod
     def create_action(q_action, q_prepare_to_send, q_internal):
-        o_cr_msg = Res.CreateMessage()
+
         restart_nova_count = 0
         restore_nova_count = 0
         last_nova_restart = None
@@ -157,7 +155,6 @@ class Queue(Init):
     def from_core(q_in, q_out, ):
         while True:
             data = q_in.get()
-            print('from_core', data)
             if data[Res.r[0]] == Res.M[0]:      # Method == put
                 if data[Res.r[1]] == Res.H[1]:  # Head == Action
                     q_out.put(data)
@@ -178,6 +175,7 @@ class Queue(Init):
         c_file = File.NovaBin()
         while True:
             data = q_in.get()
+            LOG.cms_logger(data)
             if data[Res.r[2]] == Res.K[2]:      # Key == RunProc
                 c_exec.start(data[Res.r[3]])
             if data[Res.r[2]] == Res.K[3]:      # Key == TerminateProc

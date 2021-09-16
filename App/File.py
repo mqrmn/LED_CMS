@@ -35,7 +35,7 @@ class CMSUpdate:
                 if st_svc[0] == 0:
                     q_from_updater.put(True)
                     LOG.cms_logger('CMS stopped')
-                    time.sleep(30)
+                    time.sleep(5)
                     self.cms_upgrade(True)
                     table = Database.Tables()
                     table.SelfInitShutdown.create(trigger=getframeinfo(currentframe())[2],
@@ -178,8 +178,9 @@ class RenewContent:
     def content_renew_handle(self, q_prepare_to_send, ):
 
         append_status = self.append_content()
-        q_prepare_to_send.put(Resource.TerminateNova[0])
-        time.sleep(5)
+        a = Res.CreateMessage.command_term_nova()
+        q_prepare_to_send.put(a)
+        time.sleep(20)
         remove_status = self.remove_content()
         if (append_status is True) or (remove_status is True):
             self.generate()

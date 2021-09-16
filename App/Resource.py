@@ -89,3 +89,7 @@ class CreateMessage:
     @staticmethod
     def command_run_nova():
         return {r[1]: H[1], r[2]: K[2], r[3]: ProcList[0], }
+
+    @staticmethod
+    def command_term_nova():
+        return {r[1]: H[1], r[2]: K[3], r[3]: ProcList[0], }

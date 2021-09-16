@@ -63,7 +63,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         o_action = Act.SysInit()
         o_handlers = Handler.Queue()
-        o_network = Comm.Socket()
+        o_sockets = Comm.Socket()
         o_renew_cont = File.RenewContent()
         o_valid = Control.CMS()
         o_db = Database.DBFoo()
@@ -92,13 +92,10 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         t_init = threading.Thread(target=o_action.init_cms,
                                   args=(q_internal,))
         # Exchange threads
-        t_server = threading.Thread(target=o_network.server,
+        t_server = threading.Thread(target=o_sockets.server,
                                     args=(Config.localhost, Config.CMSCoreInternalPort, q_from_ua))
-        t_client_ua = threading.Thread(target=o_network.client,
+        t_client_ua = threading.Thread(target=o_sockets.client,
                                        args=(Config.localhost, Config.CMSUserAgentPort, q_tcp_send))
-
-        t_client_cont = threading.Thread(target=o_network.client,
-                                         args=(Config.localhost, Config.CMSControllertPort, q_tcp_send))
 
         # Inbound processing flows
         # 0 - in, 1, 2, 3 - out
@@ -106,9 +103,9 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
                                                   args=(q_from_ua, q_valid_screen, q_valid_proc, q_internal))
 
         t_valid_data_screen = threading.Thread(target=o_handlers.valid,
-                                               args=(q_valid_screen, q_action, True, 1, Res.H[0], True))
+                                               args=(q_valid_screen, q_action, True, 3, Res.H[0], True))
         t_valid_data_proc = threading.Thread(target=o_handlers.valid,
-                                             args=(q_valid_proc, q_action, False, 1, Res.H[0], True))
+                                             args=(q_valid_proc, q_action, False, 3, Res.H[0], True))
 
         # Internal processing flows
         t_internal = threading.Thread(target=o_handlers.internal,
@@ -158,7 +155,6 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         t_db_write_controller.start()
         t_set_flag.start()
         t_send_mail_cont.start()
-        t_client_cont.start()
         t_power_manager.start()
 
         LOG.cms_logger('Threads started')

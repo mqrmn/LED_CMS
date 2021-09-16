@@ -185,7 +185,8 @@ class CMS(Init):
                                                                   datetime.datetime.now()))
                             LOG.cms_logger('Restart access denied')
                 else:
-                    q_internal.put(c_prepare.self_init_shutdown_prep(getframeinfo(currentframe())[2], 'rebootAccessDenied',
+                    q_internal.put(c_prepare.self_init_shutdown_prep(getframeinfo(currentframe())[2],
+                                                                     'rebootAccessDenied',
                                                                      datetime.datetime.now()))
                     LOG.cms_logger('Restart access denied')
             else:
