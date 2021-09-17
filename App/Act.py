@@ -227,29 +227,31 @@ class SysInit(Files):
         o_cr_msg = Res.CreateMessage()
         o_tbl = Database.Tables()
 
-        machine = None
         ev = True
         br = False
         pre_current_run = None
         last_std = None
-        flags = win32evtlog.EVENTLOG_BACKWARDS_READ | win32evtlog.EVENTLOG_SEQUENTIAL_READ
-        ev_types = {win32con.EVENTLOG_INFORMATION_TYPE: 'EVENTLOG_INFORMATION_TYPE',
-                    win32con.EVENTLOG_WARNING_TYPE: 'EVENTLOG_WARNING_TYPE',
-                    win32con.EVENTLOG_ERROR_TYPE: 'EVENTLOG_ERROR_TYPE'}
-        log_type = 'System'
-        handle = win32evtlog.OpenEventLog(machine, log_type)
         ev_source = ['User32', 'Microsoft-Windows-Winlogon',
                      'Microsoft-Windows-Kernel-Power',
                      'Microsoft-Windows-Kernel-Boot',
                      'EventLog', 'Kernel-Boot']
+        ev_types = {win32con.EVENTLOG_INFORMATION_TYPE: 'EVENTLOG_INFORMATION_TYPE',
+                    win32con.EVENTLOG_WARNING_TYPE: 'EVENTLOG_WARNING_TYPE',
+                    win32con.EVENTLOG_ERROR_TYPE: 'EVENTLOG_ERROR_TYPE'}
+        flags = win32evtlog.EVENTLOG_BACKWARDS_READ | win32evtlog.EVENTLOG_SEQUENTIAL_READ
+
+        handle = win32evtlog.OpenEventLog(None, 'System')
 
         time.sleep(10)
+
         current_run = o_tbl.SystemRun().select().order_by(o_tbl.SystemRun.id.desc()).get()
         if o_tbl.SystemRun().select().count() == 1:
-            LOG.cms_logger('CMS запущена впервые на этекущей системе')
+            LOG.cms_logger('CMS запущена впервые на текущей системе')
             exit()
         else:
             pre_current_run = o_tbl.SystemRun().select().where(o_tbl.SystemRun.id == current_run.id - 1).get()
+
+        print('check_last_std', pre_current_run)
 
         if o_tbl.SelfInitShutdown().select().count() == 0:
             LOG.cms_logger('CMS еще не отключал текущую систему')
@@ -272,7 +274,7 @@ class SysInit(Files):
                             if str(ev_obj.SourceName) in ev_source:
                                 src = str(ev_obj.SourceName)
                                 ev_type = str(ev_types[ev_obj.EventType])
-                                msg = str(win32evtlogutil.SafeFormatMessage(ev_obj, log_type))
+                                msg = str(win32evtlogutil.SafeFormatMessage(ev_obj, 'System'))
                                 ev_id = str(winerror.HRESULT_CODE(ev_obj.EventID))
 
                                 if src == 'User32' and ev_id == '1074':
