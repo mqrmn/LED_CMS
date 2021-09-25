@@ -7,7 +7,7 @@ from multiprocessing import Process, Queue
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
-from App.Config import Config
+from App.Config import Config as Con
 from App import Comm, Handler, Control, Log
 from App import Resource as Res
 
@@ -17,7 +17,7 @@ LOG = Log.LogManager()
 def main(q_external):
     q_valid_screen_raw = queue.Queue()
     q_from_core = queue.Queue()
-    q_to_send = queue.Queue()
+    q_tcp_send = queue.Queue()
     q_proc_state_raw = queue.Queue()
     q_proc_state = queue.Queue()
     q_prepare_to_send = queue.Queue()
@@ -34,11 +34,11 @@ def main(q_external):
     LOG.cms_logger('Instances of classes created')
 
     t_server = threading.Thread(target=o_network.server,
-                                args=(Config.localhost, Config.CMSUserAgentPort, q_from_core,))
+                                args=(Con.localhost, Con.CMSUserAgentPort, q_from_core,))
     t_client = threading.Thread(target=o_network.client,
-                                args=(Config.localhost, Config.CMSCoreInternalPort, q_to_send))
+                                args=(Con.localhost, Con.CMSCoreInternalPort, q_tcp_send))
     t_prepare_to_send = threading.Thread(target=o_handlers.send_controller,
-                                         args=(q_prepare_to_send, q_to_send,))
+                                         args=(q_prepare_to_send, q_tcp_send,))
     t_check_proc = threading.Thread(target=o_handler.check_proc_list,
                                     args=(q_proc_state_raw, q_proc_state))
     t_get_proc_state = threading.Thread(target=o_control.get_process_state,
@@ -51,10 +51,10 @@ def main(q_external):
                                     args=(q_action, q_control))
     t_check_screen = threading.Thread(target=o_handlers.valid,
                                       args=(q_valid_screen_raw,
-                                            q_prepare_to_send, True, 2, Res.H[0], True,))
+                                            q_prepare_to_send, True, Con.ua_check_screen_count, Res.H[0], True,))
     t_valid_proc = threading.Thread(target=o_handler.valid,
                                     args=(q_proc_state,
-                                          q_prepare_to_send, False, 1, Res.H[0], True,))
+                                          q_prepare_to_send, False, Con.ua_check_proc_count, Res.H[0], True,))
     t_thread_control = threading.Thread(target=o_control.thread,
                                         args=(q_control, [t_server, t_client, t_action_run,
                                                           t_get_screen, t_check_screen,

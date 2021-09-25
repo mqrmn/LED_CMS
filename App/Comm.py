@@ -15,7 +15,7 @@ LOG = Log.LogManager()
 class Socket:
 
     @staticmethod
-    def server(host, port, q_):
+    def server(host, port, q_out):
         LOG.cms_logger('Called')
         with socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, fileno=None) as s:
             s.bind((host, port))
@@ -30,7 +30,7 @@ class Socket:
                         data = conn.recv(1024)
                         if not data:
                             break
-                        q_.put(pickle.loads(data))
+                        q_out.put(pickle.loads(data))
                     conn.close()
 
     def client(self, host, port, q_in, ):

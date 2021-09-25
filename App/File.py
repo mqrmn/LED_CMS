@@ -12,7 +12,7 @@ from inspect import currentframe, getframeinfo
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
-from App.Config import Config
+from App.Config import Config as Con
 from App import Resource, Log, API, Act, Database
 from App import Resource as Res
 
@@ -30,12 +30,12 @@ class CMSUpdate:
         while True:
             if self.cms_upgrade(False) is True:
                 LOG.cms_logger('Update detected')
-                time.sleep(180)
+                time.sleep(Con.cms_updater_delay1)
                 st_svc = c_api.stop_service('CMS')
                 if st_svc[0] == 0:
                     q_from_updater.put(True)
                     LOG.cms_logger('CMS stopped')
-                    time.sleep(5)
+                    time.sleep(Con.cms_updater_delay2)
                     self.cms_upgrade(True)
                     table = Database.Tables()
                     table.SelfInitShutdown.create(trigger=getframeinfo(currentframe())[2],
@@ -48,14 +48,14 @@ class CMSUpdate:
                 else:
                     LOG.cms_logger('Cant stop CMS, code: {}'.format(st_svc), )
             else:
-                time.sleep(1800)
+                time.sleep(Con.cms_updater_delay3)
 
     def cms_upgrade(self, key):
         current_v = None
         priorities = {'GLOBAL': 0, 'GROUP': 0, 'LOCAL': 0}
         versions = {'GLOBAL': 0, 'GROUP': 0, 'LOCAL': 0, 'CURRENT': 0}
 
-        if Config.upgradePolitic == 1:
+        if Con.upgradePolitic == 1:
             # Reading the current version
             if os.path.exists(os.path.dirname(__file__) + '\\PACKAGE.ver'):
                 file = open(os.path.dirname(__file__) + '\\PACKAGE.ver', 'r')
@@ -63,9 +63,9 @@ class CMSUpdate:
                 file.close()
                 versions['CURRENT'] = current_v
 
-            priorities['GLOBAL'], versions['GLOBAL'] = self.check_cms_updates(Config.globalCmsRenew, 'GLOBAL')
-            priorities['GROUP'], versions['GROUP'] = self.check_cms_updates(Config.groupCmsRenew, 'GROUP')
-            priorities['LOCAL'], versions['LOCAL'] = self.check_cms_updates(Config.localCmsRenew, 'LOCAL')
+            priorities['GLOBAL'], versions['GLOBAL'] = self.check_cms_updates(Con.globalCmsRenew, 'GLOBAL')
+            priorities['GROUP'], versions['GROUP'] = self.check_cms_updates(Con.groupCmsRenew, 'GROUP')
+            priorities['LOCAL'], versions['LOCAL'] = self.check_cms_updates(Con.localCmsRenew, 'LOCAL')
 
             max_priority = sorted(priorities, key=priorities.__getitem__)[-1]
             LOG.cms_logger('The priority of the update catalog has been determined: ' + max_priority)
@@ -84,21 +84,21 @@ class CMSUpdate:
                             LOG.cms_logger('Update detected ' + versions[max_priority])
                             if key is True:
                                 self.current_cms_arch(current_v)
-                                self.renew_cms_files(Config.globalCmsRenew)
+                                self.renew_cms_files(Con.globalCmsRenew)
                             else:
                                 return True
                     elif int(current_v_arr[1]) < int(newt_v_arr[1]) and stop_check != 1:
                         if key is True:
                             LOG.cms_logger('ОUpdate detected ' + versions[max_priority])
                             self.current_cms_arch(current_v)
-                            self.renew_cms_files(Config.groupCmsRenew)
+                            self.renew_cms_files(Con.groupCmsRenew)
                         else:
                             return True
                 elif int(current_v_arr[0]) < int(newt_v_arr[0]) and stop_check != 1:
                     if key is True:
                         LOG.cms_logger('Update detected ' + versions[max_priority])
                         self.current_cms_arch(current_v)
-                        self.renew_cms_files(Config.globalCmsRenew)
+                        self.renew_cms_files(Con.globalCmsRenew)
                     else:
                         return True
             else:
@@ -137,8 +137,8 @@ class CMSUpdate:
     @staticmethod
     def current_cms_arch(version):
 
-        if not os.path.exists(Config.CMSArchPath + str(version)):
-            shutil.copytree(os.getcwd(), Config.CMSArchPath + str(version))
+        if not os.path.exists(Con.CMSArchPath + str(version)):
+            shutil.copytree(os.getcwd(), Con.CMSArchPath + str(version))
             LOG.cms_logger('The current package is archived')
 
         # Updates CMS files directly
@@ -167,20 +167,20 @@ class RenewContent:
 
             if fix is True:
                 count_pass += 1
-            if count_pass >= 5:
+            if count_pass >= Con.count_pass:
                 self.content_renew_handle(q_prepare_to_send, )
                 q_internal.put(cr_msg.send_mail('Выполнено обновление контента'))
                 list_f = None
                 fix = False
                 count_pass = 0
-            time.sleep(10)
+            time.sleep(Con.dynamic_renew_cont_delay)
 
     def content_renew_handle(self, q_prepare_to_send, ):
 
         append_status = self.append_content()
         a = Res.CreateMessage.command_term_nova()
         q_prepare_to_send.put(a)
-        time.sleep(20)
+        time.sleep(Con.content_renew_handle_delay)
         remove_status = self.remove_content()
         if (append_status is True) or (remove_status is True):
             self.generate()
@@ -190,12 +190,12 @@ class RenewContent:
     @staticmethod
     def check_new_content():
         x = 0
-        for formatPath in Config.screenFormat:
-            ya_list_files_except = os.listdir(Config.yaFilesExcept + formatPath)
-            ya_list_files_unex = os.listdir(Config.yaFilesUnex + formatPath)
-            ya_list_files_ex = os.listdir(Config.yaFilesEx + formatPath)
-            local_list_files_unex = os.listdir(Config.localFilesUnex + formatPath)
-            local_list_files_ex = os.listdir(Config.localFilesEx + formatPath)
+        for formatPath in Con.screenFormat:
+            ya_list_files_except = os.listdir(Con.yaFilesExcept + formatPath)
+            ya_list_files_unex = os.listdir(Con.yaFilesUnex + formatPath)
+            ya_list_files_ex = os.listdir(Con.yaFilesEx + formatPath)
+            local_list_files_unex = os.listdir(Con.localFilesUnex + formatPath)
+            local_list_files_ex = os.listdir(Con.localFilesEx + formatPath)
 
             for file in ya_list_files_except:
                 if file in local_list_files_unex:
@@ -239,26 +239,26 @@ class RenewContent:
 
         refresh_status = False
 
-        for formatPath in Config.screenFormat:
-            ya_list_files_except = os.listdir(Config.yaFilesExcept + formatPath)
-            ya_list_files_unex = os.listdir(Config.yaFilesUnex + formatPath)
-            ya_list_files_ex = os.listdir(Config.yaFilesEx + formatPath)
-            local_list_files_unex = os.listdir(Config.localFilesUnex + formatPath)
-            local_list_files_ex = os.listdir(Config.localFilesEx + formatPath)
+        for formatPath in Con.screenFormat:
+            ya_list_files_except = os.listdir(Con.yaFilesExcept + formatPath)
+            ya_list_files_unex = os.listdir(Con.yaFilesUnex + formatPath)
+            ya_list_files_ex = os.listdir(Con.yaFilesEx + formatPath)
+            local_list_files_unex = os.listdir(Con.localFilesUnex + formatPath)
+            local_list_files_ex = os.listdir(Con.localFilesEx + formatPath)
             if ya_list_files_unex != local_list_files_unex:
                 for file in ya_list_files_unex:
                     if file not in ya_list_files_except:
                         if file not in local_list_files_unex:
-                            shutil.copy(Config.yaFilesUnex + formatPath + '\\' + file,
-                                        Config.localFilesUnex + formatPath)
-                            LOG.cms_logger('File added: ' + Config.yaFilesUnex + formatPath + '\\' + file)
+                            shutil.copy(Con.yaFilesUnex + formatPath + '\\' + file,
+                                        Con.localFilesUnex + formatPath)
+                            LOG.cms_logger('File added: ' + Con.yaFilesUnex + formatPath + '\\' + file)
                             refresh_status = True
 
             if ya_list_files_ex != local_list_files_ex:
                 for file in ya_list_files_ex:
                     if file not in local_list_files_ex:
-                        shutil.copy(Config.yaFilesEx + formatPath + '\\' + file, Config.localFilesEx + formatPath)
-                        LOG.cms_logger('File added: ' + Config.yaFilesEx + formatPath + '\\' + file)
+                        shutil.copy(Con.yaFilesEx + formatPath + '\\' + file, Con.localFilesEx + formatPath)
+                        LOG.cms_logger('File added: ' + Con.yaFilesEx + formatPath + '\\' + file)
                         refresh_status = True
 
         return refresh_status
@@ -268,61 +268,61 @@ class RenewContent:
 
         refresh_status = False
 
-        for formatPath in Config.screenFormat:
-            ya_list_files_except = os.listdir(Config.yaFilesExcept + formatPath)
-            ya_list_files_unex = os.listdir(Config.yaFilesUnex + formatPath)
-            ya_list_files_ex = os.listdir(Config.yaFilesEx + formatPath)
-            local_list_files_unex = os.listdir(Config.localFilesUnex + formatPath)
-            local_list_files_ex = os.listdir(Config.localFilesEx + formatPath)
+        for formatPath in Con.screenFormat:
+            ya_list_files_except = os.listdir(Con.yaFilesExcept + formatPath)
+            ya_list_files_unex = os.listdir(Con.yaFilesUnex + formatPath)
+            ya_list_files_ex = os.listdir(Con.yaFilesEx + formatPath)
+            local_list_files_unex = os.listdir(Con.localFilesUnex + formatPath)
+            local_list_files_ex = os.listdir(Con.localFilesEx + formatPath)
 
             for file in ya_list_files_except:
                 if file in local_list_files_unex:
-                    os.remove(Config.localFilesUnex + formatPath + '\\' + file)
-                    LOG.cms_logger('File deleted by exception: ' + Config.localFilesUnex + formatPath + '\\' + file)
+                    os.remove(Con.localFilesUnex + formatPath + '\\' + file)
+                    LOG.cms_logger('File deleted by exception: ' + Con.localFilesUnex + formatPath + '\\' + file)
                     refresh_status = True
 
             if ya_list_files_unex != local_list_files_unex:
                 for file in local_list_files_unex:
                     if file not in ya_list_files_unex:
-                        os.remove(Config.localFilesUnex + formatPath + '\\' + file)
-                        LOG.cms_logger('File deleted: ' + Config.localFilesUnex + formatPath + '\\' + file)
+                        os.remove(Con.localFilesUnex + formatPath + '\\' + file)
+                        LOG.cms_logger('File deleted: ' + Con.localFilesUnex + formatPath + '\\' + file)
                         refresh_status = True
             if ya_list_files_ex != local_list_files_ex:
                 for file in local_list_files_ex:
                     if file not in ya_list_files_ex:
-                        os.remove(Config.localFilesEx + formatPath + '\\' + file)
-                        LOG.cms_logger('File deleted: ' + Config.localFilesEx + formatPath + '\\' + file)
+                        os.remove(Con.localFilesEx + formatPath + '\\' + file)
+                        LOG.cms_logger('File deleted: ' + Con.localFilesEx + formatPath + '\\' + file)
                         refresh_status = True
         return refresh_status
 
     def generate(self):
         format_path = None
-        for format_path in Config.screenFormat:
+        for format_path in Con.screenFormat:
 
             all_file_path_list = []
             all_file_name_list = []
 
-            local_list_files_unex = os.listdir(Config.localFilesUnex + format_path)
-            local_list_files_ex = os.listdir(Config.localFilesEx + format_path)
+            local_list_files_unex = os.listdir(Con.localFilesUnex + format_path)
+            local_list_files_ex = os.listdir(Con.localFilesEx + format_path)
 
             for file in local_list_files_unex:
-                all_file_path_list.append(Config.localFilesUnex + format_path + '\\' + file)
+                all_file_path_list.append(Con.localFilesUnex + format_path + '\\' + file)
                 LOG.cms_logger(
-                    'The file is included in the playlist: ' + Config.localFilesUnex + format_path + '\\' + file)
+                    'The file is included in the playlist: ' + Con.localFilesUnex + format_path + '\\' + file)
                 all_file_name_list.append(file)
 
             for file in local_list_files_ex:
-                all_file_path_list.append(Config.localFilesEx + format_path + '\\' + file)
+                all_file_path_list.append(Con.localFilesEx + format_path + '\\' + file)
                 LOG.cms_logger(
-                    'ФThe file is included in the playlist: ' + Config.localFilesEx + format_path + '\\' + file)
+                    'ФThe file is included in the playlist: ' + Con.localFilesEx + format_path + '\\' + file)
                 all_file_name_list.append(file)
 
             play_program = self.create_xml(all_file_path_list, all_file_name_list)
             self.prettify(play_program)
             tree = Et.ElementTree(play_program)
-            tree.write('{}{}_playerConfig.plym'.format(Config.configTargetPath, format_path), encoding='UTF-8',
+            tree.write('{}{}_playerConfig.plym'.format(Con.configTargetPath, format_path), encoding='UTF-8',
                        xml_declaration=True)
-        LOG.cms_logger('Playlist generated: ' + '{}{}_playerConfig.plym'.format(Config.configTargetPath, format_path))
+        LOG.cms_logger('Playlist generated: ' + '{}{}_playerConfig.plym'.format(Con.configTargetPath, format_path))
 
     @staticmethod
     def create_xml(file_path_arr, file_name_arr):
@@ -337,7 +337,7 @@ class RenewContent:
         page = Et.SubElement(basic_page, 'Page', Name="Program1", PlayType="Order", Duration="00:06:00", PlayTimes="1",
                              BackColor="255#0#0#0", BackgroundImage="", ImageLayout="Stretch", BackMusic="",
                              CustomString="")
-        window = Et.SubElement(page, 'Window', Name=Config.objType, X="0", Y="0", Width="320", Height="120",
+        window = Et.SubElement(page, 'Window', Name=Con.objType, X="0", Y="0", Width="320", Height="120",
                                Tag="Common")
         for file_path in file_path_arr:
             item = Et.SubElement(window, 'Item', Type="0")
@@ -449,8 +449,8 @@ class NovaBin:
 
     @staticmethod
     def check_nova_file():
-        if os.path.exists(Config.novaBinFile):
-            file = open(Config.novaBinFile, 'rb')
+        if os.path.exists(Con.novaBinFile):
+            file = open(Con.novaBinFile, 'rb')
             string = file.read()
             if re.search('zh-CN', str(string)):
                 return False
@@ -461,8 +461,8 @@ class NovaBin:
 
     @staticmethod
     def restore_nova_bin():
-        if os.path.exists(Config.novaBinFileBak):
-            shutil.copy(Config.novaBinFileBak, Config.novaBinFile)
+        if os.path.exists(Con.novaBinFileBak):
+            shutil.copy(Con.novaBinFileBak, Con.novaBinFile)
 
             return True
         else:
@@ -470,5 +470,5 @@ class NovaBin:
 
     @staticmethod
     def backup_nova_bin():
-        shutil.copy(Config.novaBinFile, Config.novaBinFileBak)
+        shutil.copy(Con.novaBinFile, Con.novaBinFileBak)
         LOG.cms_logger('NovaBin has been backed up')

@@ -13,7 +13,7 @@ import winerror
 from datetime import date
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
-from App.Config import Config
+from App.Config import Config as Con
 from App import API, Log, Database, File
 from App import Resource as Res
 
@@ -75,7 +75,7 @@ class Files(Init):
         # arch_name = None
         list_for_archiving = []
         # Lists files stored in a directory
-        for file in os.listdir(Config.logPath):
+        for file in os.listdir(Con.logPath):
             # Continues to work only with files with the .log extension
             if re.search('log', file):
                 # Checks the creation date of log files
@@ -85,16 +85,16 @@ class Files(Init):
                     LOG.cms_logger('Marked for archiving ' + file)
                     list_for_archiving.append(file)
         # Checks if the folder that I'm going to create exists
-        if list_for_archiving and not os.path.exists(Config.logPath + str(date.today())):
-            os.mkdir(Config.logPath + arch_name)
+        if list_for_archiving and not os.path.exists(Con.logPath + str(date.today())):
+            os.mkdir(Con.logPath + arch_name)
             # Move logs to folder
             for file in list_for_archiving:
-                shutil.move(Config.logPath + file, Config.logPath + arch_name + '\\' + file)
+                shutil.move(Con.logPath + file, Con.logPath + arch_name + '\\' + file)
                 LOG.cms_logger('Moved to archive ' + file)
             # Archives a folder
-            shutil.make_archive(base_name=Config.logPath + arch_name,
-                                format='zip', root_dir=Config.logPath + arch_name, )
-            shutil.rmtree(Config.logPath + arch_name)
+            shutil.make_archive(base_name=Con.logPath + arch_name,
+                                format='zip', root_dir=Con.logPath + arch_name, )
+            shutil.rmtree(Con.logPath + arch_name)
         else:
             LOG.cms_logger('No logs found to archive')
 
@@ -104,7 +104,7 @@ class Files(Init):
         list_for_deleting = []
 
         # Lists files stored in a directory
-        for file in os.listdir(Config.logPath):
+        for file in os.listdir(Con.logPath):
             # Continues to work only with files with the .zip extension
             if re.search('zip', file):
                 # Checks the date the archive was created
@@ -114,7 +114,7 @@ class Files(Init):
 
         # Removes obsolete archives
         for file in list_for_deleting:
-            os.remove(Config.logPath + file)
+            os.remove(Con.logPath + file)
             LOG.cms_logger('File deleted ' + file)
 
 
@@ -134,8 +134,8 @@ class SysInit(Files):
     @staticmethod
     def check_db():
         data = True
-        if os.path.exists(Config.DBFolder):
-            if os.path.exists(Config.DBPath):
+        if os.path.exists(Con.DBFolder):
+            if os.path.exists(Con.DBPath):
                 LOG.cms_logger('Database file exist')
             else:
                 handle = Database.DBFoo()
@@ -143,7 +143,7 @@ class SysInit(Files):
                 data = False
                 LOG.cms_logger('Database file created')
         else:
-            os.mkdir(Config.DBFolder)
+            os.mkdir(Con.DBFolder)
             handle = Database.DBFoo()
             handle.create_tables()
             data = False
@@ -155,9 +155,9 @@ class SysInit(Files):
         return data
 
     @staticmethod
-    def put_sys_run(q_out):
+    def put_sys_run(q_internal):
         o_db_prep = Database.Prepare()
-        q_out.put(o_db_prep.system_run_prep(datetime.datetime.now()))
+        q_internal.put(o_db_prep.system_run_prep(datetime.datetime.now()))
 
     @staticmethod
     def check_last_self_init_std(q_internal):
@@ -263,7 +263,8 @@ class SysInit(Files):
         time_line = (datetime.datetime.now() - pre_current_run.datetime).seconds
 
         if last_std.id != pre_current_run.id:
-            msg_txt = 'Предыдущее отключение не было инициировано CMS, либо произошел сбой записи в БД \n'
+            msg_txt = 'Предыдущее отключение не было инициировано CMS, либо произошел сбой записи в БД ' \
+                      'или CMS отключалась вручную \n'
             while ev:
                 try:
                     ev = win32evtlog.ReadEventLog(handle, flags, 0)

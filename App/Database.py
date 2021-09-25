@@ -4,10 +4,10 @@ from peewee import *
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
-from App.Config import Config
+from App.Config import Config as Con
 from App import Resource as Res
 
-db_handle = SqliteDatabase(Config.DBPath)
+db_handle = SqliteDatabase(Con.DBPath)
 
 
 class BaseModel(Model):
@@ -58,9 +58,9 @@ class DBFoo(Tables):
         count = self.SystemRun().select().count()
         return count
 
-    def write_controller(self, q_in):
+    def write_controller(self, q_db_write):
         while True:
-            data = q_in.get()
+            data = q_db_write.get()
             if data['table'] == 'SystemInit':
                 wr_data = data['data']
                 self.SystemInit.create(id=wr_data['id'], datetime=wr_data['datetime'], )

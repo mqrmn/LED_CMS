@@ -11,7 +11,7 @@ import queue
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
 
-from App.Config import Config
+from App.Config import Config as Con
 from App import Log, Comm, Handler, File, Act, Database, Control, Notify
 from App import Resource as Res
 
@@ -93,9 +93,9 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
                                   args=(q_internal,))
         # Exchange threads
         t_server = threading.Thread(target=o_sockets.server,
-                                    args=(Config.localhost, Config.CMSCoreInternalPort, q_from_ua))
+                                    args=(Con.localhost, Con.CMSCoreInternalPort, q_from_ua))
         t_client_ua = threading.Thread(target=o_sockets.client,
-                                       args=(Config.localhost, Config.CMSUserAgentPort, q_tcp_send))
+                                       args=(Con.localhost, Con.CMSUserAgentPort, q_tcp_send))
 
         # Inbound processing flows
         # 0 - in, 1, 2, 3 - out
@@ -103,9 +103,11 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
                                                   args=(q_from_ua, q_valid_screen, q_valid_proc, q_internal))
 
         t_valid_data_screen = threading.Thread(target=o_handlers.valid,
-                                               args=(q_valid_screen, q_action, True, 3, Res.H[0], True))
+                                               args=(q_valid_screen, q_action,
+                                                     True, Con.core_check_screen_count, Res.H[0], True))
         t_valid_data_proc = threading.Thread(target=o_handlers.valid,
-                                             args=(q_valid_proc, q_action, False, 3, Res.H[0], True))
+                                             args=(q_valid_proc, q_action,
+                                                   False, Con.core_check_proc_count, Res.H[0], True))
 
         # Internal processing flows
         t_internal = threading.Thread(target=o_handlers.internal,
@@ -166,7 +168,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
             if rc == win32event.WAIT_OBJECT_0:
                 LOG.cms_logger('Command to stop service received')
                 c_comm = Comm.Socket()
-                c_comm.send(Config.localhost, Config.CMSUserAgentPort, Res.TerminateThread[0])
+                c_comm.send(Con.localhost, Con.CMSUserAgentPort, Res.TerminateThread[0])
                 LOG.cms_logger('UA stop command sent')
                 servicemanager.LogInfoMsg("Service finished")
                 break

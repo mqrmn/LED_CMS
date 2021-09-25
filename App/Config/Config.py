@@ -63,7 +63,7 @@ smtpReceiver = 'alex.s@znp74.ru'
 smtpServer = 'smtp.yandex.ru'
 smtpPort = 587
 
-# Timeouts
+# Timeouts & counts
 # Handler.Queue.SendController
 runNovaTimeout = 5
 terminateNovaTimeout = 5
@@ -72,3 +72,33 @@ restartNovaTimeout = 500
 # Handler.Queue.CreateAction
 restartNovaMaxCount = 3
 restoreNovaMaxCount = 3
+# UserAgent.CMSUserAgent
+ua_check_screen_count = 2
+ua_check_proc_count = 1
+
+# CMSCore
+core_check_screen_count = 3
+core_check_proc_count = 3
+
+# Control.
+# ua_valid
+ua_delay = 300
+# cms_service
+cms_service_delay = 60
+cont_last_reb_delay = 300
+# power_manager
+last_reb_delay = 300
+
+# File.
+# CMSUpdate.
+# cms_updater
+cms_updater_delay1 = 180
+cms_updater_delay2 = 5
+cms_updater_delay3 = 1800
+# RenewContent.
+# dynamic_renew_cont
+count_pass = 5
+dynamic_renew_cont_delay = 10
+# content_renew_handle
+content_renew_handle_delay = 20
+

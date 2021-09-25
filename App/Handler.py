@@ -8,7 +8,7 @@ sys.path.append("C:\\MOBILE\\Local\\CMS")
 
 from App import File, Act, Log
 from App import Resource as Res
-from App.Config import Config as Conf
+from App.Config import Config as Con
 
 LOG = Log.LogManager()
 
@@ -43,7 +43,7 @@ class Queue(Init):
             data = q_prepare_to_send.get()
             # Launching NovaStudio
             if data == Res.CreateMessage.command_run_nova():
-                if (datetime.datetime.now() - run_nova_time).seconds >= Conf.runNovaTimeout:
+                if (datetime.datetime.now() - run_nova_time).seconds >= Con.runNovaTimeout:
                     self.to_send(data, q_tcp_send)
                     run_nova_time = datetime.datetime.now()
                 else:
@@ -51,7 +51,7 @@ class Queue(Init):
                 data = None
             # Stop NovaStudio
             if data == Res.CreateMessage.command_term_nova():
-                if (datetime.datetime.now() - term_nova_time).seconds >= Conf.terminateNovaTimeout:
+                if (datetime.datetime.now() - term_nova_time).seconds >= Con.terminateNovaTimeout:
                     self.to_send(data, q_tcp_send)
                     term_nova_time = datetime.datetime.now()
                 else:
@@ -59,7 +59,7 @@ class Queue(Init):
                 data = None
             # Stopping MarsServerProvider
             if data == Res.TerminateMars[1]:
-                if (datetime.datetime.now() - term_mars_time).seconds >= Conf.terminateMarsTimeout:
+                if (datetime.datetime.now() - term_mars_time).seconds >= Con.terminateMarsTimeout:
                     self.to_send(data, q_tcp_send)
                     term_mars_time = datetime.datetime.now()
                 else:
@@ -67,7 +67,7 @@ class Queue(Init):
                 data = None
             # Restarting NovaStudio
             if data == Res.RestartNova[1]:
-                if (datetime.datetime.now() - res_nova_time).seconds >= Conf.restartNovaTimeout:
+                if (datetime.datetime.now() - res_nova_time).seconds >= Con.restartNovaTimeout:
                     self.to_send(data, q_tcp_send)
                     res_nova_time = datetime.datetime.now()
                 else:
@@ -139,12 +139,12 @@ class Queue(Init):
                     dict_mars = {}
                 command = None
             # RestoreNova
-            if restart_nova_count >= Conf.restartNovaMaxCount \
-                    and ((datetime.datetime.now() - last_nova_restart).seconds <= Conf.restartNovaTimeout):
+            if restart_nova_count >= Con.restartNovaMaxCount \
+                    and ((datetime.datetime.now() - last_nova_restart).seconds <= Con.restartNovaTimeout):
                 q_prepare_to_send.put(Res.RestoreNovaBin[0])
                 restore_nova_count += 1
                 restart_nova_count = 0
-                if restore_nova_count >= Conf.restoreNovaMaxCount:
+                if restore_nova_count >= Con.restoreNovaMaxCount:
                     a = Res.CreateMessage.reboot_system()
                     b = Res.CreateMessage.send_mail('The system attempt to reboot')
                     q_internal.put(a)
@@ -152,14 +152,14 @@ class Queue(Init):
 
     # Processor of data coming to UA
     @staticmethod
-    def from_core(q_in, q_out, ):
+    def from_core(q_from_core, q_action, ):
         while True:
-            data = q_in.get()
+            data = q_from_core.get()
             if data[Res.r[0]] == Res.M[0]:      # Method == put
                 if data[Res.r[1]] == Res.H[1]:  # Head == Action
-                    q_out.put(data)
+                    q_action.put(data)
                 if data[Res.r[1]] == Res.H[4]:  # Head == Flag
-                    q_out.put(data[Res.r[3]])
+                    q_action.put(data[Res.r[3]])
 
     @staticmethod
     def from_core_to_cont(q_in, q_out, ):
@@ -170,11 +170,11 @@ class Queue(Init):
 
     # Checks the keys in the data coming to the UA, in accordance with them, launches actions
     @staticmethod
-    def ua_action(q_in, q_out, ):
+    def ua_action(q_action, q_control, ):
         c_exec = Act.Process()
         c_file = File.NovaBin()
         while True:
-            data = q_in.get()
+            data = q_action.get()
             LOG.cms_logger(data)
             if data[Res.r[2]] == Res.K[2]:      # Key == RunProc
                 c_exec.start(data[Res.r[3]])
@@ -185,7 +185,7 @@ class Queue(Init):
             if data[Res.r[2]] == Res.K[5]:      # Key == Process
                 pass
             if data[Res.r[2]] == Res.K[6]:      # Key == TerminateThread
-                q_out.put(data)
+                q_control.put(data)
             if data[Res.r[2]] == Res.K[11]:     # Key == RestoreNovaBin
                 c_file.restore_handle()
 
@@ -227,23 +227,23 @@ class Queue(Init):
 
     # Checking the list of processes for compliance with the activity status
     @staticmethod
-    def check_proc_list(q_in, q_out):
+    def check_proc_list(q_proc_state_raw, q_proc_state):
         while True:
-            if q_in.empty() is False:
-                data = q_in.get()
+            if q_proc_state_raw.empty() is False:
+                data = q_proc_state_raw.get()
                 if data[1] == Res.ProcDict[data[0]]:
                     state = True
                 else:
                     state = False
-                q_out.put({Res.r[2]: Res.K[1], Res.r[3]: [data[0], state]})
+                q_proc_state.put({Res.r[2]: Res.K[1], Res.r[3]: [data[0], state]})
             else:
                 time.sleep(1)
 
     # Send queue processing
     @staticmethod
-    def to_send(data, q_out):
+    def to_send(data, q_tcp_send):
         data[Res.r[0]] = Res.M[0]
-        q_out.put(data)
+        q_tcp_send.put(data)
 
     # Internal queue processing
     @staticmethod
