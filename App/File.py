@@ -30,23 +30,24 @@ class CMSUpdate:
         while True:
             if self.cms_upgrade(False) is True:
                 LOG.cms_logger('Update detected')
-                time.sleep(Con.cms_updater_delay1)
-                st_svc = c_api.stop_service('CMS')
-                if st_svc[0] == 0:
-                    q_from_updater.put(True)
-                    LOG.cms_logger('CMS stopped')
-                    time.sleep(Con.cms_updater_delay2)
-                    self.cms_upgrade(True)
-                    table = Database.Tables()
-                    table.SelfInitShutdown.create(trigger=getframeinfo(currentframe())[2],
-                                                  key='reboot',
-                                                  datetime=datetime.datetime.now(), )
+                try:
+                    c_api.stop_service('CMS')
+                except:
+                    LOG.cms_logger(sys.exc_info()[1])
 
-                    c_action.reboot_init()
-                    q_internal.put(o_create_message.send_mail('Выполнено обновление CMS'))
+                q_from_updater.put(True)
+                LOG.cms_logger('CMS stopped')
+                time.sleep(Con.cms_updater_delay2)
+                self.cms_upgrade(True)
+                table = Database.Tables()
+                table.SelfInitShutdown.create(trigger=getframeinfo(currentframe())[2],
+                                              key='reboot',
+                                              datetime=datetime.datetime.now(), )
 
-                else:
-                    LOG.cms_logger('Cant stop CMS, code: {}'.format(st_svc), )
+                c_action.reboot_init()
+                q_internal.put(o_create_message.send_mail('Выполнено обновление CMS'))
+
+
             else:
                 time.sleep(Con.cms_updater_delay3)
 

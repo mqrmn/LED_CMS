@@ -16,7 +16,7 @@ sc stop CMS
 del /S /Q C:\MOBILE\Local\CMS
 robocopy /E C:\MOBILE\YandexDisk\MACHINES\CMS_INIT C:\MOBILE\Local\CMS
 
-SCHTASKS /Create /TN "CMSUserAgent" /TR "'C:\Program Files\Python38\python.exe' C:\MOBILE\Local\CMS\App\UserAgent\CMSUserAgent.py" /RL HIGHEST /SC onlogon /DELAY 0005:00
+SCHTASKS /Create /TN "CMSUserAgent" /TR "'C:\Program Files\Python38\python.exe' C:\MOBILE\Local\CMS\App\UserAgent\CMSUserAgent.py" /RL HIGHEST /SC onlogon
 Python "C:\MOBILE\Local\CMS\App\CMSCore.py" --startup auto install
 Python "C:\MOBILE\Local\CMS\Controller\CMSController.py" --startup auto install
 
