@@ -11,11 +11,14 @@ pip install peewee
 copy "c:\Program Files\Python38\Lib\site-packages\pywin32_system32\pythoncom38.dll" "C:\program Files\Python38\Lib\site-packages\win32\pythoncom38.dlll"
 copy "c:\Program Files\Python38\Lib\site-packages\pywin32_system32\pywintypes38.dll" "C:\program Files\Python38\Lib\site-packages\win32\pywintypes38.dll"
 
-copy C:\MOBILE\YandexDisk\MACHINES\CMS_INIT C:\MOBILE\Local\CMS
+sc stop CMS
 
-SCHTASKS /Create /TN "CMSUserAgent" /TR "'C:\Program Files\Python38\pythonw.exe' C:\MOBILE\Local\CMS\CMSUserAgent.py" /RL HIGHEST /SC onlogon /DELAY 0005:00
+del /S /Q C:\MOBILE\Local\CMS
+robocopy /E C:\MOBILE\YandexDisk\MACHINES\CMS_INIT C:\MOBILE\Local\CMS
+
+SCHTASKS /Create /TN "CMSUserAgent" /TR "'C:\Program Files\Python38\python.exe' C:\MOBILE\Local\CMS\App\UserAgent\CMSUserAgent.py" /RL HIGHEST /SC onlogon /DELAY 0005:00
 Python "C:\MOBILE\Local\CMS\App\CMSCore.py" --startup auto install
-Python "C:\MOBILE\Local\CMS\App\Controller\CMSController.py" --startup auto install
+Python "C:\MOBILE\Local\CMS\Controller\CMSController.py" --startup auto install
 
 sc start CMSController
 sc start CMS

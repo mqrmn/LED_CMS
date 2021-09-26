@@ -31,9 +31,9 @@ localFilesUnex = 'C:\\MOBILE\\Local\\Content\\Unex\\'
 localFilesEx = 'C:\\MOBILE\\Local\\Content\\Ex\\'
 
 # Setting up CMS update directories
-globalCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\CMS_DEV\\'
-groupCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\{}\\CMS_DEV\\'.format(objType)
-localCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\{}\\{}\\CMS\\'.format(objType, objCode)
+globalCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\CMS\\App\\'
+groupCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\{}\\CMS\\App\\'.format(objType)
+localCmsRenew = 'C:\\MOBILE\\YandexDisk\\MACHINES\\{}\\{}\\CMS\\App\\'.format(objType, objCode)
 
 # Database placement
 DBFolder = 'C:\\MOBILE\\Local\\CMS\\Database\\'

@@ -89,7 +89,7 @@ class CMSUpdate:
                                 return True
                     elif int(current_v_arr[1]) < int(newt_v_arr[1]) and stop_check != 1:
                         if key is True:
-                            LOG.cms_logger('ОUpdate detected ' + versions[max_priority])
+                            LOG.cms_logger('Update detected ' + versions[max_priority])
                             self.current_cms_arch(current_v)
                             self.renew_cms_files(Con.groupCmsRenew)
                         else:
@@ -145,8 +145,8 @@ class CMSUpdate:
 
     @staticmethod
     def renew_cms_files(path):
-        # shutil.rmtree(os.path.dirname(__file__))
-        # shutil.copytree(path, os.path.dirname(__file__))
+        shutil.rmtree(os.path.dirname(__file__))
+        shutil.copytree(path, os.path.dirname(__file__))
 
         LOG.cms_logger('Update completed')
 

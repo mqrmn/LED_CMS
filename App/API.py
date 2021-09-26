@@ -87,6 +87,7 @@ class Nova(Process):
     def restart_nova(self):
         LOG.cms_logger('Called')
         self.terminate_nova()
+        time.sleep(5)
         self.run_nova()
 
     def run_nova(self):
