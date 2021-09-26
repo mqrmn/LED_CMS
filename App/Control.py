@@ -9,6 +9,7 @@ import time
 import datetime
 import threading
 import socket
+import schedule
 from inspect import currentframe, getframeinfo
 
 sys.path.append("C:\\MOBILE\\Local\\CMS")
@@ -30,6 +31,16 @@ class Init:
 
 
 class CMS(Init):
+
+    @staticmethod
+    def scheduler():
+        c_action_sys = Act.System()
+        schedule.every().day.at('10:30').do(c_action_sys.reboot_init)
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
+
+
     @staticmethod
     def thread(q_in, data):
         while True:

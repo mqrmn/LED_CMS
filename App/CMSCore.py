@@ -65,7 +65,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         o_handlers = Handler.Queue()
         o_sockets = Comm.Socket()
         o_renew_cont = File.RenewContent()
-        o_valid = Control.CMS()
+        o_control = Control.CMS()
         o_db = Database.DBFoo()
         o_send_mail_cont = Notify.Mail()
 
@@ -132,13 +132,14 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         t_check_new_content = threading.Thread(target=o_renew_cont.dynamic_renew_cont,
                                                args=(q_prepare_to_send, q_internal))
         # 0 - in, 1 - out
-        t_ua_valid = threading.Thread(target=o_valid.ua_valid,
+        t_ua_valid = threading.Thread(target=o_control.ua_valid,
                                       args=(q_ua_valid, q_internal))
         t_send_mail_cont = threading.Thread(target=o_send_mail_cont.send_mail_controller,
                                             args=(q_send_mail,))
         # 0, 2 - in, 1 - out
-        t_power_manager = threading.Thread(target=o_valid.power_manager,
+        t_power_manager = threading.Thread(target=o_control.power_manager,
                                            args=(q_power_manager, q_internal, q_power_manager_flag))
+        t_scheduler = threading.Thread(target=o_control.scheduler, args=())
 
         LOG.cms_logger('Threads are initialized')
 
@@ -158,6 +159,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         t_set_flag.start()
         t_send_mail_cont.start()
         t_power_manager.start()
+        t_scheduler.start()
 
         LOG.cms_logger('Threads started')
 
