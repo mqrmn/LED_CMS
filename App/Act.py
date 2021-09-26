@@ -299,7 +299,7 @@ class SysInit(Files):
                                                        'Описание: {} '.format(the_time.Format(), ev_type, src, ev_id,
                                                                               msg)
                                             br = True
-                                if src == 'EventLog' and ev_id == '6008':
+                                elif src == 'EventLog' and ev_id == '6008':
                                     if re.findall(r'неожидан', msg):
                                         msg_txt += 'Система была неожиданно отключена, \n' \
                                                    'Время: {}, \n' \
