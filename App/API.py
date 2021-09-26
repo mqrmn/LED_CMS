@@ -77,6 +77,10 @@ class System(Win):
         LOG.cms_logger('Called')
         self.get_wmi(["Shutdown"]).Win32_OperatingSystem()[0].Reboot()
 
+    def shutdown_pc(self):
+        LOG.cms_logger('Called')
+        self.get_wmi(["Shutdown"]).Win32_OperatingSystem()[0].Shutdown()
+
 
 class Nova(Process):
 

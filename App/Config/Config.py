@@ -81,6 +81,8 @@ core_check_screen_count = 3
 core_check_proc_count = 3
 
 # Control.
+# scheduler
+shutdown_time = '10:30'
 # ua_valid
 ua_delay = 300
 # cms_service

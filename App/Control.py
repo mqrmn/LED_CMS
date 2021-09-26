@@ -35,7 +35,7 @@ class CMS(Init):
     @staticmethod
     def scheduler():
         c_action_sys = Act.System()
-        schedule.every().day.at('10:30').do(c_action_sys.reboot_init)
+        schedule.every().day.at(Con.shutdown_time).do(c_action_sys.reboot_init)
         while True:
             schedule.run_pending()
             time.sleep(1)

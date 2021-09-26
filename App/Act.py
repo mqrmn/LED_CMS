@@ -65,6 +65,11 @@ class System(Init):
         time.sleep(30)
         o_sys.restart_pc()
 
+    def shutdown_init(self):
+        self.pre_shutdown()
+        time.sleep(180)
+        o_sys.shutdown_pc()
+
 
 class Files(Init):
 
