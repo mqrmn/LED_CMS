@@ -40,9 +40,13 @@ class CMSUpdate:
                 time.sleep(Con.cms_updater_delay2)
                 self.cms_upgrade(True)
                 table = Database.Tables()
-                table.SelfInitShutdown.create(trigger=getframeinfo(currentframe())[2],
-                                              key='reboot',
-                                              datetime=datetime.datetime.now(), )
+
+                try:
+                    table.SelfInitShutdown.create(trigger=getframeinfo(currentframe())[2],
+                                                  key='reboot',
+                                                  datetime=datetime.datetime.now(), )
+                except:
+                    LOG.cms_logger(sys.exc_info()[1])
 
                 c_action.reboot_init()
                 q_internal.put(o_create_message.send_mail('Выполнено обновление CMS'))
