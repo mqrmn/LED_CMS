@@ -139,7 +139,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         # 0, 2 - in, 1 - out
         t_power_manager = threading.Thread(target=o_control.power_manager,
                                            args=(q_power_manager, q_internal, q_power_manager_flag))
-        t_scheduler = threading.Thread(target=o_control.scheduler, args=())
+        t_scheduler = threading.Thread(target=o_control.scheduler, args=(q_internal, ))
 
         LOG.cms_logger('Threads are initialized')
 

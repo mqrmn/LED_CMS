@@ -62,12 +62,12 @@ class System(Init):
 
     def reboot_init(self):
         self.pre_shutdown()
-        time.sleep(30)
+        time.sleep(Con.pre_reboot_delay)
         o_sys.restart_pc()
 
     def shutdown_init(self):
         self.pre_shutdown()
-        time.sleep(180)
+        time.sleep(Con.pre_shutdown_delay)
         o_sys.shutdown_pc()
 
 
@@ -313,6 +313,7 @@ class SysInit(Files):
                                                    'Код события: {}, \n' \
                                                    'Описание: {} '.format(the_time.Format(),
                                                                           ev_type, src, ev_id, msg)
+                                        br = True
 
                         if br is True:
                             break

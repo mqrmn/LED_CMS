@@ -82,7 +82,7 @@ core_check_proc_count = 3
 
 # Control.
 # scheduler
-shutdown_time = '10:30'
+shutdown_time = '22:20'
 # ua_valid
 ua_delay = 300
 # cms_service
@@ -95,12 +95,17 @@ last_reb_delay = 300
 # CMSUpdate.
 # cms_updater
 cms_updater_delay1 = 180
-cms_updater_delay2 = 5
+cms_updater_delay2 = 300
 cms_updater_delay3 = 1800
 # RenewContent.
 # dynamic_renew_cont
 count_pass = 5
-dynamic_renew_cont_delay = 10
+dynamic_renew_cont_delay = 500
 # content_renew_handle
 content_renew_handle_delay = 20
+
+# Act.
+# System.
+pre_reboot_delay = 180
+pre_shutdown_delay = 180
 
