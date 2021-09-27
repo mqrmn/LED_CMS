@@ -57,10 +57,10 @@ CMSControllertPort = 24033
 
 # Mail Config
 
-smtpSender = 'salon.notification@znp74.ru'
+smtpSender = 'notifications.gtw@gmail.com'
 smtpPass = '6M3QP8LKKsesZg'
 smtpReceiver = 'alex.s@znp74.ru'
-smtpServer = 'smtp.yandex.ru'
+smtpServer = 'smtp.gmail.com'
 smtpPort = 587
 
 # Timeouts & counts
