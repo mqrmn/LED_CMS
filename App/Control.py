@@ -36,13 +36,13 @@ class CMS(Init):
     def scheduler_act(q_internal):
         c_action_sys = Act.System()
         o_db_msg = Database.Prepare()
-        q_internal.put(o_db_msg.SelfInitShutdown(getframeinfo(currentframe())[2],
-                                                 'shutdown',
-                                                 datetime.datetime.now()))
+        q_internal.put(o_db_msg.self_init_shutdown_prep(getframeinfo(currentframe())[2],
+                                                        'shutdown',
+                                                        datetime.datetime.now()))
         c_action_sys.shutdown_init()
 
     def scheduler(self, q_internal):
-        schedule.every().day.at(Con.shutdown_time).do(self.scheduler_act(q_internal))
+        schedule.every().day.at(Con.shutdown_time).do(self.scheduler_act, q_internal=q_internal)
         while True:
             schedule.run_pending()
             time.sleep(1)

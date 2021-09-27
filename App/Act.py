@@ -262,8 +262,7 @@ class SysInit(Files):
             LOG.cms_logger('CMS еще не отключал текущую систему')
             exit()
         else:
-            last_std = o_tbl.SelfInitShutdown().select().where(
-                o_tbl.SelfInitShutdown.key == ('reboot' or 'shutdown')).order_by(o_tbl.SelfInitShutdown.id.desc()).get()
+            last_std = o_tbl.SelfInitShutdown().select().order_by(o_tbl.SelfInitShutdown.id.desc()).get()
 
         time_line = (datetime.datetime.now() - pre_current_run.datetime).seconds
 

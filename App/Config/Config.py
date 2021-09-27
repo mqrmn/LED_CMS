@@ -82,7 +82,7 @@ core_check_proc_count = 3
 
 # Control.
 # scheduler
-shutdown_time = '22:20'
+shutdown_time = '21:55'
 # ua_valid
 ua_delay = 300
 # cms_service

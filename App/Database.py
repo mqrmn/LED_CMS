@@ -1,4 +1,5 @@
 # 1.1.1
+import datetime
 import sys
 from peewee import *
 
@@ -50,8 +51,12 @@ class DBFoo(Tables):
     def create_tables(self):
         with db_handle:
             db_handle.create_tables([self.SelfInitShutdown, ])
-            db_handle.create_tables([self.SystemRun, ])
+            self.SelfInitShutdown.create(id=1, trigger='create_tables',
+                                         key='INIT', datetime=datetime.datetime.now(), )
+
             db_handle.create_tables([self.SystemInit, ])
+            db_handle.create_tables([self.SystemRun, ])
+
 
     def get_count(self):
 
