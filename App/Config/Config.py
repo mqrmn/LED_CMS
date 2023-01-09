@@ -57,10 +57,10 @@ CMSControllertPort = 24033
 
 # Mail Config
 
-smtpSender = 'notifications.gtw@gmail.com'
-smtpPass = '6M3QP8LKKsesZg'
-smtpReceiver = 'alex.s@znp74.ru'
-smtpServer = 'smtp.gmail.com'
+smtpSender = ''
+smtpPass = ''
+smtpReceiver = ''
+smtpServer = ''
 smtpPort = 587
 
 # Timeouts & counts
